@@ -13,3 +13,6 @@ URL: https://github.com/EthanSansom/phinterval
 BugReports: https://github.com/EthanSansom/phinterval/issues
 Imports: 
     rlang
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3

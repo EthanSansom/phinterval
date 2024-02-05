@@ -1,10 +1,6 @@
-range_overlaps <- function(starts, ends) {
-
-  start_order <- order(starts)
-  any(starts[start_order][-1L] < cummax(ends[start_order][-length(ends)]))
-
-}
-
+# TODO: All of the names in this file are a little misleading, because we're really dealing
+#       with sets of ranges. These functions are internal, so I don't think it
+#       matters too much...
 range_flatten <- function(starts, ends) {
 
   positions <- c(starts, ends)
@@ -22,6 +18,34 @@ range_flatten <- function(starts, ends) {
     starts = positions[c(1, flat_ends[-length(flat_ends)] + 1)],
     ends = positions[flat_ends]
   )
+
+}
+
+# TODO: Change to `range_is_flat`, return TRUE on flat range and FALSE on
+#       for adjacent OR overlapping ranges
+range_contains_overlaps <- function(starts, ends) {
+
+  start_order <- order(starts)
+  any(starts[start_order][-1L] < cummax(ends[start_order][-length(ends)]))
+
+}
+
+range_is_flat <- function(starts, ends) {
+
+}
+
+# TODO Ethan: These describe the conditions for a range to be used in:
+# - range_intersection
+# - range_compliment
+# - range_setdifference
+# This kind of test should appear *somewhere* AND *once* in any `phinterval`
+# creation process (except maybe in simple constructor `new_phinterval`). ADD SOMEWHERE
+stop_unsanitized_range <- function(starts, ends) {
+
+  stopifnot(length(starts) == length(ends))
+  stopifnot(all(!is.na(starts) & !is.na(ends)))
+  stopifnot(all(starts <= ends))
+  stopifnot(range_is_flat(starts, ends))
 
 }
 
@@ -47,31 +71,23 @@ range_intersection <- function(x_starts, x_ends, y_starts, y_ends, rm_instants =
       ends = ends[non_instants]
     )
   } else {
-    list(
-      starts = starts,
-      ends = ends
-    )
+    list(starts = starts, ends = ends)
   }
 
 }
 
+# TODO: Fix this. We want the compliment to extend from (lower_bound, min(starts)) and
+#       (max(ends), upper_bound) IF the bounds exceed the input range. Otherwise,
+#       we want to truncate. Currently, we do none of that.
 range_compliment <- function(starts, ends, lower_bound = -Inf, upper_bound = Inf) {
 
   starts_order <- order(starts)
-
-  if (identical(lower_bound, -Inf) && identical(upper_bound, Inf)) {
-    list(
-      starts = ends[starts_order][-length(ends)],
-      ends = starts[starts_order][-1L]
-    )
-  } else {
-    range_truncate(
-      starts = ends[starts_order][-length(ends)],
-      ends = starts[starts_order][-1L],
-      lower_bound = lower_bound,
-      upper_bound = upper_bound
-    )
-  }
+  range_truncate(
+    starts = ends[starts_order][-length(ends)],
+    ends = starts[starts_order][-1L],
+    lower_bound = lower_bound,
+    upper_bound = upper_bound
+  )
 
 }
 
