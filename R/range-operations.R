@@ -2,14 +2,13 @@
 #       with sets of ranges. These functions are internal, so I don't think it
 #       matters too much...
 range_flatten <- function(starts, ends) {
-
   positions <- c(starts, ends)
-  is_start  <- rep(c(TRUE, FALSE), each = length(starts))
+  is_start <- rep(c(TRUE, FALSE), each = length(starts))
 
   # Ordering with `!is_start` to flatten adjacent ranges (as well as overlapping)
   position_order <- order(positions, !is_start)
   positions <- positions[position_order]
-  is_start  <- is_start[position_order]
+  is_start <- is_start[position_order]
 
   starts_minus_ends <- cumsum((is_start - 1L) + is_start)
   flat_ends <- which(starts_minus_ends == 0L)
@@ -18,16 +17,13 @@ range_flatten <- function(starts, ends) {
     starts = positions[c(1, flat_ends[-length(flat_ends)] + 1)],
     ends = positions[flat_ends]
   )
-
 }
 
 # TODO: Change to `range_is_flat`, return TRUE on flat range and FALSE on
 #       for adjacent OR overlapping ranges
 range_contains_overlaps <- function(starts, ends) {
-
   start_order <- order(starts)
   any(starts[start_order][-1L] < cummax(ends[start_order][-length(ends)]))
-
 }
 
 range_is_flat <- function(starts, ends) {
@@ -41,22 +37,19 @@ range_is_flat <- function(starts, ends) {
 # This kind of test should appear *somewhere* AND *once* in any `phinterval`
 # creation process (except maybe in simple constructor `new_phinterval`). ADD SOMEWHERE
 stop_unsanitized_range <- function(starts, ends) {
-
   stopifnot(length(starts) == length(ends))
   stopifnot(all(!is.na(starts) & !is.na(ends)))
   stopifnot(all(starts <= ends))
   stopifnot(range_is_flat(starts, ends))
-
 }
 
 range_intersection <- function(x_starts, x_ends, y_starts, y_ends, rm_instants = FALSE) {
-
-  positions  <- c(x_starts, y_starts, x_ends, y_ends)
-  is_start   <- rep(c(TRUE, FALSE), each = length(x_starts) + length(y_starts))
+  positions <- c(x_starts, y_starts, x_ends, y_ends)
+  is_start <- rep(c(TRUE, FALSE), each = length(x_starts) + length(y_starts))
 
   position_order <- order(positions)
-  positions  <- positions[position_order]
-  is_start   <- is_start[position_order]
+  positions <- positions[position_order]
+  is_start <- is_start[position_order]
 
   starts_minus_ends <- cumsum((is_start - 1L) + is_start)
   intersection_starts <- which(starts_minus_ends == 2L)
@@ -73,14 +66,12 @@ range_intersection <- function(x_starts, x_ends, y_starts, y_ends, rm_instants =
   } else {
     list(starts = starts, ends = ends)
   }
-
 }
 
 # TODO: Fix this. We want the compliment to extend from (lower_bound, min(starts)) and
 #       (max(ends), upper_bound) IF the bounds exceed the input range. Otherwise,
 #       we want to truncate. Currently, we do none of that.
 range_compliment <- function(starts, ends, lower_bound = -Inf, upper_bound = Inf) {
-
   starts_order <- order(starts)
   range_truncate(
     starts = ends[starts_order][-length(ends)],
@@ -88,11 +79,9 @@ range_compliment <- function(starts, ends, lower_bound = -Inf, upper_bound = Inf
     lower_bound = lower_bound,
     upper_bound = upper_bound
   )
-
 }
 
 range_setdifference <- function(x_starts, x_ends, y_starts, y_ends) {
-
   y_range_compliment <- range_compliment(
     starts = y_starts,
     ends = y_ends,
@@ -107,11 +96,9 @@ range_setdifference <- function(x_starts, x_ends, y_starts, y_ends) {
     y_ends = y_range_compliment$ends,
     rm_instants = TRUE
   )
-
 }
 
 range_truncate <- function(starts, ends, lower_bound, upper_bound) {
-
   in_bounds <- starts < upper_bound & ends > lower_bound
   starts <- starts[in_bounds]
   ends <- ends[in_bounds]
@@ -120,5 +107,4 @@ range_truncate <- function(starts, ends, lower_bound, upper_bound) {
   ends[ends > upper_bound] <- upper_bound
 
   list(starts = starts, ends = ends)
-
 }
