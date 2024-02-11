@@ -36,7 +36,8 @@ range_contains_overlaps <- function(starts, ends) {
 }
 
 range_is_flat <- function(starts, ends) {
-
+  start_order <- order(starts)
+  !(any(starts[start_order][-1L] < cummax(ends[start_order][-length(ends)])))
 }
 
 # TODO Ethan: These describe the conditions for a range to be used in:
