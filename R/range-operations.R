@@ -28,8 +28,6 @@ range_flatten <- function(starts, ends) {
   )
 }
 
-# TODO: Change to `range_is_flat`, return TRUE on flat range and FALSE on
-#       for adjacent OR overlapping ranges
 range_contains_overlaps <- function(starts, ends) {
   start_order <- order(starts)
   any(starts[start_order][-1L] < cummax(ends[start_order][-length(ends)]))
@@ -37,7 +35,7 @@ range_contains_overlaps <- function(starts, ends) {
 
 range_is_flat <- function(starts, ends) {
   start_order <- order(starts)
-  !(any(starts[start_order][-1L] < cummax(ends[start_order][-length(ends)])))
+  all(starts[start_order][-1L] > cummax(ends[start_order][-length(ends)]))
 }
 
 # TODO Ethan: These describe the conditions for a range to be used in:
@@ -45,7 +43,7 @@ range_is_flat <- function(starts, ends) {
 # - range_compliment
 # - range_setdifference
 # This kind of test should appear *somewhere* AND *once* in any `phinterval`
-# creation process (except maybe in simple constructor `new_phinterval`). ADD SOMEWHERE
+# creation process (except maybe in simple constructor `new_phinterval`).
 stop_unsanitized_range <- function(starts, ends) {
   stopifnot(length(starts) == length(ends))
   stopifnot(all(!is.na(starts) & !is.na(ends)))
@@ -53,7 +51,20 @@ stop_unsanitized_range <- function(starts, ends) {
   stopifnot(range_is_flat(starts, ends))
 }
 
-range_intersection <- function(x_starts, x_ends, y_starts, y_ends, rm_instants = FALSE) {
+# non-overlapping and non-adjacent ranges --------------------------------------
+
+# Everything in this section requires that input range sets contain only
+# non-overlapping, non-adjacent, distinct ranges. This is the case for the range
+# sets used internally by `phinterval`.
+
+range_intersection <- function(
+    x_starts,
+    x_ends,
+    y_starts,
+    y_ends,
+    rm_instants = FALSE
+  ) {
+
   positions <- c(x_starts, y_starts, x_ends, y_ends)
   is_start <- rep(c(TRUE, FALSE), each = length(x_starts) + length(y_starts))
 
@@ -76,19 +87,7 @@ range_intersection <- function(x_starts, x_ends, y_starts, y_ends, rm_instants =
   } else {
     list(starts = starts, ends = ends)
   }
-}
 
-# TODO: Fix this. We want the compliment to extend from (lower_bound, min(starts)) and
-#       (max(ends), upper_bound) IF the bounds exceed the input range. Otherwise,
-#       we want to truncate. Currently, we do none of that.
-range_compliment <- function(starts, ends, lower_bound = -Inf, upper_bound = Inf) {
-  starts_order <- order(starts)
-  range_truncate(
-    starts = ends[starts_order][-length(ends)],
-    ends = starts[starts_order][-1L],
-    lower_bound = lower_bound,
-    upper_bound = upper_bound
-  )
 }
 
 range_setdifference <- function(x_starts, x_ends, y_starts, y_ends) {
@@ -105,6 +104,19 @@ range_setdifference <- function(x_starts, x_ends, y_starts, y_ends) {
     y_starts = y_range_compliment$starts,
     y_ends = y_range_compliment$ends,
     rm_instants = TRUE
+  )
+}
+
+# TODO: Fix this. We want the compliment to extend from (lower_bound, min(starts)) and
+#       (max(ends), upper_bound) IF the bounds exceed the input range. Otherwise,
+#       we want to truncate. Currently, we do none of that.
+range_compliment <- function(starts, ends, lower_bound = -Inf, upper_bound = Inf) {
+  starts_order <- order(starts)
+  range_truncate(
+    starts = ends[starts_order][-length(ends)],
+    ends = starts[starts_order][-1L],
+    lower_bound = lower_bound,
+    upper_bound = upper_bound
   )
 }
 

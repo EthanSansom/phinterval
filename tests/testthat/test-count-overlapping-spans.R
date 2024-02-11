@@ -1,3 +1,4 @@
+# count_overlapping_spans ------------------------------------------------------
 test_that("span count is correct", {
 
   origin <- .POSIXct(0L, tz = "UTC")
@@ -7,7 +8,6 @@ test_that("span count is correct", {
   )
   phint <- as_phinterval(int, tzone = "UTC")
 
-  ## `count = "exact"`
   n <- c(1L, 2L, 3L)
   spans <- new_phinterval(
     reference_time = .POSIXct(rep.int(0, length(n)), tz = "UTC"),
@@ -34,8 +34,8 @@ test_that("non-overlapping spans result in `n = 1`", {
 
   int1_start <- lubridate::ymd(20000101, tz = "UTC")
   int1 <- lubridate::interval(
-    int_start + lubridate::dhours(c(0, 10, 30, 200)),
-    int_start + lubridate::dhours(c(5, 20, 40, 250))
+    int1_start + lubridate::dhours(c(0, 10, 30, 200)),
+    int1_start + lubridate::dhours(c(5, 20, 40, 250))
   )
   int2_start <- lubridate::ymd(20201011, tz = "UTC")
   int2 <- lubridate::interval(int2_start, int2_start + lubridate::dhours(50))
@@ -208,17 +208,17 @@ test_that("completely NA inputs result in NA ouputs", {
   )
 
   expect_identical(
-    count_overlapping_spans(phint, na_ignore = TRUE),
+    count_overlapping_spans(phint, na.rm = TRUE),
     list(n = n, spans = spans)
   )
   expect_identical(
-    count_overlapping_spans(phint, na_ignore = FALSE),
+    count_overlapping_spans(phint, na.rm = FALSE),
     list(n = n, spans = spans)
   )
 
 })
 
-test_that("partial NA inputs are ignored when `na_ignore`", {
+test_that("partial NA inputs are ignored when `na.rm`", {
 
   origin <- .POSIXct(0L, tz = "UTC")
   int <- lubridate::interval(
@@ -245,13 +245,13 @@ test_that("partial NA inputs are ignored when `na_ignore`", {
   )
 
   expect_identical(
-    count_overlapping_spans(phint, na_ignore = TRUE),
+    count_overlapping_spans(phint, na.rm = TRUE),
     list(n = n, spans = spans)
   )
 
 })
 
-test_that("partial NA inputs cause NA output when not `na_ignore`", {
+test_that("partial NA inputs cause NA output when not `na.rm`", {
 
   origin <- .POSIXct(0L, tz = "UTC")
   int <- lubridate::interval(
@@ -269,8 +269,81 @@ test_that("partial NA inputs cause NA output when not `na_ignore`", {
   )
 
   expect_identical(
-    count_overlapping_spans(phint, na_ignore = FALSE),
+    count_overlapping_spans(phint, na.rm = FALSE),
     list(n = n, spans = spans)
+  )
+
+})
+
+# extract_overlaps -------------------------------------------------------------
+
+test_that("correct overlaps are extracted with `include = 'minimum'`", {
+
+  origin <- .POSIXct(0, tz = "UTC")
+  int <- lubridate::interval(
+    origin + lubridate::dseconds(c(0, 100, 200, 300, 400, 425)),
+    origin + lubridate::dseconds(c(50, 250, 250, 500, 450, 430))
+  )
+  phint <- as_phinterval(int, tzone = "UTC")
+
+  ## `n_overlapping = 1`
+  expect_identical(
+    extract_overlaps(phint, n_overlapping = 1, include = "minimum"),
+    new_phinterval(
+      reference_time = origin,
+      range_starts = list(c(0, 100, 300)),
+      range_ends = list(c(50, 250, 500))
+    )
+  )
+
+  ## `n_overlapping = 2`
+  expect_identical(
+    extract_overlaps(phint, n_overlapping = 2, include = "minimum"),
+    new_phinterval(
+      reference_time = origin,
+      range_starts = list(c(200, 400)),
+      range_ends = list(c(250, 450))
+    )
+  )
+
+  ## `n_overlapping = 3`
+  expect_identical(
+    extract_overlaps(phint, n_overlapping = 3, include = "minimum"),
+    new_phinterval(
+      reference_time = origin,
+      range_starts = list(425),
+      range_ends = list(430)
+    )
+  )
+
+})
+
+test_that("correct overlaps are extracted with `include = 'exact'`", {
+
+  origin <- .POSIXct(0, tz = "UTC")
+  int <- lubridate::interval(
+    origin + lubridate::dseconds(c(0, 100, 200, 300, 400, 425)),
+    origin + lubridate::dseconds(c(50, 250, 250, 500, 450, 430))
+  )
+  phint <- as_phinterval(int, tzone = "UTC")
+  overlaps <- count_overlapping_spans(phint)
+
+  ## `n_overlapping = 1`
+  expect_identical(
+    extract_overlaps(phint, n_overlapping = 1, include = "exact"),
+    overlaps$spans[[which(overlaps$n == 1)]]
+  )
+
+  ## `n_overlapping = 2`
+  expect_identical(
+    extract_overlaps(phint, n_overlapping = 2, include = "exact"),
+    overlaps$spans[[which(overlaps$n == 2)]]
+  )
+
+  ## `n_overlapping = 3`
+  expect_identical(
+    extract_overlaps(phint, n_overlapping = 3, include = "exact"),
+    overlaps$spans[[which(overlaps$n == 3)]]
   )
 
 })

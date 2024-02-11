@@ -28,12 +28,12 @@
 # overlaps$span <- accumulate(overlaps$span, union)
 # overlaps
 
-count_overlapping_spans <- function(phint, na_ignore = TRUE) {
+count_overlapping_spans <- function(phint, na.rm = TRUE) {
 
   phint <- check_is_phinty(phint)
   tzone <- attr(phint, "tzone")
 
-  ranges <- phint_to_ranges(phint, na.rm = na_ignore)
+  ranges <- phint_to_ranges(phint, na.rm = na.rm)
   starts <- ranges$starts
   ends   <- ranges$ends
 
@@ -41,15 +41,13 @@ count_overlapping_spans <- function(phint, na_ignore = TRUE) {
     return(list(n = NA_integer_, spans = NA_phinterval(tzone = tzone)))
   }
 
-  # Setting the reference time as the unix epoch, as `starts` and `ends` are the
-  # number of seconds from this time.
-  reference_time <- .POSIXct(rep.int(0, length(n_spans)), tz = tzone)
   overlapping_ranges <- count_overlapping_ranges(starts, ends)
+  n <- overlapping_ranges$n
 
   list(
-    n = overlapping_ranges$n,
+    n = n,
     spans = new_phinterval(
-      reference_time = reference_time,
+      reference_time = .POSIXct(rep(0, length(n)), tz = tzone),
       range_starts = overlapping_ranges$starts,
       range_ends = overlapping_ranges$ends,
       tzone = tzone
@@ -58,24 +56,23 @@ count_overlapping_spans <- function(phint, na_ignore = TRUE) {
 
 }
 
-# TODO Ethan:
-# - add back the include = c("minimum", "exact") option. Once you've split `count_overlapping_spans`
-#   into more reasonable functions - it'll be easier to use parts of it for each option.
-#   Note that `exact` is basically the same as `count_overlapping_spans`, you just want
-#   only `n = n_overlaps`.
-
 extract_overlaps <- function(
     phint,
-    n_overlaps,
-    na_ignore = TRUE,
+    n_overlapping,
+    na.rm = TRUE,
     include = c("minimum", "exact")
   ) {
+
+  n_overlapping <- as.integer(n_overlapping)
+  if (!isTRUE(n_overlapping > 0L)) {
+    cli::cli_abort("{.arg {n_overlapping}} must be a scalar integer greater than 0.")
+  }
 
   include <- rlang::arg_match(include)
   phint <- check_is_phinty(phint)
   tzone <- attr(phint, "tzone")
 
-  ranges <- phint_to_ranges(phint, na.rm = na_ignore)
+  ranges <- phint_to_ranges(phint, na.rm = na.rm)
   starts <- ranges$starts
   ends   <- ranges$ends
 
@@ -83,20 +80,16 @@ extract_overlaps <- function(
     return(NA_phinterval(tzone = tzone))
   }
 
-  # Setting the reference time as the unix epoch, as `starts` and `ends` are the
-  # number of seconds from this time.
-  reference_time <- .POSIXct(rep.int(0, length(n_spans)), tz = tzone)
-
   if (include == "exact") {
-    overlapping_ranges <- count_overlapping_ranges(starts, ends, n = n_overlaps)
+    overlaps <- count_overlapping_ranges(starts, ends, n = n_overlapping)
   } else {
-    overlapping_ranges <- extract_minimum_range_overlaps(starts, ends, n = n_overlaps)
+    overlaps <- extract_minimum_range_overlaps(starts, ends, n = n_overlapping)
   }
 
   new_phinterval(
-    reference_time = reference_time,
-    range_starts = overlapping_ranges$starts,
-    range_ends = overlapping_ranges$ends,
+    reference_time = .POSIXct(0, tz = tzone),
+    range_starts = overlaps$starts,
+    range_ends = overlaps$ends,
     tzone = tzone
   )
 
@@ -185,14 +178,12 @@ extract_minimum_range_overlaps <- function(starts, ends, n) {
   is_start <- is_start[position_order]
 
   starts_minus_ends <- cumsum((is_start - 1L) + is_start)
-  is_increasing <- c(starts_minus_ends[-length(starts_minus_ends)] > starts_minus_ends[-1L], FALSE)
-  overlap_starts <- which(starts_minus_ends == n & is_increasing)
-  overlap_ends   <- which(starts_minus_ends + 1L == n & !is_increasing)
+  is_increasing <- c(
+    TRUE, starts_minus_ends[-length(starts_minus_ends)] < starts_minus_ends[-1L]
+  )
+  overlap_starts <- positions[which(starts_minus_ends == n & is_increasing)]
+  overlap_ends   <- positions[which(starts_minus_ends + 1L == n & !is_increasing)]
 
-  # TODO Ethan: I think that mechanically this must be a flat range. Remove this
-  # once you're more certain.
-  stopifnot(range_is_flat(overlap_starts, overlap_ends))
-
-  list(starts = overlap_starts, ends = overlap_ends)
+  list(starts = list(overlap_starts), ends = list(overlap_ends))
 
 }
