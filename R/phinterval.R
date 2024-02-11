@@ -411,5 +411,3 @@ order_ranges <- function(range_starts, range_ends) {
   list(starts = starts, ends = ends)
 
 }
-
-# testing phint_invert ---------------------------------------------------------

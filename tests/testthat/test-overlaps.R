@@ -1,4 +1,4 @@
-# count_overlapping_spans ------------------------------------------------------
+# count_overlaps ---------------------------------------------------------------
 test_that("span count is correct", {
 
   origin <- .POSIXct(0L, tz = "UTC")
@@ -24,7 +24,7 @@ test_that("span count is correct", {
   )
 
   expect_identical(
-    count_overlapping_spans(phint),
+    count_overlaps(phint),
     list(n = n, spans = spans)
   )
 
@@ -60,7 +60,7 @@ test_that("non-overlapping spans result in `n = 1`", {
   )
 
   expect_identical(
-    count_overlapping_spans(phint),
+    count_overlaps(phint),
     list(n = n, spans = spans)
   )
 
@@ -91,13 +91,65 @@ test_that("aligned spans are counted correctly", {
   )
 
   expect_identical(
-    count_overlapping_spans(phint),
+    count_overlaps(phint),
     list(n = n, spans = spans)
   )
 
 })
 
-test_that("non-overlapping and overlapping instants are counted as expected", {
+test_that("adjacent spans are counted correctly when `alignment = FALSE`.", {
+
+  origin <- .POSIXct(0L, tz = "UTC")
+  int <- lubridate::interval(
+    origin + lubridate::dseconds(c(0, 100)),
+    origin + lubridate::dseconds(c(100, 200))
+  )
+  phint <- as_phinterval(int, tzone = "UTC")
+
+  n <- 1L
+  spans <- new_phinterval(
+    reference_time = .POSIXct(rep.int(0, length(n)), tz = "UTC"),
+    range_starts = list(0),
+    range_ends = list(200)
+  )
+
+  expect_identical(
+    count_overlaps(phint, alignment = FALSE),
+    list(n = n, spans = spans)
+  )
+
+})
+
+test_that("adjacent spans are counted correctly when `alignment = TRUE`", {
+
+  origin <- .POSIXct(0L, tz = "UTC")
+  int <- lubridate::interval(
+    origin + lubridate::dseconds(c(0, 100)),
+    origin + lubridate::dseconds(c(100, 200))
+  )
+  phint <- as_phinterval(int, tzone = "UTC")
+
+  n <- c(1L, 2L)
+  spans <- new_phinterval(
+    reference_time = .POSIXct(rep.int(0, length(n)), tz = "UTC"),
+    range_starts = list(
+      0,
+      100
+    ),
+    range_ends = list(
+      200,
+      100
+    )
+  )
+
+  expect_identical(
+    count_overlaps(phint, alignment = TRUE),
+    list(n = n, spans = spans)
+  )
+
+})
+
+test_that("instants are counted as expected", {
 
   origin <- .POSIXct(0L, tz = "UTC")
   int <- lubridate::interval(
@@ -122,7 +174,7 @@ test_that("non-overlapping and overlapping instants are counted as expected", {
   )
 
   expect_identical(
-    count_overlapping_spans(phint),
+    count_overlaps(phint),
     list(n = n, spans = spans)
   )
 
@@ -155,7 +207,7 @@ test_that("nested overlaps are counted correctly", {
   )
 
   expect_identical(
-    count_overlapping_spans(phint),
+    count_overlaps(phint),
     list(n = n, spans = spans)
   )
 
@@ -188,7 +240,7 @@ test_that("instants don't create phinterval spans with point discontinuities", {
   )
 
   expect_identical(
-    count_overlapping_spans(phint),
+    count_overlaps(phint),
     list(n = n, spans = spans)
   )
 
@@ -208,11 +260,11 @@ test_that("completely NA inputs result in NA ouputs", {
   )
 
   expect_identical(
-    count_overlapping_spans(phint, na.rm = TRUE),
+    count_overlaps(phint, na.rm = TRUE),
     list(n = n, spans = spans)
   )
   expect_identical(
-    count_overlapping_spans(phint, na.rm = FALSE),
+    count_overlaps(phint, na.rm = FALSE),
     list(n = n, spans = spans)
   )
 
@@ -245,7 +297,7 @@ test_that("partial NA inputs are ignored when `na.rm`", {
   )
 
   expect_identical(
-    count_overlapping_spans(phint, na.rm = TRUE),
+    count_overlaps(phint, na.rm = TRUE),
     list(n = n, spans = spans)
   )
 
@@ -269,7 +321,7 @@ test_that("partial NA inputs cause NA output when not `na.rm`", {
   )
 
   expect_identical(
-    count_overlapping_spans(phint, na.rm = FALSE),
+    count_overlaps(phint, na.rm = FALSE),
     list(n = n, spans = spans)
   )
 
@@ -277,7 +329,7 @@ test_that("partial NA inputs cause NA output when not `na.rm`", {
 
 # extract_overlaps -------------------------------------------------------------
 
-test_that("correct overlaps are extracted with `include = 'minimum'`", {
+test_that("correct overlaps are extracted with `at = 'least'`", {
 
   origin <- .POSIXct(0, tz = "UTC")
   int <- lubridate::interval(
@@ -288,7 +340,7 @@ test_that("correct overlaps are extracted with `include = 'minimum'`", {
 
   ## `n_overlapping = 1`
   expect_identical(
-    extract_overlaps(phint, n_overlapping = 1, include = "minimum"),
+    extract_overlaps(phint, n_overlapping = 1, at = "least"),
     new_phinterval(
       reference_time = origin,
       range_starts = list(c(0, 100, 300)),
@@ -298,7 +350,7 @@ test_that("correct overlaps are extracted with `include = 'minimum'`", {
 
   ## `n_overlapping = 2`
   expect_identical(
-    extract_overlaps(phint, n_overlapping = 2, include = "minimum"),
+    extract_overlaps(phint, n_overlapping = 2, at = "least"),
     new_phinterval(
       reference_time = origin,
       range_starts = list(c(200, 400)),
@@ -308,7 +360,7 @@ test_that("correct overlaps are extracted with `include = 'minimum'`", {
 
   ## `n_overlapping = 3`
   expect_identical(
-    extract_overlaps(phint, n_overlapping = 3, include = "minimum"),
+    extract_overlaps(phint, n_overlapping = 3, at = "least"),
     new_phinterval(
       reference_time = origin,
       range_starts = list(425),
@@ -318,7 +370,7 @@ test_that("correct overlaps are extracted with `include = 'minimum'`", {
 
 })
 
-test_that("correct overlaps are extracted with `include = 'exact'`", {
+test_that("correct overlaps are extracted with `at = 'exactly'`", {
 
   origin <- .POSIXct(0, tz = "UTC")
   int <- lubridate::interval(
@@ -326,24 +378,52 @@ test_that("correct overlaps are extracted with `include = 'exact'`", {
     origin + lubridate::dseconds(c(50, 250, 250, 500, 450, 430))
   )
   phint <- as_phinterval(int, tzone = "UTC")
-  overlaps <- count_overlapping_spans(phint)
+  overlaps <- count_overlaps(phint)
 
   ## `n_overlapping = 1`
   expect_identical(
-    extract_overlaps(phint, n_overlapping = 1, include = "exact"),
+    extract_overlaps(phint, n_overlapping = 1, at = "exactly"),
     overlaps$spans[[which(overlaps$n == 1)]]
   )
 
   ## `n_overlapping = 2`
   expect_identical(
-    extract_overlaps(phint, n_overlapping = 2, include = "exact"),
+    extract_overlaps(phint, n_overlapping = 2, at = "exactly"),
     overlaps$spans[[which(overlaps$n == 2)]]
   )
 
   ## `n_overlapping = 3`
   expect_identical(
-    extract_overlaps(phint, n_overlapping = 3, include = "exact"),
+    extract_overlaps(phint, n_overlapping = 3, at = "exactly"),
     overlaps$spans[[which(overlaps$n == 3)]]
+  )
+
+})
+
+test_that("aligned spans are extracted correctly with `alignment = FALSE`", {
+
+  origin <- .POSIXct(0L, tz = "UTC")
+  int <- lubridate::interval(
+    origin + lubridate::dseconds(c(0, 50, 50, 100, 500)),
+    origin + lubridate::dseconds(c(50, 50, 100, 200, 600))
+  )
+  phint <- as_phinterval(int, tzone = "UTC")
+
+  ## `n_overlapping = 1`
+  expect_identical(
+    extract_overlaps(phint, n_overlapping = 1, at = "least", alignment = FALSE),
+    new_phinterval(
+      reference_time = .POSIXct(0, tz = "UTC"),
+      range_starts = list(c(0, 500)),
+      range_ends = list(c(200, 600)),
+      tzone = "UTC"
+    )
+  )
+
+  ## `n_overlapping = 2`
+  expect_identical(
+    extract_overlaps(phint, n_overlapping = 2, at = "least", alignment = FALSE),
+    NA_phinterval(tzone = "UTC")
   )
 
 })
