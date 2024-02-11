@@ -2,10 +2,19 @@
 #       with sets of ranges. These functions are internal, so I don't think it
 #       matters too much...
 range_flatten <- function(starts, ends) {
-  positions <- c(starts, ends)
-  is_start <- rep(c(TRUE, FALSE), each = length(starts))
 
-  # Ordering with `!is_start` to flatten adjacent ranges (as well as overlapping)
+  starts_length <- length(starts)
+  if (starts_length == 0) {
+    return(list(starts = double(), ends = double()))
+  }
+  if (starts_length == 1) {
+    return(list(starts = starts, ends = ends))
+  }
+
+  positions <- c(starts, ends)
+  is_start <- rep(c(TRUE, FALSE), each = starts_length)
+
+  # Order with `!is_start` to flatten adjacent ranges (as well as overlapping)
   position_order <- order(positions, !is_start)
   positions <- positions[position_order]
   is_start <- is_start[position_order]

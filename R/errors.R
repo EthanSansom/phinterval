@@ -2,6 +2,7 @@
 # - think about nicely designed and re-usable error messages with `cli`. Good for consistency.
 #   - Notes on error constructors: https://design.tidyverse.org/err-constructor.html
 #   - Notes on error messages: https://style.tidyverse.org/error-messages.html
+#   - `rlang::caller_arg` pattern is great: https://rlang.r-lib.org/reference/caller_arg.html
 
 # TODO Ethan: Clean this up to handle the null v. non-null `n` paths
 stop_wrong_class <- function(
@@ -48,27 +49,6 @@ stop_wrong_class <- function(
       )
     }
 
-  }
-
-}
-
-# TODO Ethan: Not sure if I need this broad of a function... not sure
-# rlang::caller_arg pattern is great: https://rlang.r-lib.org/reference/caller_arg.html
-stop_arg_not <- function(
-    x,
-    predicate,
-    must_be,
-    not,
-    arg = rlang::caller_arg(x),
-    error_call = rlang::caller_env()
-  ) {
-
-  if (!predicate(x)) {
-    cli::cli_abort(
-      paste0("{.arg {arg}} must be ", must_be, ", not ", not, "."),
-      arg = arg,
-      call = error_call
-    )
   }
 
 }

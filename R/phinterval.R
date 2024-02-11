@@ -1,7 +1,9 @@
 # TODO Ethan:
 # - make a different display method for tibbles! See https://vctrs.r-lib.org/articles/s3-vector.html#format-method
 # - add documentation for public functions
+# - FULL test covarge of this doc
 
+# phinterval class -------------------------------------------------------------
 new_phinterval <- function(
     reference_time = lubridate::POSIXct(tz = "UTC"),
     range_starts = list(),
@@ -58,6 +60,17 @@ new_phinterval <- function(
 
 }
 
+NA_phinterval <- function(n = 1L, tzone = "UTC") {
+
+  new_phinterval(
+    reference_time = rep(NA_POSIXct_, n),
+    range_starts = as.list(rep(NA_real_, n)),
+    range_ends = as.list(rep(NA_real_, n)),
+    tzone = tzone
+  )
+
+}
+
 #' @export
 format.phinterval <- function(x, ...) {
 
@@ -105,12 +118,16 @@ vec_ptype2.Interval.phinterval <- function(x, y, ...) new_phinterval(tzone = tz_
 
 vec_cast.phinterval.Interval <- function(x, to, ...) as_phinterval(x)
 
+is_phinterval <- function(x) {
+  inherits(x, "phinterval")
+}
+
 as_phinterval <- function(x, ...) {
   UseMethod("as_phinterval")
 }
 
 as_phinterval.default <- function(x, ...) {
-  vctrs::vec_cast(x, new_phinterval())
+  vec_cast(x, new_phinterval())
 }
 
 # Consider each element of the `Interval` vector to be an element of the `phinterval`.
@@ -120,57 +137,73 @@ as_phinterval.Interval <- function(x, tzone = NULL) {
     cli::cli_abort(
       paste0(
         "{.arg x} must be a {.cls {Interval}} vector, ",
-        "not a {.cls {class(x)}."
+        "not a {.cls {class(x)}}."
       )
     )
   }
 
-  # TODO: Make a consistent error messaging script (with error functions)
-  tzone <- if (is.null(tzone)) "UTC" else tzone
-  stopifnot(rlang::is_scalar_character(tzone))
+  tzone <- tzone %||% "UTC"
+  stop_wrong_class(tzone, "character", n = 1L)
 
   intvl <- lubridate::int_standardize(x)
+  na_at <- is.na(intvl)
+
+  reference_time <- lubridate::int_start(intvl)
+  range_starts   <- as.list(rep(0, length(intvl)))
+  range_ends     <- as.list(as.double(lubridate::int_length(intvl)))
+
+  reference_time[na_at] <- lubridate::NA_POSIXct_
+  range_starts[na_at]   <- NA_real_
+  range_ends[na_at]     <- NA_real_
+
   new_phinterval(
-    reference_time = lubridate::int_start(intvl),
-    range_starts = as.list(rep(0, length(intvl))),
-    range_ends = as.list(intvl_length_dbl(intvl)),
+    reference_time = reference_time,
+    range_starts = range_starts,
+    range_ends = range_ends,
     tzone = tzone
   )
 
 }
 
-
 # Initialize a phinterval from a list interval vectors
 phinterval <- function(intervals = NULL, tzone = NULL) {
 
-  if (is.null(intervals) && is.null(tzone)) {
-    return(new_phinterval())
-  } else if (is.null(intervals)) {
-    stop_wrong_type(tzone, "character")
-    return(
-      new_phinterval(
-        reference_time = POSIXct(0L, tz = tzone),
-        range_starts = list(),
-        range_ends = list(),
-        tzone = tzone
-      )
-    )
-  } else if (is.null(tzone)) {
-    tzone <- "UTC"
-  }
+  tzone <- tzone %||% "UTC"
+  stop_wrong_class(tzone, "character", n = 1)
 
-  # TODO Fix this error messaging (you have not implemented `stop_wrong_type`),
-  # and decide what to do when user provides an interval vector rather than a
-  # list of interval vectors.
-  stop_wrong_type(tzone, "character", n = 1)
+  if (is.null(intervals)) {
+    return(new_phinterval(tzone = tzone))
+  }
+  # TODO Ethan: Maybe turn this into an error instead of automatically converting
+  #             to a phinterval with `as_phinterval`.
   if (lubridate::is.interval(intervals)) {
     return(as_phinterval(intervals, tzone))
   }
-  if (!is.list(intervals)) {
+
+  stop_wrong_class(intervals, "list")
+  non_intervals <- !map_lgl(intervals, lubridate::is.interval)
+  if (any(non_intervals)) {
+    # TODO Ethan: Is there a nicer way to indicate the length(ind) is a quantity here?
+    # Maybe a whole pluralize function with two paths...
+    ind <- which(non_intervals)
+    cli::cli_abort(
+      c(
+        "{.arg intervals} must be a list of {.cls Interval} vectors.",
+        x = paste0(
+          "{cli::qty(length(ind))}",
+          "Element{?s} at {?index/indices} {ind} ",
+          "{cli::qty(length(ind))}",
+          "{?is not an/are not} {.cls Interval} vector{?s}."
+        )
+      )
+    )
+  }
+
+  if (!is_list_of_Interval(intervals)) {
     cli::cli_abort(
       paste0(
         "{.arg intervals} must be a list of {.cls Interval} vectors, ",
-        "not a {.cls {class()}."
+        "not a {.cls {class(intervals)}}."
       )
     )
   }
@@ -178,9 +211,7 @@ phinterval <- function(intervals = NULL, tzone = NULL) {
   # Standardizing the interval ensures that the `phinterval` ranges are positive.
   intervals <- map(intervals, lubridate::int_standardize)
 
-  # Implicitly, `reference_time[[i]]` will be NA wherever any element of interval
-  # `intervals[[i]]` is NA.
-  min_start_time <- map_dbl(intervals, \(ivl) min(intvl_start_dbl(ivl)))
+  min_start_time <- map_dbl(intervals, \(intvl) min(intvl_start_dbl(intvl)))
   reference_time <- min_start_time |>
     lubridate::as_datetime() |>
     lubridate::with_tz(tzone)
@@ -188,16 +219,19 @@ phinterval <- function(intervals = NULL, tzone = NULL) {
   range_starts <- map2(
     intervals,
     min_start_time,
-    \(ivl, min_start) { intvl_start_dbl(ivl) - min_start }
+    \(intvl, min_start) { intvl_start_dbl(intvl) - min_start }
   )
   range_ends <- map2(
     intervals,
     min_start_time,
-    \(ivl, min_start) { intvl_end_dbl(ivl) - min_start }
+    \(intvl, min_start) { intvl_end_dbl(intvl) - min_start }
   )
 
-  range_starts[is.na(reference_time)] <- NA_real_
-  range_ends[is.na(reference_time)] <- NA_real_
+  na_at <- map_lgl(intervals, \(intvl) any(is.na(intvl)))
+  reference_time[na_at] <- lubridate::NA_POSIXct_
+  range_starts[na_at]   <- NA_real_
+  range_ends[na_at]     <- NA_real_
+
   ranges <- flatten_overlapping_ranges(range_starts, range_ends)
 
   new_phinterval(
@@ -272,3 +306,110 @@ vec_arith.phinterval <- function(op, x, y, ...) {
 vec_arith.phinterval.default <- function(op, x, y, ...) {
   vctrs::stop_incompatible_op(op, x, y)
 }
+
+# phinterval interface ---------------------------------------------------------
+
+phint_start <- function(phint) {
+
+  phint <- check_is_phinty(phint)
+  reference_time <- field(phint, "reference_time")
+  range_starts <- field(phint, "range_starts")
+  reference_time + map_dbl(range_starts, min)
+
+}
+
+phint_starts <- function(phint) {
+
+  phint <- check_is_phinty(phint)
+  reference_time <- field(phint, "reference_time")
+  range_starts <- field(phint, "range_starts")
+
+  out <- as.list(rep(NA_POSIXct_, length(reference_time)))
+  na_at <- is.na(reference_time)
+
+  out[!na_at] <- map2(reference_time[!na_at], range_starts[!na_at], \(t, e) t + sort(e))
+  out
+
+}
+
+phint_end <- function(phint) {
+
+  phint <- check_is_phinty(phint)
+  reference_time <- field(phint, "reference_time")
+  range_ends <- field(phint, "range_ends")
+  reference_time + map_dbl(range_ends, max)
+
+}
+
+phint_ends <- function(phint) {
+
+  phint <- check_is_phinty(phint)
+  reference_time <- field(phint, "reference_time")
+  range_ends <- field(phint, "range_ends")
+
+  out <- as.list(rep(NA_POSIXct_, length(reference_time)))
+  na_at <- is.na(reference_time)
+
+  out[!na_at] <- map2(reference_time[!na_at], range_ends[!na_at], \(t, e) t + sort(e))
+  out
+
+}
+
+phint_length <- function(phint) {
+
+  map_dbl(phint_lengths(phint), sum)
+
+}
+
+phint_lengths <- function(phint) {
+
+  phint <- check_is_phinty(phint)
+  range_starts <- field(phint, "range_starts")
+  range_ends <- field(phint, "range_ends")
+  map2(range_ends, range_starts, `-`)
+
+}
+
+phint_invert <- function(phint) {
+
+  phint <- check_is_phinty(phint)
+  reference_time <- field(phint, "reference_time")
+  range_starts <- field(phint, "range_starts")
+  range_ends <- field(phint, "range_ends")
+  tzone <- attr(phint, "tzone")
+
+  is_holey <- !(is.na(reference_time) | map_lgl(range_starts, \(s) length(s) == 1))
+
+  new_starts <- vector("list", length(reference_time))
+  new_ends   <- vector("list", length(reference_time))
+
+  holey_ranges <- order_ranges(range_starts[is_holey], range_ends[is_holey])
+  hole_starts  <- map(holey_ranges$ends, \(e) e[-length(e)])
+  hole_ends    <- map(holey_ranges$starts, \(s) s[-1L])
+
+  reference_time[!is_holey] <- lubridate::NA_POSIXct_
+  new_starts[!is_holey]     <- NA_real_
+  new_ends[!is_holey]       <- NA_real_
+
+  new_starts[is_holey] <- hole_starts
+  new_ends[is_holey]   <- hole_ends
+
+  new_phinterval(
+    reference_time = reference_time,
+    range_starts = new_starts,
+    range_ends = new_ends,
+    tzone = tzone
+  )
+
+}
+
+order_ranges <- function(range_starts, range_ends) {
+
+  starts_order <- map(range_starts, order)
+  starts <- map2(range_starts, starts_order, \(s, o) s[o])
+  ends <- map2(range_ends, starts_order, \(e, o) e[o])
+  list(starts = starts, ends = ends)
+
+}
+
+# testing phint_invert ---------------------------------------------------------

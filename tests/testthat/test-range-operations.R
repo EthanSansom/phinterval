@@ -93,15 +93,19 @@ test_that("works as expected with negative valued ranges", {
   )
 })
 
-# TODO Ethan: This test fails, FIXME. I don't expect that the other range_* functions
-#             will receive any NA values (inputs are sanitized), but they could
-#             receive empty values. Because `range_flatten` is the sanitization
-#             mechanism, we might actually want it to handle NA's and empty inputs
-#             explicitly... Or we just have to make sure that we sanitize inputs/outputs
-#             in higher level functions.
-test_that("`range_flatten` returns empty range on empty input.", {
+test_that("returns empty range on empty input.", {
   starts <- numeric()
   ends <- numeric()
+  expected_out <- list(starts = starts, ends = ends)
+  expect_identical(
+    range_flatten(starts, ends),
+    expected_out
+  )
+})
+
+test_that("handles length-1 inputs as expected.", {
+  starts <- 1
+  ends <- 2
   expected_out <- list(starts = starts, ends = ends)
   expect_identical(
     range_flatten(starts, ends),
