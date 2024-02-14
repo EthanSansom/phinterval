@@ -5,6 +5,7 @@
 
 ## usethis namespace: start
 #' @importFrom lubridate %within% NA_POSIXct_
+#' @importFrom methods setOldClass
 #' @importFrom rlang %||%
 #' @importFrom stats setNames
 ## usethis namespace: end
