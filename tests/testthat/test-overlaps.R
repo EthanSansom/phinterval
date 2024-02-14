@@ -1,4 +1,4 @@
-# count_overlaps ---------------------------------------------------------------
+# locate_overlaps --------------------------------------------------------------
 test_that("span count is correct", {
 
   origin <- .POSIXct(0L, tz = "UTC")
@@ -24,7 +24,7 @@ test_that("span count is correct", {
   )
 
   expect_identical(
-    count_overlaps(phint),
+    locate_overlaps(phint),
     list(n = n, spans = spans)
   )
 
@@ -60,7 +60,7 @@ test_that("non-overlapping spans result in `n = 1`", {
   )
 
   expect_identical(
-    count_overlaps(phint),
+    locate_overlaps(phint),
     list(n = n, spans = spans)
   )
 
@@ -91,7 +91,7 @@ test_that("aligned spans are counted correctly", {
   )
 
   expect_identical(
-    count_overlaps(phint),
+    locate_overlaps(phint),
     list(n = n, spans = spans)
   )
 
@@ -114,7 +114,7 @@ test_that("adjacent spans are counted correctly when `alignment = FALSE`.", {
   )
 
   expect_identical(
-    count_overlaps(phint, alignment = FALSE),
+    locate_overlaps(phint, alignment = FALSE),
     list(n = n, spans = spans)
   )
 
@@ -143,7 +143,7 @@ test_that("adjacent spans are counted correctly when `alignment = TRUE`", {
   )
 
   expect_identical(
-    count_overlaps(phint, alignment = TRUE),
+    locate_overlaps(phint, alignment = TRUE),
     list(n = n, spans = spans)
   )
 
@@ -174,7 +174,7 @@ test_that("instants are counted as expected", {
   )
 
   expect_identical(
-    count_overlaps(phint),
+    locate_overlaps(phint),
     list(n = n, spans = spans)
   )
 
@@ -207,7 +207,7 @@ test_that("nested overlaps are counted correctly", {
   )
 
   expect_identical(
-    count_overlaps(phint),
+    locate_overlaps(phint),
     list(n = n, spans = spans)
   )
 
@@ -240,7 +240,7 @@ test_that("instants don't create phinterval spans with point discontinuities", {
   )
 
   expect_identical(
-    count_overlaps(phint),
+    locate_overlaps(phint),
     list(n = n, spans = spans)
   )
 
@@ -260,11 +260,11 @@ test_that("completely NA inputs result in NA ouputs", {
   )
 
   expect_identical(
-    count_overlaps(phint, na.rm = TRUE),
+    locate_overlaps(phint, na.rm = TRUE),
     list(n = n, spans = spans)
   )
   expect_identical(
-    count_overlaps(phint, na.rm = FALSE),
+    locate_overlaps(phint, na.rm = FALSE),
     list(n = n, spans = spans)
   )
 
@@ -297,7 +297,7 @@ test_that("partial NA inputs are ignored when `na.rm`", {
   )
 
   expect_identical(
-    count_overlaps(phint, na.rm = TRUE),
+    locate_overlaps(phint, na.rm = TRUE),
     list(n = n, spans = spans)
   )
 
@@ -321,7 +321,7 @@ test_that("partial NA inputs cause NA output when not `na.rm`", {
   )
 
   expect_identical(
-    count_overlaps(phint, na.rm = FALSE),
+    locate_overlaps(phint, na.rm = FALSE),
     list(n = n, spans = spans)
   )
 
@@ -378,7 +378,7 @@ test_that("correct overlaps are extracted with `at = 'exactly'`", {
     origin + lubridate::dseconds(c(50, 250, 250, 500, 450, 430))
   )
   phint <- as_phinterval(int, tzone = "UTC")
-  overlaps <- count_overlaps(phint)
+  overlaps <- locate_overlaps(phint)
 
   ## `n_overlapping = 1`
   expect_identical(
@@ -400,6 +400,8 @@ test_that("correct overlaps are extracted with `at = 'exactly'`", {
 
 })
 
+# TODO Ethan: The alignment argument is OUT for `extract_overlaps`,
+# think about how to treat aligned edges and instants.
 test_that("aligned spans are extracted correctly with `alignment = FALSE`", {
 
   origin <- .POSIXct(0L, tz = "UTC")

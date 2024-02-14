@@ -1,23 +1,3 @@
-# TODO Ethan:
-# I think this should be named to `count_overlaps` and it's partner function to
-# get the overlaps should be `extract_overlaps`.
-
-# TODO Ethan:
-# - add documentation
-# - add a function like `extract_overlaps` which returns a `phinterval` containing
-#   the time when there where ANY overlaps (i.e. n > 2). This is helpful for when
-#   you just want to know when overlaps exist (ex. when are you working multiple jobs)
-
-# NOTE:
-# This counts the number of intersections at any given time for
-# a phinterval vector. The output looks like this:
-#
-# n: 1, 2, 4
-# span: <phint1>, <phint2>, <phint4>
-#
-# where `<phint1>` are the spans where there was exactly 1 intersection, <phint2>
-# when there was exactly 2 intersections, etc.
-#
 # There is no option to count AT LEAST n intersections, but that is easy to get
 # from the result. Just accumulate the union of spans for n, n + 1, n + 2, ... to
 # get the locations of at least `n` overlaps.
@@ -28,7 +8,10 @@
 # overlaps$span <- accumulate(overlaps$span, union)
 # overlaps
 
-count_overlaps <- function(phint, na.rm = TRUE, alignment = FALSE) {
+# TODO Ethan: This might actually be better named, `locate_overlaps`, since it
+# provides the location AND count
+
+locate_overlaps <- function(phint, na.rm = TRUE, alignment = FALSE) {
 
   phint <- check_is_phinty(phint)
   tzone <- attr(phint, "tzone")
@@ -56,6 +39,16 @@ count_overlaps <- function(phint, na.rm = TRUE, alignment = FALSE) {
 
 }
 
+# Wrapper for `locate_overlaps()$spans[locate_overlaps()$n == n]`
+extract_exact_overlap <- function(phint, n, na.rm = TRUE, alignment = FALSE) {
+
+}
+
+# Extract locations where at least/most `n` overlaps occur
+extract_multi_overlap <- function(phint, n, at = c("least", "most"), na.rm = TRUE, alignment = FALSE) {
+
+}
+
 # TODO Ethan:
 # I think this whole alignment AND instants interacting issue would be easier if
 # you just removed the instants in the first pass, THEN added them back afterwards.
@@ -67,6 +60,12 @@ count_overlaps <- function(phint, na.rm = TRUE, alignment = FALSE) {
 # You know what, no. If you want instants to overlap, then you have to have
 # alignment = TRUE, since instants that overlap ARE aligned with one another
 # (ex. they have the same start).
+
+# TODO Ethan:
+# - there are faster ways to do the `extract_overlaps` operations, but I think
+#   maybe just wrapping `locate_overlaps` and then merging as required for
+#   the at least, at most situations would be easier. Plus, you only need one
+#   good implementations to handle the `alignment` and instants problems.
 
 extract_overlaps <- function(
     phint,
@@ -137,6 +136,22 @@ phint_to_ranges <- function(phint, na.rm = TRUE) {
   }
 
   list(starts = starts, ends = ends)
+
+}
+
+range_to_positions <- function(starts, ends) {
+
+  positions <- c(starts, ends)
+  is_start <- rep(c(TRUE, FALSE), each = length(starts))
+
+  position_order <- order(positions)
+  positions  <- positions[position_order]
+  is_start   <- is_start[position_order]
+
+  list(
+    positions = positions,
+    is_start = is_start
+  )
 
 }
 
@@ -214,23 +229,14 @@ extract_minimum_range_overlaps <- function(starts, ends, n, alignment = FALSE) {
   position_order <- order(positions)
   positions  <- positions[position_order]
   is_start   <- is_start[position_order]
-  is_instant <- rep(starts == ends, 2)[position_order]
-
-  consecutive_same_pos  <- positions[-1L] == positions[-length(positions)]
-  consecutive_same_side <- is_start[-1L] == is_start[-length(is_start)]
-  aligned_range  <- c(consecutive_same_pos & !consecutive_same_side, FALSE)
 
   starts_minus_ends <- cumsum((is_start - 1L) + is_start)
   is_increasing <- c(
     TRUE, starts_minus_ends[-length(starts_minus_ends)] < starts_minus_ends[-1L]
   )
-  # TODO Ethan:
-  # I don't like all of this alignment stuff. There's probably a cleaner way to
-  # extract this step out to a function. Along with the other repetitive overlap
-  # set-up (ex. is_start, positions_order, starts_minus_ends, etc.)
-  alignment_condition <- !aligned_range | is_instant | alignment
-  overlap_starts <- positions[which(starts_minus_ends == n & is_increasing & alignment_condition)]
-  overlap_ends   <- positions[which(starts_minus_ends + 1L == n & !is_increasing & alignment_condition)]
+
+  overlap_starts <- positions[which(starts_minus_ends == n & is_increasing)]
+  overlap_ends   <- positions[which(starts_minus_ends + 1L == n & !is_increasing)]
 
   list(starts = list(overlap_starts), ends = list(overlap_ends))
 

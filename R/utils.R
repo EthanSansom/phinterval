@@ -1,12 +1,13 @@
 # misc -------------------------------------------------------------------------
 `%notin%` <- Negate(`%in%`)
 
+pmap_lgl <- function(.l, .f, ...) {
+  as.vector(pmap(.l, .f, ...), "logical")
+}
+
 # predicates -------------------------------------------------------------------
 
-# TODO Ethan: Check how these behave with NA vectors of other classes, ex. NA_integer
-#             Right not I treat these as fine (i.e. is_list_of_dbl is okay with NA_interger),
-#             but this might cause problems down-stream. Maybe these list of functions
-#             aren't the best move.
+# TODO Ethan: I don't like any of these predicates, find and replace them.
 
 is_list_of_dbl <- function(x) {
   rlang::is_list(x) && all(map_lgl(x, \(x) rlang::is_double(x) || all(is.na(x))))
@@ -40,6 +41,8 @@ tz_union <- function(x, y) {
 }
 
 # interval helpers -------------------------------------------------------------
+
+# TODO Ethan: I don't like any of these helpers, find and replace them.
 
 intvl_start_dbl  <- function(intvl) as.double(lubridate::int_start(intvl))
 intvl_end_dbl    <- function(intvl) as.double(lubridate::int_end(intvl))

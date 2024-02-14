@@ -130,3 +130,39 @@ range_truncate <- function(starts, ends, lower_bound, upper_bound) {
 
   list(starts = starts, ends = ends)
 }
+
+range_within <- function(x_starts, x_ends, y_starts, y_ends) {
+
+  y_order <- order(y_starts)
+  identical(
+    range_flatten(c(x_starts, y_starts), c(x_ends, y_ends)),
+    list(starts = y_starts[y_order], ends = y_ends[y_order])
+  )
+
+}
+
+# TODO Ethan: I have a feeling that this version *might* be slightly slower
+# than the version above. However, this one fails on the edge case of aligned
+# ends on non-within ranges. Benchmark to see if it's worth trying to fix.
+if (FALSE) {
+
+  range_within <- function(x_starts, x_ends, y_starts, y_ends) {
+
+    x_len <- length(x_starts)
+    y_len <- length(y_starts)
+
+    positions <- c(x_starts, y_starts, x_ends, y_ends)
+    is_start <- rep(c(TRUE, FALSE), each = x_len + y_len)
+    is_y <- rep(c(rep(FALSE, x_len), rep(TRUE, y_len)), 2)
+
+    position_order <- order(positions, !is_start, is_y)
+    positions <- positions[position_order]
+    is_start <- is_start[position_order]
+    is_y <- is_y[position_order]
+
+    starts_minus_ends <- cumsum((is_start - 1L) + is_start)
+    all(starts_minus_ends != 0 | (!is_start & is_y))
+
+  }
+
+}

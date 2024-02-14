@@ -114,3 +114,33 @@ test_that("handles length-1 inputs as expected.", {
 })
 
 # range_is_flat ----------------------------------------------------------------
+
+
+
+# range_within -----------------------------------------------------------------
+
+test_that("range_within works as expected", {
+
+  expect_true(range_within(1, 2, 0, 3))
+  expect_true(range_within(1, 1, 1, 1))
+  expect_true(range_within(0, 1, 0, 1))
+  expect_true(range_within(1, 1, 0, 2))
+  expect_true(range_within(1, 2, 1, 3))
+  expect_true(range_within(2, 3, 1, 3))
+  expect_true(range_within(c(1, 5), c(2, 10), c(0, 4), c(3, 11)))
+  expect_true(range_within(c(1, 5, 12), c(2, 9, 12), c(0, 4, 12), c(3, 11, 12)))
+  expect_true(range_within(c(1, 5), c(1, 10), c(0, 4, 12), c(3, 11, 12)))
+  expect_true(range_within(c(0, 4, 8), c(3, 7, 9), -10, 10))
+
+  expect_false(range_within(5, 8, 6, 7))
+  expect_false(range_within(5, 8, 5, 7))
+  expect_false(range_within(5, 8, 6, 8))
+  expect_false(range_within(0, 0, 1, 1))
+  expect_false(range_within(0, 2, 1, 1))
+  expect_false(range_within(10, 20, c(0, 15), c(12, 22)))
+  expect_false(range_within(c(1, 5), c(2, 20), -10, 10))
+  expect_false(range_within(c(0, 4), c(3, 11), c(1, 5), c(2, 10)))
+  expect_false(range_within(c(0, 4, 12), c(3, 11, 12), c(1, 5), c(1, 10)))
+  expect_false(range_within(-10, 10, c(0, 4, 8), c(3, 7, 9)))
+
+})
