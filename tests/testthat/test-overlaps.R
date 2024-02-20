@@ -149,7 +149,7 @@ test_that("adjacent spans are counted correctly when `alignment = TRUE`", {
 
 })
 
-test_that("instants are counted as expected", {
+test_that("instants are counted as expected with `alignment = FALSE`", {
 
   origin <- .POSIXct(0L, tz = "UTC")
   int <- lubridate::interval(
@@ -338,9 +338,9 @@ test_that("correct overlaps are extracted with `at = 'least'`", {
   )
   phint <- as_phinterval(int, tzone = "UTC")
 
-  ## `n_overlapping = 1`
+  ## `n = 1`
   expect_identical(
-    extract_overlaps(phint, n_overlapping = 1, at = "least"),
+    extract_overlaps(phint, n = 1, at = "least"),
     new_phinterval(
       reference_time = origin,
       range_starts = list(c(0, 100, 300)),
@@ -348,9 +348,9 @@ test_that("correct overlaps are extracted with `at = 'least'`", {
     )
   )
 
-  ## `n_overlapping = 2`
+  ## `n = 2`
   expect_identical(
-    extract_overlaps(phint, n_overlapping = 2, at = "least"),
+    extract_overlaps(phint, n = 2, at = "least"),
     new_phinterval(
       reference_time = origin,
       range_starts = list(c(200, 400)),
@@ -358,9 +358,9 @@ test_that("correct overlaps are extracted with `at = 'least'`", {
     )
   )
 
-  ## `n_overlapping = 3`
+  ## `n = 3`
   expect_identical(
-    extract_overlaps(phint, n_overlapping = 3, at = "least"),
+    extract_overlaps(phint, n = 3, at = "least"),
     new_phinterval(
       reference_time = origin,
       range_starts = list(425),
@@ -380,28 +380,26 @@ test_that("correct overlaps are extracted with `at = 'exactly'`", {
   phint <- as_phinterval(int, tzone = "UTC")
   overlaps <- locate_overlaps(phint)
 
-  ## `n_overlapping = 1`
+  ## `n = 1`
   expect_identical(
-    extract_overlaps(phint, n_overlapping = 1, at = "exactly"),
+    extract_overlaps(phint, n = 1, at = "exactly"),
     overlaps$spans[[which(overlaps$n == 1)]]
   )
 
-  ## `n_overlapping = 2`
+  ## `n = 2`
   expect_identical(
-    extract_overlaps(phint, n_overlapping = 2, at = "exactly"),
+    extract_overlaps(phint, n = 2, at = "exactly"),
     overlaps$spans[[which(overlaps$n == 2)]]
   )
 
-  ## `n_overlapping = 3`
+  ## `n = 3`
   expect_identical(
-    extract_overlaps(phint, n_overlapping = 3, at = "exactly"),
+    extract_overlaps(phint, n = 3, at = "exactly"),
     overlaps$spans[[which(overlaps$n == 3)]]
   )
 
 })
 
-# TODO Ethan: The alignment argument is OUT for `extract_overlaps`,
-# think about how to treat aligned edges and instants.
 test_that("aligned spans are extracted correctly with `alignment = FALSE`", {
 
   origin <- .POSIXct(0L, tz = "UTC")
@@ -411,9 +409,9 @@ test_that("aligned spans are extracted correctly with `alignment = FALSE`", {
   )
   phint <- as_phinterval(int, tzone = "UTC")
 
-  ## `n_overlapping = 1`
+  ## `n = 1`
   expect_identical(
-    extract_overlaps(phint, n_overlapping = 1, at = "least", alignment = FALSE),
+    extract_overlaps(phint, n = 1, at = "least", alignment = FALSE),
     new_phinterval(
       reference_time = .POSIXct(0, tz = "UTC"),
       range_starts = list(c(0, 500)),
@@ -422,9 +420,9 @@ test_that("aligned spans are extracted correctly with `alignment = FALSE`", {
     )
   )
 
-  ## `n_overlapping = 2`
+  ## `n = 2`
   expect_identical(
-    extract_overlaps(phint, n_overlapping = 2, at = "least", alignment = FALSE),
+    extract_overlaps(phint, n = 2, at = "least", alignment = FALSE),
     NA_phinterval(tzone = "UTC")
   )
 

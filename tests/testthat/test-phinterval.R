@@ -3,6 +3,11 @@
 #   https://github.com/tidyverse/lubridate/blob/main/tests/testthat/test-intervals.R
 #   https://github.com/tidyverse/lubridate/blob/main/tests/testthat/test-vctrs.R
 
+# TODO:
+# Create a test helper that quickly creates phintervals or intervals which
+# start at the origin (1970-01-01) and have UTC timezone.
+# - during tests, you can shift these using int/phint shift to vary things up
+
 # TODO Ethan:
 # Test that `phinterval` and `Interval` behave the same (when exposed to the user)
 # by checking the output of `phint_*` and matching `int_*` functions on an
@@ -674,6 +679,119 @@ test_that("empty input results in empty phinterval output", {
   expect_identical(
     int_squash(lubridate::interval(), na.rm = FALSE),
     phinterval()
+  )
+
+})
+
+# phint_overlaps ---------------------------------------------------------------
+
+test_that("overlaps are correctly identified", {
+
+  origin <- .POSIXct(0, tz = "UTC")
+  phint1 <- new_phinterval(
+    reference_time = rep(origin, 2),
+    range_starts = list(c(0, 50), 10),
+    range_ends = list(c(30, 80), 70)
+  )
+  phint2 <- new_phinterval(
+    reference_time = rep(origin, 2),
+    range_starts = list(c(70, 100), 0),
+    range_ends = list(c(90, 120), 5)
+  )
+
+  expect_identical(
+    phint_overlaps(phint1, phint2),
+    c(TRUE, FALSE)
+  )
+
+})
+
+test_that("instants within ranges are overlaps", {
+
+  origin <- .POSIXct(0, tz = "UTC")
+  phint1 <- new_phinterval(
+    reference_time = origin,
+    range_starts = list(0),
+    range_ends = list(0)
+  )
+  phint2 <- new_phinterval(
+    reference_time = origin,
+    range_starts = list(-1),
+    range_ends = list(1)
+  )
+
+  expect_identical(
+    phint_overlaps(phint1, phint2),
+    TRUE
+  )
+
+})
+
+test_that("aligned spans are not overlaps if `aligned = FALSE`", {
+
+  origin <- .POSIXct(0, tz = "UTC")
+  phint1 <- new_phinterval(
+    reference_time = origin,
+    range_starts = list(c(0, 10)),
+    range_ends = list(c(5, 20))
+  )
+  phint2 <- new_phinterval(
+    reference_time = origin,
+    range_starts = list(5),
+    range_ends = list(10)
+  )
+
+  expect_identical(
+    phint_overlaps(phint1, phint2, aligned = FALSE),
+    FALSE
+  )
+
+})
+
+test_that("aligned spans are overlaps if `aligned = TRUE`", {
+
+  origin <- .POSIXct(0, tz = "UTC")
+  phint1 <- new_phinterval(
+    reference_time = rep(origin, 2),
+    range_starts = list(0, 10),
+    range_ends = list(5, 20)
+  )
+  phint2 <- new_phinterval(
+    reference_time = rep(origin, 2),
+    range_starts = list(-10, 20),
+    range_ends = list(0, 30)
+  )
+
+  expect_identical(
+    phint_overlaps(phint1, phint2, aligned = TRUE),
+    c(TRUE, TRUE)
+  )
+
+})
+
+# phint_union ------------------------------------------------------------------
+
+test_that("overlapping phintervals are merged correctly", {
+
+  origin <- .POSIXct(0, tz = "UTC")
+  phint1 <- new_phinterval(
+    reference_time = rep(origin, 2),
+    range_starts = list(c(0, 50), 10),
+    range_ends = list(c(30, 80), 70)
+  )
+  phint2 <- new_phinterval(
+    reference_time = rep(origin, 2),
+    range_starts = list(c(70, 100), 0),
+    range_ends = list(c(90, 120), 5)
+  )
+
+  expect_identical(
+    phint_union(phint1, phint2),
+    new_phinterval(
+      reference_time = rep(origin, 2),
+      range_starts = list(c(0, 50, 100), c(0, 10)),
+      range_ends = list(c(30, 90, 120), c(5, 70))
+    )
   )
 
 })

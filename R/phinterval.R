@@ -2,11 +2,14 @@ setOldClass("phinterval")
 
 # TODO Ethan:
 # - make a different display method for tibbles! See https://vctrs.r-lib.org/articles/s3-vector.html#format-method
-# - add documentation for public functions
-# - FULL test coverage of this doc
 # - see vctrs::list_of, since you're using lists of a lot https://vctrs.r-lib.org/reference/list_of.html
 # - change all references to an "Interval" to use `int` for consistency
 # - review the `clock` package to see if they have any cool ideas for `phinterval`
+#
+# - anywhere that you compare two `phinterval`s AND recycling is not automatic
+#   (i.e. if you need to use `map`) implement base recycling rules + a custom
+#   message
+#   - see https://vctrs.r-lib.org/articles/type-size.html#appendix-recycling-in-base-r for discussion of recycling rules
 
 # phinterval class -------------------------------------------------------------
 new_phinterval <- function(
@@ -471,7 +474,11 @@ phint_starts <- function(phint) {
   out <- as.list(rep(NA_POSIXct_, length(reference_time)))
   na_at <- is.na(reference_time)
 
-  out[!na_at] <- map2(reference_time[!na_at], range_starts[!na_at], \(t, e) t + sort(e))
+  out[!na_at] <- map2(
+    reference_time[!na_at],
+    range_starts[!na_at],
+    \(t, s) t + sort(s)
+  )
   out
 
 }
@@ -493,7 +500,11 @@ phint_ends <- function(phint) {
 
   out <- as.list(rep(NA_POSIXct_, length(reference_time)))
   na_at <- is.na(reference_time)
-  out[!na_at] <- map2(reference_time[!na_at], range_ends[!na_at], \(t, e) t + sort(e))
+  out[!na_at] <- map2(
+    reference_time[!na_at],
+    range_ends[!na_at],
+    \(t, e) t + sort(e)
+  )
   out
 
 }
@@ -512,11 +523,17 @@ phint_lengths <- function(phint) {
 
   na_at <- is.na(phint)
   out <- as.list(rep(NA, length(phint)))
-  out[!na_at] <- map2(range_ends[!na_at], range_starts[!na_at], \(e, s) sort(e - s))
+  out[!na_at] <- map2(
+    range_starts[!na_at],
+    range_ends[!na_at],
+    \(s, e) sort(e - s)
+  )
   out
 
 }
 
+# TODO Ethan: Check if input is an interval, immediate output an NA phinterval
+# (since intervals have no holes).
 phint_invert <- function(phint) {
 
   phint <- check_is_phinty(phint)
@@ -581,6 +598,8 @@ phint_to_holes <- function(phint) {
 
 }
 
+# set operations ---------------------------------------------------------------
+
 phint_squash <- function(phint, na.rm = TRUE) {
 
   stop_wrong_class(na.rm, "logical", n = 1L)
@@ -611,7 +630,7 @@ phint_squash <- function(phint, na.rm = TRUE) {
 
   flat_ranges <- range_flatten(list_c(span_starts), list_c(span_ends))
   new_phinterval(
-    reference_time = .POSIXct(0, tz = tzone),
+    reference_time = lubridate::POSIXct(1L, tz = tzone),
     range_starts = list(flat_ranges$starts),
     range_ends = list(flat_ranges$ends),
     tzone = tzone
@@ -653,7 +672,7 @@ int_squash <- function(int, na.rm = TRUE) {
 
   flat_ranges <- range_flatten(as.double(int_starts), as.double(int_ends))
   new_phinterval(
-    reference_time = .POSIXct(0, tz = tzone),
+    reference_time = lubridate::POSIXct(1L, tz = tzone),
     range_starts = list(flat_ranges$starts),
     range_ends = list(flat_ranges$ends),
     tzone = tzone
@@ -661,8 +680,133 @@ int_squash <- function(int, na.rm = TRUE) {
 
 }
 
-# Turn a phinterval into it's range representation, where each start/end is
-# seconds from the unix epoch.
+# TODO Ethan: You'll have to manually implement `base` recycling rules here,
+#             or use `vec_recycle_common` to implement `tidyverse` recycling.
+phint_overlaps <- function(phint1, phint2, aligned = FALSE) {
+
+  range1 <- rangify_phinterval(check_is_phinty(phint1))
+  range2 <- rangify_phinterval(check_is_phinty(phint2))
+
+  non_na_at <- !(is.na(phint1) | is.na(phint2))
+
+  range1_starts <- range1$starts[non_na_at]
+  range1_ends   <- range1$ends[non_na_at]
+  range2_starts <- range2$starts[non_na_at]
+  range2_ends   <- range2$ends[non_na_at]
+
+  out <- rep(NA, length(phint1))
+  out[non_na_at] <- pmap_lgl(
+    list(
+      x_starts = range1_starts,
+      x_ends = range1_ends,
+      y_starts = range2_starts,
+      y_ends = range2_ends
+    ),
+    range_intersects,
+    aligned = aligned
+  )
+
+}
+
+# TODO Ethan: Implement some recycling capabilities... and checks.
+# See if lubridate does recycling everywhere.
+phint_union <- function(phint1, phint2) {
+
+  range1 <- rangify_phinterval(check_is_phinty(phint1))
+  range2 <- rangify_phinterval(check_is_phinty(phint2))
+
+  non_na_at <- !(is.na(phint1) | is.na(phint2))
+
+  range1_starts <- range1$starts[non_na_at]
+  range1_ends   <- range1$ends[non_na_at]
+  range2_starts <- range2$starts[non_na_at]
+  range2_ends   <- range2$ends[non_na_at]
+
+  out_range <- pmap(
+    list(
+      x_starts = range1_starts,
+      x_ends = range1_ends,
+      y_starts = range2_starts,
+      y_ends = range2_ends
+    ),
+    range_union
+  )
+
+  out_length <- length(phint1)
+
+  tzone <-          tz_union(phint1, phint2)
+  reference_time <- lubridate::POSIXct(out_length, tz = tzone)
+  range_starts <-   as.list(rep(NA_real_, out_length))
+  range_ends <-     as.list(rep(NA_real_, out_length))
+
+  range_starts[non_na_at] <- map(out_range, `[[`, "starts")
+  range_ends[non_na_at] <-   map(out_range, `[[`, "ends")
+
+  new_phinterval(
+    reference_time = reference_time,
+    range_starts = range_starts,
+    range_ends = range_ends,
+    tzone = tzone
+  )
+
+}
+
+# phint_union <- function(phint1, phint2) {
+#   combine_phintervals(phint1, phint2, range_union)
+# }
+
+# helpers ----------------------------------------------------------------------
+
+# TODO Ethan: I think all of the parallel range/set operations will involve
+# rangifying the phintervals, sorting into NA and non-NA, applying the operation
+# to the non-NA indices, and recombining into a phinterval.
+#
+# You should probably formalize this process in a single function, rather than
+# repeating it. The function below is NOT COMPLETE
+combine_phintervals <- function(.phint1, .phint2, .f, ...) {
+
+  # TODO: Implement base recycling!!
+
+  range1 <- rangify_phinterval(check_is_phinty(.phint1))
+  range2 <- rangify_phinterval(check_is_phinty(.phint2))
+
+  non_na_at <- !(is.na(.phint1) | is.na(.phint2))
+
+  range1_starts <- range1$starts[non_na_at]
+  range1_ends   <- range1$ends[non_na_at]
+  range2_starts <- range2$starts[non_na_at]
+  range2_ends   <- range2$ends[non_na_at]
+
+  out_range <- pmap(
+    list(
+      x_starts = range1_starts,
+      x_ends = range1_ends,
+      y_starts = range2_starts,
+      y_ends = range2_ends
+    ),
+    .f = .f,
+    !!!list(...)
+  )
+
+  out_length <- length(.phint1)
+
+  tzone <-          tz_union(.phint1, .phint2)
+  reference_time <- lubridate::POSIXct(out_length, tz = tzone)
+  range_starts <-   as.list(rep(NA_real_, out_length))
+  range_ends <-     as.list(rep(NA_real_, out_length))
+
+  range_starts[non_na_at] <- map(out_range, `[[`, "starts")
+  range_ends[non_na_at] <-   map(out_range, `[[`, "ends")
+
+  new_phinterval(
+    reference_time = reference_time,
+    range_starts = range_starts,
+    range_ends = range_ends,
+    tzone = tzone
+  )
+
+}
+
 rangify_phinterval <- function(phint) {
 
   reference_seconds <- as.double(field(phint, "reference_time"))

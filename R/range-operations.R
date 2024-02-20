@@ -1,3 +1,10 @@
+# TODO:
+# I think that here an elsewhere, it might be easier to remove the instants from
+# the ranges BEFORE doing anything (where required) and THEN deal with them separately.
+#
+# You could write custom functions for checking if instants intersect with one another
+# (literally just using `%in%`) AND if instants appear in other ranges.
+
 # TODO: All of the names in this file are a little misleading, because we're really dealing
 #       with sets of ranges. These functions are internal, so I don't think it
 #       matters too much...
@@ -25,6 +32,13 @@ range_flatten <- function(starts, ends) {
   list(
     starts = positions[c(1, flat_ends[-length(flat_ends)] + 1)],
     ends = positions[flat_ends]
+  )
+}
+
+range_union <- function(x_starts, x_ends, y_starts, y_ends) {
+  range_flatten(
+    starts = c(x_starts, y_starts),
+    ends = c(x_ends, y_ends)
   )
 }
 
@@ -57,6 +71,8 @@ stop_unsanitized_range <- function(starts, ends) {
 # non-overlapping, non-adjacent, distinct ranges. This is the case for the range
 # sets used internally by `phinterval`.
 
+# TODO: I don't think you'll need this `rm_instants`, but you will need to deal
+#       with the interpretation of adjacent edges.
 range_intersection <- function(
     x_starts,
     x_ends,
@@ -68,7 +84,10 @@ range_intersection <- function(
   positions <- c(x_starts, y_starts, x_ends, y_ends)
   is_start <- rep(c(TRUE, FALSE), each = length(x_starts) + length(y_starts))
 
-  position_order <- order(positions)
+  # TODO Ethan:
+  # I think the `is_start` vs. `!is_start` here should change how aligned ranges
+  # are dealt with. When you implement `phint_intersection`, keep this in mind
+  position_order <- order(positions, is_start)
   positions <- positions[position_order]
   is_start <- is_start[position_order]
 
@@ -129,6 +148,25 @@ range_truncate <- function(starts, ends, lower_bound, upper_bound) {
   ends[ends > upper_bound] <- upper_bound
 
   list(starts = starts, ends = ends)
+}
+
+range_intersects <- function(
+    x_starts,
+    x_ends,
+    y_starts,
+    y_ends,
+    aligned = FALSE
+) {
+
+  starts <- c(x_starts, y_starts)
+  ends <- c(x_ends, y_ends)
+  start_order <- order(starts)
+  if (aligned) {
+    any(starts[start_order][-1L] <= cummax(ends[start_order][-length(ends)]))
+  } else {
+    any(starts[start_order][-1L] < cummax(ends[start_order][-length(ends)]))
+  }
+
 }
 
 range_within <- function(x_starts, x_ends, y_starts, y_ends) {
