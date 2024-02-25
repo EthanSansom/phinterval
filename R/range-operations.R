@@ -53,7 +53,7 @@ range_is_flat <- function(starts, ends) {
 }
 
 # TODO Ethan: These describe the conditions for a range to be used in:
-# - range_intersection
+# - range_intersect
 # - range_compliment
 # - range_setdifference
 # This kind of test should appear *somewhere* AND *once* in any `phinterval`
@@ -71,45 +71,38 @@ stop_unsanitized_range <- function(starts, ends) {
 # non-overlapping, non-adjacent, distinct ranges. This is the case for the range
 # sets used internally by `phinterval`.
 
-# TODO: I don't think you'll need this `rm_instants`, but you will need to deal
-#       with the interpretation of adjacent edges.
-range_intersection <- function(
+range_intersect <- function(
     x_starts,
     x_ends,
     y_starts,
     y_ends,
-    rm_instants = FALSE
+    instants = FALSE
   ) {
 
   positions <- c(x_starts, y_starts, x_ends, y_ends)
   is_start <- rep(c(TRUE, FALSE), each = length(x_starts) + length(y_starts))
 
-  # TODO Ethan:
-  # I think the `is_start` vs. `!is_start` here should change how aligned ranges
-  # are dealt with. When you implement `phint_intersection`, keep this in mind
-  position_order <- order(positions, is_start)
+  position_order <- order(positions, !is_start)
   positions <- positions[position_order]
   is_start <- is_start[position_order]
 
   starts_minus_ends <- cumsum((is_start - 1L) + is_start)
-  intersection_starts <- which(starts_minus_ends == 2L)
+  intersection_starts <- which(abs(starts_minus_ends) == 2L)
 
   starts <- positions[intersection_starts]
   ends <- positions[intersection_starts + 1L]
 
-  if (rm_instants) {
-    non_instants <- starts != ends
-    list(
-      starts = starts[non_instants],
-      ends = ends[non_instants]
-    )
-  } else {
-    list(starts = starts, ends = ends)
+  if (!instants) {
+    non_instants <- ends - starts >= 1L
+    starts <- starts[non_instants]
+    ends <- ends[non_instants]
   }
+
+  list(starts = starts, ends = ends)
 
 }
 
-range_setdifference <- function(x_starts, x_ends, y_starts, y_ends) {
+range_setdifference <- function(x_starts, x_ends, y_starts, y_ends, instants = FALSE) {
   y_range_compliment <- range_compliment(
     starts = y_starts,
     ends = y_ends,
@@ -117,12 +110,12 @@ range_setdifference <- function(x_starts, x_ends, y_starts, y_ends) {
     upper_bound = max(x_ends)
   )
 
-  range_intersection(
+  range_intersect(
     x_starts = x_starts,
     x_ends = x_ends,
     y_starts = y_range_compliment$starts,
     y_ends = y_range_compliment$ends,
-    rm_instants = TRUE
+    instants = instants
   )
 }
 
@@ -150,6 +143,10 @@ range_truncate <- function(starts, ends, lower_bound, upper_bound) {
   list(starts = starts, ends = ends)
 }
 
+# TODO Ethan:
+# - Change `aligned` to `instants`, alter rules if necessary, following approach
+#   in `range_intersect`
+# - Update tests
 range_intersects <- function(
     x_starts,
     x_ends,

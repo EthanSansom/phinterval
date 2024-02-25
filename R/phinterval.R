@@ -419,6 +419,13 @@ within_instant <- function(instant, phint) {
 
 }
 
+# TODO Ethan:
+# - implement phinterval methods for `with_tz` and `force_tz` from `lubridate`
+# - https://github.com/tidyverse/lubridate/blob/e0b50c1759fe35e90a094c012e0c2ce60d47500d/R/time-zones.r#L102
+tz.phinterval <- function(x) {
+  attr(x, "tzone")
+}
+
 is_holey <- function(phint) {
 
   if (lubridate::is.interval(phint)) {
@@ -532,8 +539,9 @@ phint_lengths <- function(phint) {
 
 }
 
-# TODO Ethan: Check if input is an interval, immediate output an NA phinterval
-# (since intervals have no holes).
+# TODO Ethan:
+# - Check if input is an interval, immediate output an NA phinterval (since intervals have no holes)
+# - Implement a left and right option, to expand the universe of the inversion
 phint_invert <- function(phint) {
 
   phint <- check_is_phinty(phint)
@@ -680,12 +688,14 @@ int_squash <- function(int, na.rm = TRUE) {
 
 }
 
-# TODO Ethan: You'll have to manually implement `base` recycling rules here,
-#             or use `vec_recycle_common` to implement `tidyverse` recycling.
 phint_overlaps <- function(phint1, phint2, aligned = FALSE) {
 
-  range1 <- rangify_phinterval(check_is_phinty(phint1))
-  range2 <- rangify_phinterval(check_is_phinty(phint2))
+  objs <- recycle2_common(phint1, phint2)
+  phint1 <- check_is_phinty(objs$x)
+  phint2 <- check_is_phinty(objs$y)
+
+  range1 <- rangify_phinterval(phint1)
+  range2 <- rangify_phinterval(phint2)
 
   non_na_at <- !(is.na(phint1) | is.na(phint2))
 
@@ -708,52 +718,22 @@ phint_overlaps <- function(phint1, phint2, aligned = FALSE) {
 
 }
 
-# TODO Ethan: Implement some recycling capabilities... and checks.
-# See if lubridate does recycling everywhere.
 phint_union <- function(phint1, phint2) {
-
-  range1 <- rangify_phinterval(check_is_phinty(phint1))
-  range2 <- rangify_phinterval(check_is_phinty(phint2))
-
-  non_na_at <- !(is.na(phint1) | is.na(phint2))
-
-  range1_starts <- range1$starts[non_na_at]
-  range1_ends   <- range1$ends[non_na_at]
-  range2_starts <- range2$starts[non_na_at]
-  range2_ends   <- range2$ends[non_na_at]
-
-  out_range <- pmap(
-    list(
-      x_starts = range1_starts,
-      x_ends = range1_ends,
-      y_starts = range2_starts,
-      y_ends = range2_ends
-    ),
-    range_union
+  combine_phintervals(
+    .phint1 = phint1,
+    .phint2 = phint2,
+    .f = range_union
   )
-
-  out_length <- length(phint1)
-
-  tzone <-          tz_union(phint1, phint2)
-  reference_time <- lubridate::POSIXct(out_length, tz = tzone)
-  range_starts <-   as.list(rep(NA_real_, out_length))
-  range_ends <-     as.list(rep(NA_real_, out_length))
-
-  range_starts[non_na_at] <- map(out_range, `[[`, "starts")
-  range_ends[non_na_at] <-   map(out_range, `[[`, "ends")
-
-  new_phinterval(
-    reference_time = reference_time,
-    range_starts = range_starts,
-    range_ends = range_ends,
-    tzone = tzone
-  )
-
 }
 
-# phint_union <- function(phint1, phint2) {
-#   combine_phintervals(phint1, phint2, range_union)
-# }
+phint_intersect <- function(phint1, phint2, instants = FALSE) {
+  combine_phintervals(
+    .phint1 = phint1,
+    .phint2 = phint2,
+    .f = range_intersect,
+    instants = instants
+  )
+}
 
 # helpers ----------------------------------------------------------------------
 
@@ -765,12 +745,14 @@ phint_union <- function(phint1, phint2) {
 # repeating it. The function below is NOT COMPLETE
 combine_phintervals <- function(.phint1, .phint2, .f, ...) {
 
-  # TODO: Implement base recycling!!
+  objs <- recycle2_common(.phint1, .phint2)
+  phint1 <- check_is_phinty(objs$x)
+  phint2 <- check_is_phinty(objs$y)
 
-  range1 <- rangify_phinterval(check_is_phinty(.phint1))
-  range2 <- rangify_phinterval(check_is_phinty(.phint2))
+  range1 <- rangify_phinterval(phint1)
+  range2 <- rangify_phinterval(phint2)
 
-  non_na_at <- !(is.na(.phint1) | is.na(.phint2))
+  non_na_at <- !(is.na(phint1) | is.na(phint2))
 
   range1_starts <- range1$starts[non_na_at]
   range1_ends   <- range1$ends[non_na_at]
@@ -788,9 +770,9 @@ combine_phintervals <- function(.phint1, .phint2, .f, ...) {
     !!!list(...)
   )
 
-  out_length <- length(.phint1)
+  out_length <- length(phint1)
 
-  tzone <-          tz_union(.phint1, .phint2)
+  tzone <-          tz_union(phint1, phint2)
   reference_time <- lubridate::POSIXct(out_length, tz = tzone)
   range_starts <-   as.list(rep(NA_real_, out_length))
   range_ends <-     as.list(rep(NA_real_, out_length))

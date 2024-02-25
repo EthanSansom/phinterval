@@ -56,6 +56,10 @@ is_list_of_Interval <- function(x) {
 
 # time wrangling ---------------------------------------------------------------
 
+# TODO Ethan:
+# Make a separate `timezones.R` script for timezone stuff. Will include `with_tz`
+# `force_tz`, and `tz` implementations for `phinterval`.
+
 # Both `tz_is_local` and `tz_union` are borrowed directly from lubridate for
 # consistency. https://github.com/tidyverse/lubridate/blob/main/R/vctrs.R
 tz_is_local <- function(x) {
