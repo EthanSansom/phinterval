@@ -18,7 +18,7 @@ stop_wrong_class <- function(
     if (!inherits(x, cls)) {
       cli::cli_abort(
         paste0(
-          "{.arg {arg}} must be a {.cls cls} vector, ",
+          "{.arg {arg}} must be a {.cls {cls}} vector, ",
           "not a {.cls {class(x)}}."
         ),
         arg = arg,
@@ -26,29 +26,67 @@ stop_wrong_class <- function(
       )
     }
 
-  } else {
+    return(invisible())
+  }
 
-    if (!inherits(x, cls)) {
-      len_msg <- if (n == 1) "scalar" else paste0("length-", n)
-      cli::cli_abort(
-        paste0(
-          "{.arg {arg}} must be a {len_msg} {.cls cls} vector, ",
-          "not a {.cls {class(x)}}."
-        ),
-        arg = arg,
-        call = error_call
-      )
-    } else if (length(x) != n) {
-      cli::cli_abort(
-        c(
-          "{.arg {arg}} must have length {n}.",
-          i = "{.arg {arg}} has length {length(x)}."
-        ),
-        arg = arg,
-        call = error_call
-      )
+  if (!inherits(x, cls)) {
+    len_msg <- if (n == 1) "scalar" else paste0("length-", n)
+    cli::cli_abort(
+      paste0(
+        "{.arg {arg}} must be a {len_msg} {.cls {cls}} vector, ",
+        "not a {.cls {class(x)}}."
+      ),
+      arg = arg,
+      call = error_call
+    )
+  } else if (length(x) != n) {
+    cli::cli_abort(
+      c(
+        "{.arg {arg}} must have length {n}.",
+        i = "{.arg {arg}} has length {length(x)}."
+      ),
+      arg = arg,
+      call = error_call
+    )
+  }
+
+}
+
+stop_not_list_of <- function(
+    x,
+    cls,
+    arg = rlang::caller_arg(x),
+    error_call = rlang::caller_env()
+  ) {
+
+  if (!is.list(x)) {
+    cli::cli_abort(
+      paste0(
+        "{.arg {arg}} must be a {.cls list} of {.cls {cls}} vectors, ",
+        "not a {.cls {class(x)}}."
+      ),
+      arg = arg,
+      call = error_call
+    )
+    return(invisible())
+  }
+
+  non_cls <- !map_lgl(x, inherits, cls)
+  if (any(non_cls)) {
+    ind <- which(non_cls)
+    error_msg <- if (length(ind) == 1) {
+      "Element at index {ind} is not a {.cls {cls}} vector."
+    } else {
+      "Elements at indices {ind} are not {.cls {cls}} vectors."
     }
-
+    cli::cli_abort(
+      c(
+        "{.arg {arg}} must be a list of {.cls {cls}} vectors.",
+        x = error_msg
+      ),
+      arg = arg,
+      call = error_call
+    )
   }
 
 }

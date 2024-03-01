@@ -706,7 +706,7 @@ test_that("overlaps are correctly identified", {
 
 })
 
-test_that("instants within ranges are overlaps", {
+test_that("instants within ranges are overlaps iff `instants = TRUE`", {
 
   origin <- .POSIXct(0, tz = "UTC")
   phint1 <- new_phinterval(
@@ -720,14 +720,12 @@ test_that("instants within ranges are overlaps", {
     range_ends = list(1)
   )
 
-  expect_identical(
-    phint_overlaps(phint1, phint2),
-    TRUE
-  )
+  expect_true(phint_overlaps(phint1, phint2, instants = TRUE))
+  expect_false(phint_overlaps(phint1, phint2, instants = FALSE))
 
 })
 
-test_that("aligned spans are not overlaps if `aligned = FALSE`", {
+test_that("aligned spans are not overlaps if `instants = FALSE`", {
 
   origin <- .POSIXct(0, tz = "UTC")
   phint1 <- new_phinterval(
@@ -741,14 +739,11 @@ test_that("aligned spans are not overlaps if `aligned = FALSE`", {
     range_ends = list(10)
   )
 
-  expect_identical(
-    phint_overlaps(phint1, phint2, aligned = FALSE),
-    FALSE
-  )
+  expect_false(phint_overlaps(phint1, phint2, instants = FALSE))
 
 })
 
-test_that("aligned spans are overlaps if `aligned = TRUE`", {
+test_that("aligned spans are overlaps if `instants = TRUE`", {
 
   origin <- .POSIXct(0, tz = "UTC")
   phint1 <- new_phinterval(
@@ -763,7 +758,7 @@ test_that("aligned spans are overlaps if `aligned = TRUE`", {
   )
 
   expect_identical(
-    phint_overlaps(phint1, phint2, aligned = TRUE),
+    phint_overlaps(phint1, phint2, instants = TRUE),
     c(TRUE, TRUE)
   )
 

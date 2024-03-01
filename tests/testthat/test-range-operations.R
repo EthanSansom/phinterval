@@ -145,6 +145,98 @@ test_that("range_within works as expected", {
 
 })
 
+# range_intersects -------------------------------------------------------------
+
+test_that("range_intersects correctly identifies non-instant intersections", {
+
+  # Within
+  expect_true(range_intersects(-5, 5, -1, 1))
+  expect_true(range_intersects(-1, 1, -5, 5))
+  expect_true(range_intersects(3, 5, 3, 4))
+  expect_true(range_intersects(3, 4, 3, 5))
+  expect_true(range_intersects(3, 5, 4, 5))
+  expect_true(range_intersects(4, 5, 3, 5))
+  expect_true(range_intersects(c(0, 20), c(10, 30), c(1, 4, 21), c(2, 5, 29)))
+  expect_true(range_intersects(c(1, 4, 21), c(2, 5, 29), c(0, 20), c(10, 30)))
+  expect_true(range_intersects(0, 100, c(0, 20), c(10, 30)))
+  expect_true(range_intersects(c(0, 20), c(10, 30), 0, 100))
+
+  # Non-Aligned
+  expect_true(range_intersects(1, 10, 5, 20))
+  expect_true(range_intersects(5, 20, 1, 10))
+  expect_true(range_intersects(c(0, 10), c(5, 20), c(1, 15, 50), c(2, 23, 60)))
+  expect_true(range_intersects(c(1, 15, 50), c(2, 23, 60), c(0, 10), c(5, 20)))
+
+})
+
+test_that("range_intersects correctly identifies non-intersections", {
+
+  expect_false(range_intersects(0, 0, 1, 1))
+  expect_false(range_intersects(0, 10, 11, 20))
+  expect_false(range_intersects(c(0, 5), c(1, 6), c(2, 12), c(3, 20)))
+
+})
+
+test_that("range_intersects `instants` argument works as expected", {
+
+  x_starts <- 1
+  x_ends <- 2
+  y_starts <- c(0, 2)
+  y_ends <- c(1, 3)
+
+  expect_false(
+    range_intersects(x_starts, x_ends, y_starts, y_ends, instants = FALSE)
+  )
+  expect_true(
+    range_intersects(x_starts, x_ends, y_starts, y_ends, instants = TRUE)
+  )
+  expect_false(
+    range_intersects(y_starts, y_ends, x_starts, x_ends, instants = FALSE)
+  )
+  expect_true(
+    range_intersects(y_starts, y_ends, x_starts, x_ends, instants = TRUE)
+  )
+
+})
+
+test_that("range_intersects instant x instant intersections are as expected", {
+
+  expect_false(range_intersects(1, 1, 1, 1, instants = FALSE))
+  expect_true(range_intersects(1, 1, 1, 1, instants = TRUE))
+  expect_false(range_intersects(0, 0.1, 0, 1, instants = FALSE))
+  expect_true(range_intersects(0, 0.1, 0, 1, instants = TRUE))
+  expect_false(range_intersects(0, 1, 0, 0.1, instants = FALSE))
+  expect_true(range_intersects(0, 1, 0, 0.1, instants = TRUE))
+  expect_false(range_intersects(-1, 1, 0, 0.5, instants = FALSE))
+  expect_true(range_intersects(-1, 1, 0, 0.5, instants = TRUE))
+
+})
+
+test_that("range_intersect instant x range edge intersections are as expected", {
+
+  # instant x range start
+  expect_false(range_intersects(0, 0, 0, 1, instants = FALSE))
+  expect_true(range_intersects(0, 0, 0, 1, instants = TRUE))
+  expect_false(range_intersects(0, 1, 1, 1, instants = FALSE))
+  expect_true(range_intersects(0, 1, 0, 0, instants = TRUE))
+
+  # instant x range end
+  expect_false(range_intersects(1, 1, 0, 1, instants = FALSE))
+  expect_true(range_intersects(1, 1, 0, 1, instants = TRUE))
+  expect_false(range_intersects(0, 1, 1, 1, instants = FALSE))
+  expect_true(range_intersects(0, 1, 1, 1, instants = TRUE))
+
+})
+
+test_that("range_intersects instant x range intersections are as expected", {
+
+  expect_false(range_intersects(0, 0, -1, 1, instants = FALSE))
+  expect_true(range_intersects(0, 0, -1, 1, instants = TRUE))
+  expect_false(range_intersects(-1, 1, 0, 0, instants = FALSE))
+  expect_true(range_intersects(-1, 1, 0, 0, instants = TRUE))
+
+})
+
 # range_intersect --------------------------------------------------------------
 
 test_that("range_intersect correctly identifies non-instant intersections", {

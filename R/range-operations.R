@@ -102,68 +102,70 @@ range_intersect <- function(
 
 }
 
-range_setdifference <- function(x_starts, x_ends, y_starts, y_ends, instants = FALSE) {
-  y_range_compliment <- range_compliment(
-    starts = y_starts,
-    ends = y_ends,
-    lower_bound = min(x_starts),
-    upper_bound = max(x_ends)
-  )
-
-  range_intersect(
-    x_starts = x_starts,
-    x_ends = x_ends,
-    y_starts = y_range_compliment$starts,
-    y_ends = y_range_compliment$ends,
-    instants = instants
-  )
-}
-
-# TODO: Fix this. We want the compliment to extend from (lower_bound, min(starts)) and
-#       (max(ends), upper_bound) IF the bounds exceed the input range. Otherwise,
-#       we want to truncate. Currently, we do none of that.
-range_compliment <- function(starts, ends, lower_bound = -Inf, upper_bound = Inf) {
-  starts_order <- order(starts)
-  range_truncate(
-    starts = ends[starts_order][-length(ends)],
-    ends = starts[starts_order][-1L],
-    lower_bound = lower_bound,
-    upper_bound = upper_bound
-  )
-}
-
-range_truncate <- function(starts, ends, lower_bound, upper_bound) {
-  in_bounds <- starts < upper_bound & ends > lower_bound
-  starts <- starts[in_bounds]
-  ends <- ends[in_bounds]
-
-  starts[starts < lower_bound] <- lower_bound
-  ends[ends > upper_bound] <- upper_bound
-
-  list(starts = starts, ends = ends)
-}
-
-# TODO Ethan:
-# - Change `aligned` to `instants`, alter rules if necessary, following approach
-#   in `range_intersect`
-# - Update tests
 range_intersects <- function(
     x_starts,
     x_ends,
     y_starts,
     y_ends,
-    aligned = FALSE
+    instants = FALSE
 ) {
 
-  starts <- c(x_starts, y_starts)
-  ends <- c(x_ends, y_ends)
-  start_order <- order(starts)
-  if (aligned) {
-    any(starts[start_order][-1L] <= cummax(ends[start_order][-length(ends)]))
+  positions <- c(x_starts, y_starts, x_ends, y_ends)
+  is_start <- rep(c(TRUE, FALSE), each = length(x_starts) + length(y_starts))
+
+  position_order <- order(positions, !is_start)
+  positions <- positions[position_order]
+  is_start <- is_start[position_order]
+
+  starts_minus_ends <- cumsum((is_start - 1L) + is_start)
+
+  if (instants) {
+    any(abs(starts_minus_ends) == 2L)
   } else {
-    any(starts[start_order][-1L] < cummax(ends[start_order][-length(ends)]))
+    intersection_starts <- which(abs(starts_minus_ends) == 2L)
+    starts <- positions[intersection_starts]
+    ends <- positions[intersection_starts + 1L]
+    any(ends - starts >= 1L)
   }
 
+}
+
+range_setdifference <- function(
+    x_starts,
+    x_ends,
+    y_starts,
+    y_ends,
+    instants = FALSE
+  ) {
+
+  x_min_start <- min(x_starts)
+  x_max_end <- max(x_ends)
+
+  y_starts_order <- order(y_starts)
+  y_starts <- y_starts[y_starts_order]
+  y_ends <- y_ends[y_starts_order]
+
+  y_compliment_starts <- y_ends[y_starts_order][-length(y_ends)]
+  y_compliment_ends <- y_starts[y_starts_order][-1L]
+
+  # Makes the "universe" of the compliment [x_min_start, x_max_end]. Otherwise,
+  # setdiff excludes segments of x outside of [min(y_starts), max(y_ends)].
+  if (y_starts[[1]] > x_min_start) {
+    y_compliment_starts <- c(x_min_start, y_compliment_starts)
+    y_compliment_ends <- c(y_starts[[1]], y_compliment_ends)
+  }
+  if (y_ends[[length(y_ends)]] < x_max_end) {
+    y_compliment_starts <- c(y_ends[[length(y_ends)]], y_compliment_starts)
+    y_compliment_ends <- c(x_max_end, y_compliment_ends)
+  }
+
+  range_intersect(
+    x_starts = x_starts,
+    x_ends = x_ends,
+    y_starts = y_compliment_starts,
+    y_ends = y_compliment_ends,
+    instants = instants
+  )
 }
 
 range_within <- function(x_starts, x_ends, y_starts, y_ends) {
@@ -173,31 +175,5 @@ range_within <- function(x_starts, x_ends, y_starts, y_ends) {
     range_flatten(c(x_starts, y_starts), c(x_ends, y_ends)),
     list(starts = y_starts[y_order], ends = y_ends[y_order])
   )
-
-}
-
-# TODO Ethan: I have a feeling that this version *might* be slightly slower
-# than the version above. However, this one fails on the edge case of aligned
-# ends on non-within ranges. Benchmark to see if it's worth trying to fix.
-if (FALSE) {
-
-  range_within <- function(x_starts, x_ends, y_starts, y_ends) {
-
-    x_len <- length(x_starts)
-    y_len <- length(y_starts)
-
-    positions <- c(x_starts, y_starts, x_ends, y_ends)
-    is_start <- rep(c(TRUE, FALSE), each = x_len + y_len)
-    is_y <- rep(c(rep(FALSE, x_len), rep(TRUE, y_len)), 2)
-
-    position_order <- order(positions, !is_start, is_y)
-    positions <- positions[position_order]
-    is_start <- is_start[position_order]
-    is_y <- is_y[position_order]
-
-    starts_minus_ends <- cumsum((is_start - 1L) + is_start)
-    all(starts_minus_ends != 0 | (!is_start & is_y))
-
-  }
 
 }

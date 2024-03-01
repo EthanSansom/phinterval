@@ -134,39 +134,22 @@ as_phinterval <- function(x, ...) {
   UseMethod("as_phinterval")
 }
 
-# TODO Ethan:
-# Use `as.interval` in `as_phinterval`, as this allows difftime, Duration,
-# Period, and numeric class objects to be converted to an Interval, which we can
-# then convert with `as_phinterval(int)`
-#
-# Check the docs + source code to see which classes are supported.
-# https://lubridate.tidyverse.org/reference/as.interval.html
-
 as_phinterval.default <- function(x, ...) {
   vec_cast(x, new_phinterval())
 }
 
-# TODO Ethan: Just take the `tzone` from the interval here
 as_phinterval.Interval <- function(x, tzone = NULL) {
 
-  if (!lubridate::is.interval(x)) {
-    cli::cli_abort(
-      paste0(
-        "{.arg x} must be a {.cls {Interval}} vector, ",
-        "not a {.cls {class(x)}}."
-      )
-    )
-  }
-
-  tzone <- tzone %||% "UTC"
+  # `tz` doesn't get the timezone of an `Interval`
+  tzone <- tzone %||% lubridate::tz(lubridate::int_start(x))
   stop_wrong_class(tzone, "character", n = 1L)
 
-  intvl <- lubridate::int_standardize(x)
-  na_at <- is.na(intvl)
+  int <- lubridate::int_standardize(x)
+  na_at <- is.na(int)
 
-  reference_time <- lubridate::int_start(intvl)
-  range_starts   <- as.list(rep(0, length(intvl)))
-  range_ends     <- as.list(as.double(lubridate::int_length(intvl)))
+  reference_time <- lubridate::int_start(int)
+  range_starts   <- as.list(rep(0, length(int)))
+  range_ends     <- as.list(as.double(lubridate::int_length(int)))
 
   reference_time[na_at] <- lubridate::NA_POSIXct_
   range_starts[na_at]   <- NA_real_
@@ -181,72 +164,37 @@ as_phinterval.Interval <- function(x, tzone = NULL) {
 
 }
 
-# Initialize a phinterval from a list interval vectors
 phinterval <- function(intervals = NULL, tzone = NULL) {
 
-  # TODO Ethan: Get the timezone from the supplied intervals, before defaulting to UTC
-  tzone <- tzone %||% "UTC"
-  stop_wrong_class(tzone, "character", n = 1)
-
   if (is.null(intervals)) {
+    tzone <- tzone %||% "UTC"
+    stop_wrong_class(tzone, "character", n = 1)
     return(new_phinterval(tzone = tzone))
   }
-  # TODO Ethan: Maybe turn this into an error instead of automatically converting
-  #             to a phinterval with `as_phinterval`.
-  if (lubridate::is.interval(intervals)) {
-    return(as_phinterval(intervals, tzone))
-  }
 
-  stop_wrong_class(intervals, "list")
-  non_intervals <- !map_lgl(intervals, lubridate::is.interval)
-  if (any(non_intervals)) {
-    # TODO Ethan: Is there a nicer way to indicate the length(ind) is a quantity here?
-    # Maybe a whole pluralize function with two paths...
-    ind <- which(non_intervals)
-    cli::cli_abort(
-      c(
-        "{.arg intervals} must be a list of {.cls Interval} vectors.",
-        x = paste0(
-          "{cli::qty(length(ind))}",
-          "Element{?s} at {?index/indices} {ind} ",
-          "{cli::qty(length(ind))}",
-          "{?is not an/are not} {.cls Interval} vector{?s}."
-        )
-      )
-    )
-  }
+  stop_not_list_of(intervals, "Interval")
 
-  if (!is_list_of_Interval(intervals)) {
-    cli::cli_abort(
-      paste0(
-        "{.arg intervals} must be a list of {.cls Interval} vectors, ",
-        "not a {.cls {class(intervals)}}."
-      )
-    )
-  }
+  # Defaulting to the timezone of the first Interval supplied
+  tzone <- tzone %||% lubridate::tz(lubridate::int_start(intervals[[1]]))
+  stop_wrong_class(tzone, "character", n = 1)
 
-  # Standardizing the interval ensures that the `phinterval` ranges are positive.
-  intervals <- map(intervals, lubridate::int_standardize)
+  ints <- map(intervals, lubridate::int_standardize)
 
-  # TODO Ethan: Delay converting to a double until after you've made the reference
-  # time, since it's requires a date anyhow
-  min_start_time <- map_dbl(intervals, \(intvl) min(intvl_start_dbl(intvl)))
+  min_start_time <- map_dbl(ints, \(int) min(lubridate::int_start(int)))
   reference_time <- min_start_time |>
     lubridate::as_datetime() |>
     lubridate::with_tz(tzone)
 
   range_starts <- map2(
-    intervals,
-    min_start_time,
-    \(intvl, min_start) { intvl_start_dbl(intvl) - min_start }
+    ints, min_start_time,
+    \(int, min_start) { as.double(lubridate::int_start(int)) - min_start }
   )
   range_ends <- map2(
-    intervals,
-    min_start_time,
-    \(intvl, min_start) { intvl_end_dbl(intvl) - min_start }
+    ints, min_start_time,
+    \(int, min_start) { as.double(lubridate::int_end(int)) - min_start }
   )
 
-  na_at <- map_lgl(intervals, \(intvl) any(is.na(intvl)))
+  na_at <- map_lgl(ints, \(int) any(is.na(int)))
   reference_time[na_at] <- lubridate::NA_POSIXct_
   range_starts[na_at]   <- NA_real_
   range_ends[na_at]     <- NA_real_
@@ -295,7 +243,7 @@ vec_proxy_equal.phinterval <- function(x, ...) {
   starts_uid <- rep(NA_character_, length(reference_time))
   ends_uid   <- starts_uid
 
-  # TODO: This feels illegal, but should (?) uniquely identify a set of time spans
+  # TODO: This feels illegal, but should (?) uniquely ID a set of time spans
   na_at <- is.na(reference_time)
   seconds <- as.double(reference_time)[!na_at]
   starts <- range_starts[!na_at]
@@ -606,6 +554,13 @@ phint_to_holes <- function(phint) {
 
 }
 
+
+phint_shift <- function(phint, by) {
+
+  if (!is.timespan(by)) stop("by is not a recognized timespan object")
+
+}
+
 # set operations ---------------------------------------------------------------
 
 phint_squash <- function(phint, na.rm = TRUE) {
@@ -688,7 +643,7 @@ int_squash <- function(int, na.rm = TRUE) {
 
 }
 
-phint_overlaps <- function(phint1, phint2, aligned = FALSE) {
+phint_overlaps <- function(phint1, phint2, instants = FALSE) {
 
   objs <- recycle2_common(phint1, phint2)
   phint1 <- check_is_phinty(objs$x)
@@ -713,7 +668,7 @@ phint_overlaps <- function(phint1, phint2, aligned = FALSE) {
       y_ends = range2_ends
     ),
     range_intersects,
-    aligned = aligned
+    instants = instants
   )
 
 }
@@ -735,14 +690,17 @@ phint_intersect <- function(phint1, phint2, instants = FALSE) {
   )
 }
 
+phint_diff <- function(phint1, phint2, instants = FALSE) {
+  combine_phintervals(
+    .phint1 = phint1,
+    .phint2 = phint2,
+    .f = range_setdifference,
+    instants = instants
+  )
+}
+
 # helpers ----------------------------------------------------------------------
 
-# TODO Ethan: I think all of the parallel range/set operations will involve
-# rangifying the phintervals, sorting into NA and non-NA, applying the operation
-# to the non-NA indices, and recombining into a phinterval.
-#
-# You should probably formalize this process in a single function, rather than
-# repeating it. The function below is NOT COMPLETE
 combine_phintervals <- function(.phint1, .phint2, .f, ...) {
 
   objs <- recycle2_common(.phint1, .phint2)
@@ -767,7 +725,7 @@ combine_phintervals <- function(.phint1, .phint2, .f, ...) {
       y_ends = range2_ends
     ),
     .f = .f,
-    !!!list(...)
+    ...
   )
 
   out_length <- length(phint1)
