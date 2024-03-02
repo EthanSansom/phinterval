@@ -38,13 +38,13 @@ new_phinterval <- function(
   if (!is_list_of_dbl(range_ends)) {
     bullets <- c(
       bullets,
-      "{.var range_ends} must be a list of double vectors"
+      "{.var range_ends} must be a list of double vectors."
     )
   }
   if (!rlang::is_scalar_character(tzone)) {
     bullets <- c(
       bullets,
-      "{.var tzone} must be a scalar character vector"
+      "{.var tzone} must be a scalar character vector."
     )
   }
   if (!rlang::is_empty(bullets)) {
@@ -78,6 +78,10 @@ NA_phinterval <- function(n = 1L, tzone = "UTC") {
   )
 
 }
+
+
+# TODO Ethan: This displays nothing if using the local timezone (when tzone == ""),
+#             wheras lubridate displays the correct timezone. FIXME
 
 #' @export
 format.phinterval <- function(x, ...) {
@@ -317,8 +321,8 @@ setMethod("%within%", signature(b = "phinterval"), function(a, b) {
   if (!lubridate::is.instant(a)) {
     cli::cli_abort(
       c(
-        "{.arg a} must be a valid datetime vector, not {.cls {class(a)}",
-        i = "Valid datetimes are those which pass {.fn lubridate::is.instant}"
+        "{.arg a} must be a valid datetime vector, not {.cls {class(a)}.",
+        i = "Valid datetimes are those which pass {.fn lubridate::is.instant}."
       )
     )
   }
@@ -374,6 +378,15 @@ tz.phinterval <- function(x) {
   attr(x, "tzone")
 }
 
+# TODO Ethan:
+# See https://stackoverflow.com/questions/31317366/in-r-how-can-i-extend-generic-methods-from-one-package-in-another
+# I'm not sure of the right way to extend a generic. Check R Packages for details (?)
+# or the S3 chapter of Advanced R
+setGeneric("as.duration", getGeneric("as.duration", package="lubridate"))
+setMethod("as.duration", signature(x = "phinterval"), function(x) {
+  as.duration(phint_length(x))
+})
+
 is_holey <- function(phint) {
 
   if (lubridate::is.interval(phint)) {
@@ -399,7 +412,7 @@ n_spans <- function(phint) {
     out <- map_int(range_starts, length)
   }
 
-  out[is.na(phint)] <- NA
+  out[is.na(phint)] <- NA_integer_
   out
 
 }
@@ -487,10 +500,12 @@ phint_lengths <- function(phint) {
 
 }
 
-# TODO Ethan:
-# - Check if input is an interval, immediate output an NA phinterval (since intervals have no holes)
-# - Implement a left and right option, to expand the universe of the inversion
 phint_invert <- function(phint) {
+
+  if (lubridate::is.interval(phint)) {
+    tzone <- lubridate::tz(lubridate::int_start(phint)[[1]])
+    return(NA_phinterval(n = length(phint), tzone = tzone))
+  }
 
   phint <- check_is_phinty(phint)
   reference_time <- field(phint, "reference_time")
@@ -500,17 +515,14 @@ phint_invert <- function(phint) {
 
   is_holey <- !(is.na(reference_time) | map_lgl(range_starts, \(s) length(s) == 1))
 
-  new_starts <- vector("list", length(reference_time))
-  new_ends   <- vector("list", length(reference_time))
-
   holey_ranges <- order_ranges(range_starts[is_holey], range_ends[is_holey])
   hole_starts  <- map(holey_ranges$ends, \(e) e[-length(e)])
   hole_ends    <- map(holey_ranges$starts, \(s) s[-1L])
 
   reference_time[!is_holey] <- lubridate::NA_POSIXct_
-  new_starts[!is_holey]     <- NA_real_
-  new_ends[!is_holey]       <- NA_real_
 
+  new_starts <- as.list(rep(NA_real_, length(reference_time)))
+  new_ends   <- as.list(rep(NA_real_, length(reference_time)))
   new_starts[is_holey] <- hole_starts
   new_ends[is_holey]   <- hole_ends
 
@@ -549,15 +561,73 @@ phint_to_spans <- function(phint) {
 
 phint_to_holes <- function(phint) {
 
-  phint <- check_is_phinty(phint)
-  phint_to_spans(phint_invert(phint))
+  phint |>
+    check_is_phinty() |>
+    phint_invert() |>
+    phint_to_spans()
 
 }
 
+phint_shift <- function(phint, by, on = c("all", "start")) {
 
-phint_shift <- function(phint, by) {
+  on <- rlang::arg_match(on)
+  if (on == "all") {
+    return(phint_shift_faithful(phint, by))
+  }
 
-  if (!is.timespan(by)) stop("by is not a recognized timespan object")
+  if (!lubridate::is.timespan(by)) {
+    cli::cli_abort("{.arg by} must be a timespan, not a {.cls {class(by)}.")
+  }
+  if (lubridate::is.interval(by)) {
+    cli::cli_abort("{.arg by} can't be a {.cls Interval}.")
+  }
+
+  # `lubridate` uses the recycling rules of `+` to recycle both the time-span
+  # and the shift `by`. Using `recycle2_common` to match this approach.
+  objs  <- recycle2_common(phint, by)
+  phint <- standardize_phinterval(check_is_phinty(objs$x))
+  by    <- objs$y
+
+  new_phinterval(
+    reference_time = field(phint, "reference_time") + by,
+    range_starts = field(phint, "range_starts"),
+    range_ends = field(phint, "range_ends"),
+    tzone = attr(phint, "tzone")
+  )
+
+}
+
+# This matches the `lubridate` implementation of `int_shift. In particular,
+# `is.na(phint_shift_faithful(int)) == is.na(int_shift(int))`.
+phint_shift_faithful <- function(phint, by) {
+
+  if (!lubridate::is.timespan(by)) {
+    cli::cli_abort("{.arg by} must be a timespan, not a {.cls {class(by)}.")
+  }
+  if (lubridate::is.interval(by)) {
+    cli::cli_abort("{.arg by} can't be a {.cls Interval}.")
+  }
+
+  objs  <- recycle2_common(phint, by)
+  phint <- check_is_phinty(objs$x)
+  by    <- objs$y
+  tzone <- attr(phint, "tzone")
+
+  reference_time <- rep(.POSIXct(0, tz = tzone), length(phint))
+  range_starts <- map(phint_starts(phint), \(dates) as.numeric(dates + by))
+  range_ends   <- map(phint_ends(phint), \(dates) as.numeric(dates + by))
+
+  na_at <- map2_lgl(range_starts, range_ends, \(s, e) any(is.na(s) | is.na(e)))
+  reference_time[na_at] <- lubridate::NA_POSIXct_
+  range_starts[na_at]   <- NA_real_
+  range_ends[na_at]     <- NA_real_
+
+  new_phinterval(
+    reference_time = reference_time,
+    range_starts = range_starts,
+    range_ends = range_ends,
+    tzone = tzone
+  )
 
 }
 

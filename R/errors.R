@@ -4,7 +4,6 @@
 #   - Notes on error messages: https://style.tidyverse.org/error-messages.html
 #   - `rlang::caller_arg` pattern is great: https://rlang.r-lib.org/reference/caller_arg.html
 
-# TODO Ethan: Clean this up to handle the null v. non-null `n` paths
 stop_wrong_class <- function(
     x,
     cls,
