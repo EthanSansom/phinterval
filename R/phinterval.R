@@ -3,7 +3,6 @@ setOldClass("phinterval")
 # TODO Ethan:
 # - make a different display method for tibbles! See https://vctrs.r-lib.org/articles/s3-vector.html#format-method
 # - see vctrs::list_of, since you're using lists of a lot https://vctrs.r-lib.org/reference/list_of.html
-# - change all references to an "Interval" to use `int` for consistency
 # - review the `clock` package to see if they have any cool ideas for `phinterval`
 #
 # - anywhere that you compare two `phinterval`s AND recycling is not automatic
@@ -81,7 +80,7 @@ NA_phinterval <- function(n = 1L, tzone = "UTC") {
 
 
 # TODO Ethan: This displays nothing if using the local timezone (when tzone == ""),
-#             wheras lubridate displays the correct timezone. FIXME
+#             whereas lubridate displays the correct timezone. FIXME
 
 #' @export
 format.phinterval <- function(x, ...) {
@@ -713,7 +712,7 @@ int_squash <- function(int, na.rm = TRUE) {
 
 }
 
-phint_overlaps <- function(phint1, phint2, instants = FALSE) {
+phint_overlaps <- function(phint1, phint2, inclusive = FALSE) {
 
   objs <- recycle2_common(phint1, phint2)
   phint1 <- check_is_phinty(objs$x)
@@ -738,7 +737,7 @@ phint_overlaps <- function(phint1, phint2, instants = FALSE) {
       y_ends = range2_ends
     ),
     range_intersects,
-    instants = instants
+    inclusive = inclusive
   )
 
 }
@@ -751,21 +750,20 @@ phint_union <- function(phint1, phint2) {
   )
 }
 
-phint_intersect <- function(phint1, phint2, instants = FALSE) {
+phint_intersect <- function(phint1, phint2, inclusive = FALSE) {
   combine_phintervals(
     .phint1 = phint1,
     .phint2 = phint2,
     .f = range_intersect,
-    instants = instants
+    inclusive = inclusive
   )
 }
 
-phint_diff <- function(phint1, phint2, instants = FALSE) {
+phint_diff <- function(phint1, phint2) {
   combine_phintervals(
     .phint1 = phint1,
     .phint2 = phint2,
-    .f = range_setdifference,
-    instants = instants
+    .f = range_setdifference
   )
 }
 

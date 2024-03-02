@@ -76,13 +76,23 @@ range_intersect <- function(
     x_ends,
     y_starts,
     y_ends,
-    instants = FALSE
+    inclusive = FALSE
   ) {
+
+  if (!inclusive) {
+    x_non_instants <- x_starts != x_ends
+    y_non_instants <- y_starts != y_ends
+
+    x_starts <- x_starts[x_non_instants]
+    x_ends   <- x_ends[x_non_instants]
+    y_starts <- y_starts[y_non_instants]
+    y_ends   <- y_ends[y_non_instants]
+  }
 
   positions <- c(x_starts, y_starts, x_ends, y_ends)
   is_start <- rep(c(TRUE, FALSE), each = length(x_starts) + length(y_starts))
 
-  position_order <- order(positions, !is_start)
+  position_order <- order(positions, if (inclusive) !is_start else is_start)
   positions <- positions[position_order]
   is_start <- is_start[position_order]
 
@@ -91,12 +101,6 @@ range_intersect <- function(
 
   starts <- positions[intersection_starts]
   ends <- positions[intersection_starts + 1L]
-
-  if (!instants) {
-    non_instants <- ends - starts >= 1L
-    starts <- starts[non_instants]
-    ends <- ends[non_instants]
-  }
 
   list(starts = starts, ends = ends)
 
@@ -107,25 +111,27 @@ range_intersects <- function(
     x_ends,
     y_starts,
     y_ends,
-    instants = FALSE
+    inclusive = FALSE
 ) {
 
-  positions <- c(x_starts, y_starts, x_ends, y_ends)
-  is_start <- rep(c(TRUE, FALSE), each = length(x_starts) + length(y_starts))
+  if (!inclusive) {
+    x_non_instants <- x_starts != x_ends
+    y_non_instants <- y_starts != y_ends
 
-  position_order <- order(positions, !is_start)
-  positions <- positions[position_order]
-  is_start <- is_start[position_order]
+    x_starts <- x_starts[x_non_instants]
+    x_ends   <- x_ends[x_non_instants]
+    y_starts <- y_starts[y_non_instants]
+    y_ends   <- y_ends[y_non_instants]
+  }
 
-  starts_minus_ends <- cumsum((is_start - 1L) + is_start)
+  starts <- c(x_starts, y_starts)
+  ends <- c(x_ends, y_ends)
+  start_order <- order(starts)
 
-  if (instants) {
-    any(abs(starts_minus_ends) == 2L)
+  if (inclusive) {
+    any(starts[start_order][-1L] <= cummax(ends[start_order][-length(ends)]))
   } else {
-    intersection_starts <- which(abs(starts_minus_ends) == 2L)
-    starts <- positions[intersection_starts]
-    ends <- positions[intersection_starts + 1L]
-    any(ends - starts >= 1L)
+    any(starts[start_order][-1L] < cummax(ends[start_order][-length(ends)]))
   }
 
 }
@@ -134,39 +140,149 @@ range_setdifference <- function(
     x_starts,
     x_ends,
     y_starts,
-    y_ends,
-    instants = FALSE
+    y_ends
   ) {
 
-  x_min_start <- min(x_starts)
-  x_max_end <- max(x_ends)
+  if (rlang::is_empty(x_starts) || rlang::is_empty(y_starts)) {
+    return(list(starts = x_starts, ends = x_ends))
+  }
+
+  is_x_instant <- x_starts == x_ends
+  if (!any(is_x_instant)) {
+    return(range_setdifference_happy_path(x_starts, x_ends, y_starts, y_ends))
+  }
+
+  # Remove any instants which are shared between x and y.
+  is_y_instant <- y_starts == y_ends
+  if (any(is_y_instant)) {
+
+    y_instants <- y_starts[is_y_instant]
+    is_in_y <- map_lgl(
+      x_starts[is_x_instant],
+      \(x_instant) x_instant %in% y_instants
+    )
+
+    non_shared_instants <- !(is_in_y & is_x_instant)
+    x_starts <- x_starts[non_shared_instants]
+    x_ends   <- x_ends[non_shared_instants]
+
+    is_x_instant <- x_starts == x_ends
+    if (!any(is_x_instant)) {
+      return(range_setdifference_happy_path(x_starts, x_ends, y_starts, y_ends))
+    }
+
+    # Now that shared instants are removed, if all ranges in y are instants than
+    # we can return the remaining ranges in x.
+    is_y_instant <- y_starts == y_ends
+    if (all(is_y_instant)) {
+      return(list(starts = x_starts, ends = x_ends))
+    }
+
+    # Don't want adjacent ranges (ex. [0, 1], [1, 2]) in the output, so removing
+    # any y instants which could split an x range into two adjacent ranges.
+    y_starts <- y_starts[!is_y_instant]
+    y_ends <- y_ends[!is_y_instant]
+
+  }
 
   y_starts_order <- order(y_starts)
   y_starts <- y_starts[y_starts_order]
   y_ends <- y_ends[y_starts_order]
 
-  y_compliment_starts <- y_ends[y_starts_order][-length(y_ends)]
-  y_compliment_ends <- y_starts[y_starts_order][-1L]
+  y_comp_starts <- y_ends[y_starts_order][-length(y_ends)]
+  y_comp_ends <- y_starts[y_starts_order][-1L]
 
   # Makes the "universe" of the compliment [x_min_start, x_max_end]. Otherwise,
   # setdiff excludes segments of x outside of [min(y_starts), max(y_ends)].
+  x_min_start <- min(x_starts)
+  x_max_end <- max(x_ends)
   if (y_starts[[1]] > x_min_start) {
-    y_compliment_starts <- c(x_min_start, y_compliment_starts)
-    y_compliment_ends <- c(y_starts[[1]], y_compliment_ends)
+    y_comp_starts <- c(x_min_start, y_comp_starts)
+    y_comp_ends <- c(y_starts[[1]], y_comp_ends)
   }
   if (y_ends[[length(y_ends)]] < x_max_end) {
-    y_compliment_starts <- c(y_ends[[length(y_ends)]], y_compliment_starts)
-    y_compliment_ends <- c(x_max_end, y_compliment_ends)
+    y_comp_starts <- c(y_ends[[length(y_ends)]], y_comp_starts)
+    y_comp_ends <- c(x_max_end, y_comp_ends)
+  }
+
+  # Keep instants in x which are within the compliment (not on the edge).
+  x_instants <- x_starts[is_x_instant]
+  is_setdiff_instant <- y_comp_starts < x_instants & x_instants < y_comp_ends
+
+  # If any instants are within the setdifference, have to add them manually.
+  if (any(is_setdiff_instant)) {
+    setdiff_instants <- x_instants[is_setdiff_instant]
+    setdiff <- range_intersect(
+      x_starts = x_starts,
+      x_ends = x_ends,
+      y_starts = y_comp_starts,
+      y_ends = y_comp_ends,
+      inclusive = FALSE
+    )
+
+    list(
+      starts = c(setdiff_instants, setdiff$starts),
+      ends = c(setdiff_instants, setdiff$ends)
+    )
+
+  } else {
+
+    range_intersect(
+      x_starts = x_starts,
+      x_ends = x_ends,
+      y_starts = y_comp_starts,
+      y_ends = y_comp_ends,
+      inclusive = FALSE
+    )
+
+  }
+
+}
+
+# Set difference in the simple case where x contains no instants
+range_setdifference_happy_path <- function(x_starts, x_ends, y_starts, y_ends) {
+
+  # Don't want instantaneous splits in the output ranges (ex. [0, 1], [1, 2]),
+  # so removing any y instants which could cause this split.
+  is_y_instant <- y_starts == y_ends
+  if (all(is_y_instant)) {
+    return(list(starts = x_starts, ends = x_ends))
+  }
+  y_starts <- y_starts[!is_y_instant]
+  y_ends <- y_ends[!is_y_instant]
+
+  y_starts_order <- order(y_starts)
+  y_starts <- y_starts[y_starts_order]
+  y_ends <- y_ends[y_starts_order]
+
+  y_comp_starts <- y_ends[y_starts_order][-length(y_ends)]
+  y_comp_ends <- y_starts[y_starts_order][-1L]
+
+  # Makes the "universe" of the compliment [x_min_start, x_max_end]. Otherwise,
+  # setdiff excludes segments of x outside of [min(y_starts), max(y_ends)].
+  x_min_start <- min(x_starts)
+  x_max_end <- max(x_ends)
+  if (y_starts[[1]] > x_min_start) {
+    y_comp_starts <- c(x_min_start, y_comp_starts)
+    y_comp_ends <- c(y_starts[[1]], y_comp_ends)
+  }
+  if (y_ends[[length(y_ends)]] < x_max_end) {
+    y_comp_starts <- c(y_ends[[length(y_ends)]], y_comp_starts)
+    y_comp_ends <- c(x_max_end, y_comp_ends)
   }
 
   range_intersect(
     x_starts = x_starts,
     x_ends = x_ends,
-    y_starts = y_compliment_starts,
-    y_ends = y_compliment_ends,
-    instants = instants
+    y_starts = y_comp_starts,
+    y_ends = y_comp_ends,
+    inclusive = FALSE
   )
+
 }
+
+range_setdifference(c(0, 10), c(5, 10), 0, 0)
+range_setdifference(c(0, 10), c(5, 10), 10, 10)
 
 range_within <- function(x_starts, x_ends, y_starts, y_ends) {
 
