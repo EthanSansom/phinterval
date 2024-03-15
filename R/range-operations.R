@@ -1,13 +1,9 @@
-# TODO:
-# I think that here an elsewhere, it might be easier to remove the instants from
-# the ranges BEFORE doing anything (where required) and THEN deal with them separately.
-#
-# You could write custom functions for checking if instants intersect with one another
-# (literally just using `%in%`) AND if instants appear in other ranges.
+# positive ranges --------------------------------------------------------------
 
-# TODO: All of the names in this file are a little misleading, because we're really dealing
-#       with sets of ranges. These functions are internal, so I don't think it
-#       matters too much...
+# Functions in this section require only that input range sets contain only
+# positive ranges (ex. [2, 5], [-1, 1], not [5, 2], [1, -1]), which may be
+# adjacent or overlapping.
+
 range_flatten <- function(starts, ends) {
 
   starts_length <- length(starts)
@@ -35,6 +31,11 @@ range_flatten <- function(starts, ends) {
   )
 }
 
+range_is_flat <- function(starts, ends) {
+  start_order <- order(starts)
+  all(starts[start_order][-1L] > cummax(ends[start_order][-length(ends)]))
+}
+
 range_union <- function(x_starts, x_ends, y_starts, y_ends) {
   range_flatten(
     starts = c(x_starts, y_starts),
@@ -42,34 +43,11 @@ range_union <- function(x_starts, x_ends, y_starts, y_ends) {
   )
 }
 
-range_contains_overlaps <- function(starts, ends) {
-  start_order <- order(starts)
-  any(starts[start_order][-1L] < cummax(ends[start_order][-length(ends)]))
-}
-
-range_is_flat <- function(starts, ends) {
-  start_order <- order(starts)
-  all(starts[start_order][-1L] > cummax(ends[start_order][-length(ends)]))
-}
-
-# TODO Ethan: These describe the conditions for a range to be used in:
-# - range_intersect
-# - range_compliment
-# - range_setdifference
-# This kind of test should appear *somewhere* AND *once* in any `phinterval`
-# creation process (except maybe in simple constructor `new_phinterval`).
-stop_unsanitized_range <- function(starts, ends) {
-  stopifnot(length(starts) == length(ends))
-  stopifnot(all(!is.na(starts) & !is.na(ends)))
-  stopifnot(all(starts <= ends))
-  stopifnot(range_is_flat(starts, ends))
-}
-
 # non-overlapping and non-adjacent ranges --------------------------------------
 
-# Everything in this section requires that input range sets contain only
-# non-overlapping, non-adjacent, distinct ranges. This is the case for the range
-# sets used internally by `phinterval`.
+# All functions below require that input range sets contain only positive,
+# non-overlapping, non-adjacent, ranges. This is the case for the range sets
+# used internally by `phinterval`.
 
 range_intersect <- function(
     x_starts,
@@ -281,9 +259,6 @@ range_setdifference_happy_path <- function(x_starts, x_ends, y_starts, y_ends) {
 
 }
 
-range_setdifference(c(0, 10), c(5, 10), 0, 0)
-range_setdifference(c(0, 10), c(5, 10), 10, 10)
-
 range_within <- function(x_starts, x_ends, y_starts, y_ends) {
 
   y_order <- order(y_starts)
@@ -291,5 +266,48 @@ range_within <- function(x_starts, x_ends, y_starts, y_ends) {
     range_flatten(c(x_starts, y_starts), c(x_ends, y_ends)),
     list(starts = y_starts[y_order], ends = y_ends[y_order])
   )
+
+}
+
+range_bound <- function(starts, ends, left, right) {
+
+  out_of_bounds <- left > ends | starts > right
+
+  starts <- starts[!out_of_bounds]
+  if (rlang::is_empty(starts)) {
+    return(list(starts = NA_real_, ends = NA_real_))
+  }
+  ends <- ends[!out_of_bounds]
+
+  starts[starts < left] <- left
+  ends[ends > right]    <- right
+
+  list(starts = starts, ends = ends)
+
+}
+
+range_bound_lower <- function(starts, ends, left) {
+
+  out_of_bounds <- left > ends
+  starts <- starts[!out_of_bounds]
+  if (rlang::is_empty(starts)) {
+    return(list(starts = NA_real_, ends = NA_real_))
+  }
+  ends <- ends[!out_of_bounds]
+  starts[starts < left] <- left
+  list(starts = starts, ends = ends)
+
+}
+
+range_bound_upper <- function(starts, ends, right) {
+
+  out_of_bounds <- starts > right
+  starts <- starts[!out_of_bounds]
+  if (rlang::is_empty(starts)) {
+    return(list(starts = NA_real_, ends = NA_real_))
+  }
+  ends <- ends[!out_of_bounds]
+  ends[ends > right] <- right
+  list(starts = starts, ends = ends)
 
 }

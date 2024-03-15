@@ -12,10 +12,10 @@ setOldClass("phinterval")
 
 # phinterval class -------------------------------------------------------------
 new_phinterval <- function(
-    reference_time = lubridate::POSIXct(tz = "UTC"),
+    reference_time = lubridate::POSIXct(tz = tzone),
     range_starts = list(),
     range_ends = list(),
-    tzone = attr(reference_time, "tzone")
+    tzone = "UTC"
 ) {
 
   bullets <- character()
@@ -28,22 +28,28 @@ new_phinterval <- function(
       )
     )
   }
-  if (!is_list_of_dbl(range_starts)) {
+  if (!(is.list(range_starts) && all(map_lgl(range_starts, is.numeric)))) {
     bullets <- c(
       bullets,
-      "{.var range_starts} must be a list of double vectors"
+      "{.var range_starts} must be a list of numeric vectors"
     )
   }
-  if (!is_list_of_dbl(range_ends)) {
+  if (!(is.list(range_ends) && all(map_lgl(range_ends, is.numeric)))) {
     bullets <- c(
       bullets,
-      "{.var range_ends} must be a list of double vectors."
+      "{.var range_ends} must be a list of numeric vectors."
     )
   }
   if (!rlang::is_scalar_character(tzone)) {
     bullets <- c(
       bullets,
       "{.var tzone} must be a scalar character vector."
+    )
+  }
+  if (lubridate::tz(reference_time) != tzone) {
+    bullets <- c(
+      bullets,
+      "{.var reference_time} must be have timezone {.var tzone}."
     )
   }
   if (!rlang::is_empty(bullets)) {
@@ -67,7 +73,7 @@ new_phinterval <- function(
 
 }
 
-NA_phinterval <- function(n = 1L, tzone = "UTC") {
+na_phinterval <- function(n = 1L, tzone = "UTC") {
 
   new_phinterval(
     reference_time = rep(NA_POSIXct_, n),
@@ -78,9 +84,13 @@ NA_phinterval <- function(n = 1L, tzone = "UTC") {
 
 }
 
+na_posixct <- function(n = 1L, tzone = "UTC") {
+  as.POSIXct(rep(NA, n), tz = tzone)
+}
 
-# TODO Ethan: This displays nothing if using the local timezone (when tzone == ""),
-#             whereas lubridate displays the correct timezone. FIXME
+origin_posixct <- function(n = 1L, tzone = "UTC") {
+  lubridate::POSIXct(n, tz = tzone)
+}
 
 #' @export
 format.phinterval <- function(x, ...) {
@@ -89,6 +99,9 @@ format.phinterval <- function(x, ...) {
   range_starts <- field(x, "range_starts")
   range_ends <- field(x, "range_ends")
   tzone <- attr(x, "tzone")
+
+  # Hack to get the local timezone abbreviation - not sure how else to do this
+  tzone <- if (tzone == "") strftime(x = .POSIXct(0L), format = "%Z") else tzone
 
   starts_order <- map(range_starts, order)
   interval_starts <-
@@ -119,13 +132,19 @@ vec_ptype_abbr.phinterval <- function(x, ...) {
   "phintrvl"
 }
 
-vec_ptype2.phinterval.phinterval <- function(x, y, ...) new_phinterval(tzone = tz_union(x, y))
+vec_ptype2.phinterval.phinterval <- function(x, y, ...){
+  new_phinterval(tzone = tz_union(x, y))
+}
+
+vec_ptype2.phinterval.Interval <- function(x, y, ...) {
+  new_phinterval(tzone = tz_union(x, y))
+}
+
+vec_ptype2.Interval.phinterval <- function(x, y, ...) {
+  new_phinterval(tzone = tz_union(x, y))
+}
 
 vec_cast.phinterval.phinterval <- function(x, to, ...) x
-
-vec_ptype2.phinterval.Interval <- function(x, y, ...) new_phinterval(tzone = tz_union(x, y))
-
-vec_ptype2.Interval.phinterval <- function(x, y, ...) new_phinterval(tzone = tz_union(x, y))
 
 vec_cast.phinterval.Interval <- function(x, to, ...) as_phinterval(x)
 
@@ -143,8 +162,7 @@ as_phinterval.default <- function(x, ...) {
 
 as_phinterval.Interval <- function(x, tzone = NULL) {
 
-  # `tz` doesn't get the timezone of an `Interval`
-  tzone <- tzone %||% lubridate::tz(lubridate::int_start(x))
+  tzone <- tzone %||% interval_tzone(x)
   stop_wrong_class(tzone, "character", n = 1L)
 
   int <- lubridate::int_standardize(x)
@@ -167,9 +185,15 @@ as_phinterval.Interval <- function(x, tzone = NULL) {
 
 }
 
+# TODO: Check for invalid timezones at the VERY start. Maybe just make an invalid
+#       timezone function. I think you'll have to use `timechange:::C_valid_tz`.
+#       Invalid timezones don't cause an error with empty phinterval, but they
+#       DO cause an error with a non-empty phinterval.
+#
+# See: https://github.com/tidyverse/lubridate/blob/main/R/time-zones.r
 phinterval <- function(intervals = NULL, tzone = NULL) {
 
-  if (is.null(intervals)) {
+  if (rlang::is_empty(intervals)) {
     tzone <- tzone %||% "UTC"
     stop_wrong_class(tzone, "character", n = 1)
     return(new_phinterval(tzone = tzone))
@@ -178,29 +202,31 @@ phinterval <- function(intervals = NULL, tzone = NULL) {
   stop_not_list_of(intervals, "Interval")
 
   # Defaulting to the timezone of the first Interval supplied
-  tzone <- tzone %||% lubridate::tz(lubridate::int_start(intervals[[1]]))
+  tzone <- tzone %||% interval_tzone(intervals[[1]])
   stop_wrong_class(tzone, "character", n = 1)
-
   ints <- map(intervals, lubridate::int_standardize)
 
-  min_start_time <- map_dbl(ints, \(int) min(lubridate::int_start(int)))
-  reference_time <- min_start_time |>
-    lubridate::as_datetime() |>
-    lubridate::with_tz(tzone)
+  # If intervals[[i]] is empty, setting [[i]] to NA. Removing empty intervals
+  # would make the output length harder to predict
+  non_na_at <- !map_lgl(ints, \(int) rlang::is_empty(int) || any(is.na(int)))
+  non_na_ints <- ints[non_na_at]
 
-  range_starts <- map2(
-    ints, min_start_time,
+  reference_time <- na_posixct(length(ints), tzone = tzone)
+  range_starts <- as.list(rep(NA_real_, length(ints)))
+  range_ends <- range_starts
+
+  min_start_time <- map_dbl(non_na_ints, \(int) min(lubridate::int_start(int)))
+  reference_time[non_na_at] <- lubridate::as_datetime(min_start_time)
+  range_starts[non_na_at] <- map2(
+    non_na_ints,
+    min_start_time,
     \(int, min_start) { as.double(lubridate::int_start(int)) - min_start }
   )
-  range_ends <- map2(
-    ints, min_start_time,
+  range_ends[non_na_at] <- map2(
+    non_na_ints,
+    min_start_time,
     \(int, min_start) { as.double(lubridate::int_end(int)) - min_start }
   )
-
-  na_at <- map_lgl(ints, \(int) any(is.na(int)))
-  reference_time[na_at] <- lubridate::NA_POSIXct_
-  range_starts[na_at]   <- NA_real_
-  range_ends[na_at]     <- NA_real_
 
   ranges <- flatten_overlapping_ranges(range_starts, range_ends)
 
@@ -213,19 +239,21 @@ phinterval <- function(intervals = NULL, tzone = NULL) {
 
 }
 
+# TODO: Consolidate the `range_is_flat` and `range_contains_overlaps` functions.
+#       Think about the best language to describe overlapping vs. flat vs. intersecting
 flatten_overlapping_ranges <- function(range_starts, range_ends) {
 
-  contains_overlaps <- map2_lgl(range_starts, range_ends, range_contains_overlaps)
-  contains_overlaps[is.na(contains_overlaps)] <- FALSE
+  range_not_flat <- !map2_lgl(range_starts, range_ends, range_is_flat)
+  range_not_flat[is.na(range_not_flat)] <- FALSE
 
-  if (any(contains_overlaps)) {
-    range_unions <- map2(
-      range_starts[contains_overlaps],
-      range_ends[contains_overlaps],
+  if (any(range_not_flat)) {
+    flattened <- map2(
+      range_starts[range_not_flat],
+      range_ends[range_not_flat],
       range_flatten
     )
-    range_starts[contains_overlaps] <- map(range_unions, `[[`, "starts")
-    range_ends[contains_overlaps] <- map(range_unions, `[[`, "ends")
+    range_starts[range_not_flat] <- map(flattened, `[[`, "starts")
+    range_ends[range_not_flat] <- map(flattened, `[[`, "ends")
   }
 
   list(starts = range_starts, ends = range_ends)
@@ -247,13 +275,13 @@ vec_proxy_equal.phinterval <- function(x, ...) {
   ends_uid   <- starts_uid
 
   # TODO: This feels illegal, but should (?) uniquely ID a set of time spans
-  na_at <- is.na(reference_time)
-  seconds <- as.double(reference_time)[!na_at]
-  starts <- range_starts[!na_at]
-  ends   <- range_ends[!na_at]
+  non_na_at <- !is.na(reference_time)
+  seconds <- as.double(reference_time)[non_na_at]
+  starts <- range_starts[non_na_at]
+  ends   <- range_ends[non_na_at]
 
-  starts_uid[!na_at] <- map2(seconds, starts, \(t, s) t + sort(s)) |> map_chr(range_to_uid)
-  ends_uid[!na_at]   <- map2(seconds, ends, \(t, e) t + sort(e)) |> map_chr(range_to_uid)
+  starts_uid[non_na_at] <- map2(seconds, starts, \(t, s) t + sort(s)) |> map_chr(range_to_uid)
+  ends_uid[non_na_at]   <- map2(seconds, ends, \(t, e) t + sort(e)) |> map_chr(range_to_uid)
 
   data.frame(
     range_starts = starts_uid,
@@ -273,24 +301,59 @@ vec_proxy_compare.phinterval <- function(x, ...) {
 
   min_start <- map2_dbl(reference_time, range_starts, \(t, s) t + min(s))
   max_end <- map2_dbl(reference_time, range_ends, \(t, e) t + max(e))
-  duration_seconds <- map2(range_starts, range_ends, \(s, e) sum(e - s))
+  duration_seconds <- map2_dbl(range_starts, range_ends, \(s, e) sum(e - s))
 
   # `phinterval`s are ordered by start, end, and duration.
   data.frame(
-    min_start = min_start,
-    max_end = max_end,
-    duration_seconds = duration_seconds
+    starts_first = min_start,
+    ends_first = -max_end,
+    shortest = -duration_seconds
   )
 
 }
 
-vec_arith.phinterval <- function(op, x, y, ...) {
-  UseMethod("vec_arith.phinterval", y)
+# division ---------------------------------------------------------------------
+
+divide_phinterval_by_duration <- function(phint, dur) {
+  as.duration(phint) / dur
 }
 
-vec_arith.phinterval.default <- function(op, x, y, ...) {
-  vctrs::stop_incompatible_op(op, x, y)
+divide_phinterval_by_difftime <- function(phint, diff) {
+  as.duration(phint) / diff
 }
+
+divide_phinterval_by_period <- function(phint, per) {
+  map2_dbl(phint_to_spans(phint), per, \(spans, p) sum(spans / p))
+}
+
+trunc_divide <- function(e1, e2) trunc(e1 / e2)
+
+#' @export
+setMethod(
+  "/", signature(e1 = "phinterval", e2 = "Duration"),
+  function(e1, e2) divide_phinterval_by_duration(e1, e2)
+)
+
+#' @export
+setMethod(
+  "/", signature(e1 = "phinterval", e2 = "difftime"),
+  function(e1, e2) divide_phinterval_by_difftime(e1, e2)
+)
+
+#' @export
+setMethod(
+  "/", signature(e1 = "phinterval", e2 = "Period"),
+  function(e1, e2) divide_phinterval_by_period(e1, e2)
+)
+
+#' @export
+setMethod("%/%", signature(e1 = "phinterval", e2 = "Duration"), trunc_divide)
+
+#' @export
+setMethod("%/%", signature(e1 = "phinterval", e2 = "difftime"), trunc_divide)
+
+#' @export
+setMethod("%/%", signature(e1 = "phinterval", e2 = "Period"), trunc_divide)
 
 # phinterval interface ---------------------------------------------------------
 
@@ -370,9 +433,7 @@ within_instant <- function(instant, phint) {
 
 }
 
-# TODO Ethan:
-# - implement phinterval methods for `with_tz` and `force_tz` from `lubridate`
-# - https://github.com/tidyverse/lubridate/blob/e0b50c1759fe35e90a094c012e0c2ce60d47500d/R/time-zones.r#L102
+# TODO: Export this method appropriately
 tz.phinterval <- function(x) {
   attr(x, "tzone")
 }
@@ -438,12 +499,12 @@ phint_starts <- function(phint) {
   reference_time <- field(phint, "reference_time")
   range_starts <- field(phint, "range_starts")
 
-  out <- as.list(rep(NA_POSIXct_, length(reference_time)))
-  na_at <- is.na(reference_time)
+  out <- as.list(na_posixct(length(phint), tzone = tz(phint)))
+  non_na_at <- !is.na(phint)
 
-  out[!na_at] <- map2(
-    reference_time[!na_at],
-    range_starts[!na_at],
+  out[non_na_at] <- map2(
+    reference_time[non_na_at],
+    range_starts[non_na_at],
     \(t, s) t + sort(s)
   )
   out
@@ -465,11 +526,12 @@ phint_ends <- function(phint) {
   reference_time <- field(phint, "reference_time")
   range_ends <- field(phint, "range_ends")
 
-  out <- as.list(rep(NA_POSIXct_, length(reference_time)))
-  na_at <- is.na(reference_time)
-  out[!na_at] <- map2(
-    reference_time[!na_at],
-    range_ends[!na_at],
+  out <- as.list(na_posixct(length(phint), tzone = tz(phint)))
+  non_na_at <- !is.na(phint)
+
+  out[non_na_at] <- map2(
+    reference_time[non_na_at],
+    range_ends[non_na_at],
     \(t, e) t + sort(e)
   )
   out
@@ -488,11 +550,12 @@ phint_lengths <- function(phint) {
   range_starts <- field(phint, "range_starts")
   range_ends <- field(phint, "range_ends")
 
-  na_at <- is.na(phint)
-  out <- as.list(rep(NA, length(phint)))
-  out[!na_at] <- map2(
-    range_starts[!na_at],
-    range_ends[!na_at],
+  out <- as.list(rep(NA_real_, length(phint)))
+  non_na_at <- !is.na(phint)
+
+  out[non_na_at] <- map2(
+    range_starts[non_na_at],
+    range_ends[non_na_at],
     \(s, e) sort(e - s)
   )
   out
@@ -502,26 +565,26 @@ phint_lengths <- function(phint) {
 phint_invert <- function(phint) {
 
   if (lubridate::is.interval(phint)) {
-    tzone <- lubridate::tz(lubridate::int_start(phint)[[1]])
-    return(NA_phinterval(n = length(phint), tzone = tzone))
+    tzone <- interval_tzone(phint)
+    return(na_phinterval(n = length(phint), tzone = tzone))
   }
 
   phint <- check_is_phinty(phint)
   reference_time <- field(phint, "reference_time")
   range_starts <- field(phint, "range_starts")
   range_ends <- field(phint, "range_ends")
-  tzone <- attr(phint, "tzone")
+  tzone <- tz(phint)
 
-  is_holey <- !(is.na(reference_time) | map_lgl(range_starts, \(s) length(s) == 1))
+  is_holey <- !(is.na(phint) | map_lgl(range_starts, \(s) length(s) == 1))
 
   holey_ranges <- order_ranges(range_starts[is_holey], range_ends[is_holey])
   hole_starts  <- map(holey_ranges$ends, \(e) e[-length(e)])
   hole_ends    <- map(holey_ranges$starts, \(s) s[-1L])
 
-  reference_time[!is_holey] <- lubridate::NA_POSIXct_
+  reference_time[!is_holey] <- na_posixct(1L, tzone = tzone)
 
-  new_starts <- as.list(rep(NA_real_, length(reference_time)))
-  new_ends   <- as.list(rep(NA_real_, length(reference_time)))
+  new_starts <- as.list(rep(NA_real_, length(phint)))
+  new_ends   <- new_starts
   new_starts[is_holey] <- hole_starts
   new_ends[is_holey]   <- hole_ends
 
@@ -547,14 +610,15 @@ phint_to_spans <- function(phint) {
 
   phint <- check_is_phinty(phint)
   phint <- standardize_phinterval(phint)
+
   reference_time <- field(phint, "reference_time")
   range_starts <- field(phint, "range_starts")
   range_ends <- field(phint, "range_ends")
-  tzone <- attr(phint, "tzone")
+  tzone <- tz(phint)
 
   int_starts <- map2(reference_time, range_starts, `+`)
   int_ends   <- map2(reference_time, range_ends, `+`)
-  map2(int_starts, int_ends, lubridate::interval, tzone = tzone)
+  map2(int_starts, int_ends, interval, tzone = tzone)
 
 }
 
@@ -591,7 +655,7 @@ phint_shift <- function(phint, by, on = c("all", "start")) {
     reference_time = field(phint, "reference_time") + by,
     range_starts = field(phint, "range_starts"),
     range_ends = field(phint, "range_ends"),
-    tzone = attr(phint, "tzone")
+    tzone = tz(phint)
   )
 
 }
@@ -610,11 +674,11 @@ phint_shift_faithful <- function(phint, by) {
   objs  <- recycle2_common(phint, by)
   phint <- check_is_phinty(objs$x)
   by    <- objs$y
-  tzone <- attr(phint, "tzone")
+  tzone <- tz(phint)
 
   reference_time <- rep(.POSIXct(0, tz = tzone), length(phint))
-  range_starts <- map(phint_starts(phint), \(dates) as.numeric(dates + by))
-  range_ends   <- map(phint_ends(phint), \(dates) as.numeric(dates + by))
+  range_starts <- map(phint_starts(phint), \(dates) as.double(dates + by))
+  range_ends   <- map(phint_ends(phint), \(dates) as.double(dates + by))
 
   na_at <- map2_lgl(range_starts, range_ends, \(s, e) any(is.na(s) | is.na(e)))
   reference_time[na_at] <- lubridate::NA_POSIXct_
@@ -630,14 +694,118 @@ phint_shift_faithful <- function(phint, by) {
 
 }
 
+phint_bound <- function(phint, left = NULL, right = NULL) {
+
+  phint <- check_is_phinty(phint)
+  phint_len <- length(phint)
+
+  left_null  <- is.null(left)
+  right_null <- is.null(right)
+  if (left_null && right_null) {
+    cli::cli_abort("Must supply at least one of {.arg left} or {.arg right}.")
+  }
+  if (phint_len == 0) {
+    return(phint)
+  }
+  if (!left_null) {
+    stop_wrong_class(left, c("Date", "POSIXct", "POSIXlt"))
+    left <- recycle_to(left, phint)
+  }
+  if (!right_null) {
+    stop_wrong_class(right, c("Date", "POSIXct", "POSIXlt"))
+    right <- recycle_to(right, phint)
+  }
+  if (!(left_null | right_null)) {
+    left_after_right <- map2_lgl(left, right, \(l, r) l > r)
+    if (isTRUE(any(left_after_right))) {
+      error_index <- which.max(left_after_right)
+      cli::cli_abort(
+        c(
+          "{.arg left} bound must be less than or equal to {.arg right}.",
+          x = "Recycled {.code left > right} at index {error_index}.",
+          i = "`left[[{error_index}]]` is {.val {left[[error_index]]}}.",
+          i = "`right[[{error_index}]]` is {.val {right[[error_index]]}}."
+        )
+      )
+    }
+  }
+
+  tzone <- tz(phint)
+  reference_time <- origin_posixct(phint_len, tzone = tzone)
+  range_starts <- as.list(rep(NA_real_, phint_len))
+  range_ends <- range_starts
+
+  range_left  <- as.double(as.POSIXct(left))
+  range_right <- as.double(as.POSIXct(right))
+  range <- rangify_phinterval(phint)
+
+  if (left_null) {
+    # TODO Ethan: Implement `out_of_bounds` check. We want to return NA
+    #             for `phinterval` that is outside of the provided [left, right]
+    #             bounds!
+    #
+    #             Actually, that's super annoying. Just implement this in the
+    #             three `range_bound*` functions
+    non_na_at <- !(is.na(right) | is.na(phint))
+    range_bounded <- pmap(
+      list(
+        starts = range$starts[non_na_at & !out_of_bounds],
+        ends = range$ends[non_na_at & !out_of_bounds],
+        right = range_right[non_na_at & !out_of_bounds]
+      ),
+      range_bound_upper
+    )
+  } else if (right_null) {
+    non_na_at <- !(is.na(left) | is.na(phint))
+    range_bounded <- pmap(
+      list(
+        starts = range$starts[non_na_at],
+        ends = range$ends[non_na_at],
+        left = range_left[non_na_at]
+      ),
+      range_bound_lower
+    )
+  } else {
+    non_na_at <- !(is.na(left) | is.na(right) | is.na(phint))
+    range_bounded <- pmap(
+      list(
+        starts = range$starts[non_na_at],
+        ends = range$ends[non_na_at],
+        left = range_left[non_na_at],
+        right = range_right[non_na_at]
+      ),
+      range_bound
+    )
+  }
+
+  range_starts[non_na_at] <- map(range_bounded, `[[`, "starts")
+  range_ends[non_na_at] <- map(range_bounded, `[[`, "ends")
+  reference_time[is.na(range_starts)] <- na_posixct(1L, tzone = tzone)
+
+  new_phinterval(
+    reference_time = reference_time,
+    range_starts = range_starts,
+    range_ends = range_ends,
+    tzone = tzone
+  )
+
+}
+
 # set operations ---------------------------------------------------------------
 
+# TODO Ethan: You might want an option to return NA on empty, so
+#             that you can use this in a `summarize` statement
+#             and reliably return a length-1 output
 phint_squash <- function(phint, na.rm = TRUE) {
 
   stop_wrong_class(na.rm, "logical", n = 1L)
 
+  if (lubridate::is.interval(phint)) {
+    return(int_squash(phint, na.rm = na.rm))
+  }
+
   phint <- check_is_phinty(phint)
-  tzone <- attr(phint, "tzone")
+  tzone <- tz(phint)
 
   if (rlang::is_empty(phint)) {
     return(phinterval(tzone = tzone))
@@ -653,7 +821,7 @@ phint_squash <- function(phint, na.rm = TRUE) {
 
   na_at <- is.na(reference_time)
   if (all(na_at) || (any(na_at) && !na.rm)) {
-    return(NA_phinterval(tzone = tzone))
+    return(na_phinterval(tzone = tzone))
   }
   if (na.rm) {
     span_starts <- span_starts[!na_at]
@@ -672,21 +840,9 @@ phint_squash <- function(phint, na.rm = TRUE) {
 
 int_squash <- function(int, na.rm = TRUE) {
 
-  if (is_phinterval(int)) {
-    cli::cli_abort(
-      c(
-        "{.arg int} must be an {.cls Interval} vector, not a {.cls phinterval}.",
-        i = "To squash a {.cls phinterval}, use {.fn phint_squash}."
-      )
-    )
-  }
-
-  stop_wrong_class(na.rm, "logical", n = 1L)
-  stop_wrong_class(int, "Interval")
-
   int <- lubridate::int_standardize(int)
   int_starts <- lubridate::int_start(int)
-  int_ends   <- lubridate::int_end(int)
+  int_ends <- lubridate::int_end(int)
   tzone <- lubridate::tz(int_starts)
 
   if (rlang::is_empty(int)) {
@@ -695,16 +851,16 @@ int_squash <- function(int, na.rm = TRUE) {
 
   na_at <- is.na(int)
   if (all(na_at) || (any(na_at) && !na.rm)) {
-    return(NA_phinterval(tzone = tzone))
+    return(na_phinterval(tzone = tzone))
   }
   if (na.rm) {
     int_starts <- int_starts[!na_at]
-    int_ends   <- int_ends[!na_at]
+    int_ends <- int_ends[!na_at]
   }
 
   flat_ranges <- range_flatten(as.double(int_starts), as.double(int_ends))
   new_phinterval(
-    reference_time = lubridate::POSIXct(1L, tz = tzone),
+    reference_time = origin_posixct(1L, tzone = tzone),
     range_starts = list(flat_ranges$starts),
     range_ends = list(flat_ranges$ends),
     tzone = tzone
@@ -799,9 +955,9 @@ combine_phintervals <- function(.phint1, .phint2, .f, ...) {
   out_length <- length(phint1)
 
   tzone <-          tz_union(phint1, phint2)
-  reference_time <- lubridate::POSIXct(out_length, tz = tzone)
+  reference_time <- origin_posixct(out_length, tzone = tzone)
   range_starts <-   as.list(rep(NA_real_, out_length))
-  range_ends <-     as.list(rep(NA_real_, out_length))
+  range_ends <-     range_starts
 
   range_starts[non_na_at] <- map(out_range, `[[`, "starts")
   range_ends[non_na_at] <-   map(out_range, `[[`, "ends")
@@ -828,12 +984,25 @@ rangify_phinterval <- function(phint) {
 
 }
 
+# TODO Ethan: See if this has any use case
+phintify_ranges <- function(starts, ends, tzone) {
+
+  reference_time <- rep(.POSIXct(0L, tz = tzone), length(starts))
+  new_phinterval(
+    reference_time = reference_time,
+    range_starts = starts,
+    range_ends = ends,
+    tzone = tzone
+  )
+
+}
+
 standardize_phinterval <- function(phint) {
 
   reference_time <- field(phint, "reference_time")
   range_starts <- field(phint, "range_starts")
   range_ends <- field(phint, "range_ends")
-  tzone <- attr(phint, "tzone")
+  tzone <- tz(phint)
 
   starts_order <- map(range_starts, order)
   starts_min   <- map_dbl(range_starts, min)

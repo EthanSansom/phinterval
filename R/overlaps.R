@@ -6,13 +6,16 @@
 #     - I think it's fine to choose any strategy for treating these edge cases,
 #       as long as it's well defined in the documentation
 
-# TODO:
-# I think that here an elsewhere, it might be easier to remove the instants from
-# the ranges BEFORE doing anything (where required) and THEN deal with them separately.
-#
-# You could write custom functions for checking if instants intersect with one another
-# (literally just using `%in%`) AND if instants appear in other ranges.
+# TODO Ethan:
+# - make `locate_overlaps` return a tibble, so that the results print nicely
+#   (important for `phintervals`, which look weird with no formatting) and
+#   so this plays well with other Tidyverse functions/analysis-pipelines
 
+# TODO Ethan:
+# - split `alignment` into two boolean arguments:
+#   - `instants`: do we consider instantaneous overlaps, can just pre-remove instants if FALSE
+#   - `edges`:    do we consider adjacent spans to be overlapping
+# I think we have the logic in place to implement these options easily.
 locate_overlaps <- function(phint, na.rm = TRUE, alignment = FALSE) {
 
   phint <- check_is_phinty(phint)
@@ -23,14 +26,14 @@ locate_overlaps <- function(phint, na.rm = TRUE, alignment = FALSE) {
   ends   <- ranges$ends
 
   if (any(is.na(starts)) || rlang::is_empty(starts)) {
-    return(list(n = NA_integer_, spans = NA_phinterval(tzone = tzone)))
+    return(list(n = NA_integer_, spans = na_phinterval(tzone = tzone)))
   }
 
   overlaps <- locate_range_overlaps(starts, ends, alignment = alignment)
   n <- overlaps$n
 
   if (rlang::is_empty(n)) {
-    list(n = NA_integer_, spans = NA_phinterval(tzone = tzone))
+    list(n = NA_integer_, spans = na_phinterval(tzone = tzone))
   } else {
     list(
       n = n,
@@ -67,7 +70,7 @@ extract_overlaps <- function(
   ends   <- ranges$ends
 
   if (any(is.na(starts)) || rlang::is_empty(starts)) {
-    return(NA_phinterval(tzone = tzone))
+    return(na_phinterval(tzone = tzone))
   }
 
   overlaps <- locate_range_overlaps(
@@ -80,7 +83,7 @@ extract_overlaps <- function(
 
   n_overlap_regions <- length(overlaps$n)
   if (n_overlap_regions == 0) {
-    return(NA_phinterval(tzone = tzone))
+    return(na_phinterval(tzone = tzone))
   }
 
   # `locate_range_overlaps()` returns lists `$starts` and `$ends` of ranges in
@@ -125,6 +128,11 @@ phint_to_ranges <- function(phint, na.rm = TRUE) {
 
 }
 
+# TODO Ethan:
+# - split `alignment` into two boolean arguments:
+#   - `instants`: do we consider instantaneous overlaps, can just pre-remove instants if FALSE
+#   - `edges`:    do we consider adjacent spans to be overlapping
+# I think we have the logic in place to implement these options easily.
 locate_range_overlaps <- function(
     starts,
     ends,

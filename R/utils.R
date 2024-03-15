@@ -21,37 +21,91 @@ recycle2_common <- function(
 
   if (x_len == y_len) {
     list(x = x, y = y)
-  } else if (x_len == 1) {
-    list(x = vctrs::vec_rep(x, y_len), y = y)
-  } else if (y_len == 1) {
-    list(x = x, y = vctrs::vec_rep(y, y_len))
   } else if (isTRUE(x_len %% y_len == 0)) {
     list(x = x, y = vctrs::vec_rep(y, x_len / y_len))
   } else if (isTRUE(y_len %% x_len == 0)) {
     list(x = vctrs::vec_rep(x, y_len / x_len), y = y)
   } else {
     cli::cli_abort(
-      "Can't recycle {.arg {x_arg}} (size {x_len}) to match {.arg {y_arg}} (size {y_len}).",
-      call = error_call
+      paste0(
+        "Can't recycle {.arg {x_arg}} (size {x_len}) ",
+        "to match {.arg {y_arg}} (size {y_len})."
+      ),
+      call = error_call,
+      class = "phinterval_error_incompatible_length"
     )
   }
 
 }
 
-# predicates -------------------------------------------------------------------
+# TODO Ethan: What we really want is a `recycle_to(to, arg)` option, which
+#             recycles the other arguments to the length of `to`. This allows
+#             `left` and `right` to be recycled to the length of `phint` in the
+#             function `phint_bound`.
+recycle_to <- function(
+    x,
+    to,
+    x_arg = rlang::caller_arg(x),
+    to_arg = rlang::caller_arg(to),
+    error_call = rlang::caller_env()
+  ) {
 
-# TODO Ethan: I don't like any of these predicates, find and replace them.
+  x_len <- length(x)
+  to_len <- length(to)
 
-is_list_of_dbl <- function(x) {
-  rlang::is_list(x) && all(map_lgl(x, \(x) rlang::is_double(x) || all(is.na(x))))
+  if (to_len == x_len) {
+    x
+  } else if (isTRUE(to_len %% x_len == 0)) {
+    vctrs::vec_rep(x, to_len / x_len)
+  } else {
+    cli::cli_abort(
+      paste0(
+        "Can't recycle {.arg {x_arg}} (size {x_len}) ",
+        "to match {.arg {to_arg}} (size {to_len})."
+      ),
+      call = error_call,
+      class = "phinterval_error_incompatible_length"
+    )
+  }
+
 }
 
-is_list_of_POSIXct <- function(x) {
-  rlang::is_list(x) && all(map_lgl(x, \(x) lubridate::is.POSIXct(x) || all(is.na(x))))
+# TODO: Recycling of zero-length vectors doesn't make sense here.
+# - try `recyclep_common(list(x = numeric(), y = 1:10, z = 1:2))` vs
+#   `recycle2_common(x = numeric(), y = 1:10)`
+recyclep_common <- function(args, error_call = rlang::caller_env()) {
+
+  arg_names    <- names(args)
+  longest_at   <- which.max(map_int(args, length))
+  longest_arg  <- args[[longest_at]]
+  longest_name <- arg_names[[longest_at]]
+
+  map2(
+    args,
+    arg_names,
+    \(arg, arg_name) {
+      recycled <- recycle2_common(
+        x = arg,
+        x_arg = arg_name,
+        y = longest_arg,
+        y_arg = longest_name,
+        error_call = error_call
+      )
+      recycled$x
+    }
+  )
+
 }
 
-is_list_of_Interval <- function(x) {
-  rlang::is_list(x) && all(map_lgl(x, \(x) lubridate::is.interval(x) || all(is.na(x))))
+commas <- function(x, sep = ",", sep2 = "", last = "or") {
+
+  x_len <- length(x)
+  if (x_len == 1) {
+    return(x)
+  }
+  sep <- if (x_len == 2) sep2 else sep
+  paste(c(paste0(x[-x_len], sep), last, x[[x_len]]), collapse = " ")
+
 }
 
 # time wrangling ---------------------------------------------------------------
@@ -59,6 +113,8 @@ is_list_of_Interval <- function(x) {
 # TODO Ethan:
 # Make a separate `timezones.R` script for timezone stuff. Will include `with_tz`
 # `force_tz`, and `tz` implementations for `phinterval`.
+
+interval_tzone <- function(int) lubridate::tz(lubridate::int_start(int))
 
 # Both `tz_is_local` and `tz_union` are borrowed directly from lubridate for
 # consistency. https://github.com/tidyverse/lubridate/blob/main/R/vctrs.R
@@ -76,11 +132,3 @@ tz_union <- function(x, y) {
     x_tzone
   }
 }
-
-# interval helpers -------------------------------------------------------------
-
-# TODO Ethan: I don't like any of these helpers, find and replace them.
-
-intvl_start_dbl  <- function(intvl) as.double(lubridate::int_start(intvl))
-intvl_end_dbl    <- function(intvl) as.double(lubridate::int_end(intvl))
-intvl_length_dbl <- function(intvl) as.double(lubridate::int_length(intvl))

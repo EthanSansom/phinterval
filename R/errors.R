@@ -15,13 +15,15 @@ stop_wrong_class <- function(
   if (is.null(n)) {
 
     if (!inherits(x, cls)) {
+      correct_cls <- commas(paste0("{.cls ", cls, "}"))
       cli::cli_abort(
         paste0(
-          "{.arg {arg}} must be a {.cls {cls}} vector, ",
+          "{.arg {arg}} must be a ", correct_cls, " vector, ",
           "not a {.cls {class(x)}}."
         ),
         arg = arg,
-        call = error_call
+        call = error_call,
+        class = "phinterval_error_wrong_class"
       )
     }
 
@@ -30,13 +32,15 @@ stop_wrong_class <- function(
 
   if (!inherits(x, cls)) {
     len_msg <- if (n == 1) "scalar" else paste0("length-", n)
+    correct_cls <- commas(paste0("{.cls ", cls, "}"))
     cli::cli_abort(
       paste0(
-        "{.arg {arg}} must be a {len_msg} {.cls {cls}} vector, ",
+        "{.arg {arg}} must be a {len_msg} ", correct_cls, " vector, ",
         "not a {.cls {class(x)}}."
       ),
       arg = arg,
-      call = error_call
+      call = error_call,
+      class = "phinterval_error_wrong_class"
     )
   } else if (length(x) != n) {
     cli::cli_abort(
@@ -45,7 +49,8 @@ stop_wrong_class <- function(
         i = "{.arg {arg}} has length {length(x)}."
       ),
       arg = arg,
-      call = error_call
+      call = error_call,
+      class = "phinterval_error_wrong_class"
     )
   }
 
@@ -65,7 +70,8 @@ stop_not_list_of <- function(
         "not a {.cls {class(x)}}."
       ),
       arg = arg,
-      call = error_call
+      call = error_call,
+      class = "phinterval_error_wrong_list_of"
     )
     return(invisible())
   }
@@ -84,7 +90,8 @@ stop_not_list_of <- function(
         x = error_msg
       ),
       arg = arg,
-      call = error_call
+      call = error_call,
+      class = "phinterval_error_wrong_list_of"
     )
   }
 
@@ -109,7 +116,8 @@ check_is_phinty <- function(
       "not a {.cls {class(x)}}."
     ),
     arg = arg,
-    call = error_call
+    call = error_call,
+    class = "phinterval_error_wrong_class"
   )
 
 }

@@ -1,194 +1,314 @@
-# TODO Ethan:
-# - take a look at the lubridate::interval tests, they're very clean and descriptive
-#   https://github.com/tidyverse/lubridate/blob/main/tests/testthat/test-intervals.R
-#   https://github.com/tidyverse/lubridate/blob/main/tests/testthat/test-vctrs.R
-
 # TODO:
-# Create a test helper that quickly creates phintervals or intervals which
-# start at the origin (1970-01-01) and have UTC timezone.
-# - during tests, you can shift these using int/phint shift to vary things up
-
-# TODO Ethan:
-# Test that `phinterval` and `Interval` behave the same (when exposed to the user)
-# by checking the output of `phint_*` and matching `int_*` functions on an
-# `int` Interval and the phinterval `phint = as_phinterval(int)`.
-#
-# Ex. int_end(int) and phint_end(phint) should be identical. Calls to `%within%`
-# should also behave the same.
+# - test error constructors using snapshots
 
 # phinterval -------------------------------------------------------------------
 
-test_that("NA inputs result in NA output", {
+test_that("phinterval() returns zero-length vector", {
 
-  NA_POSIXct_ <- lubridate::NA_POSIXct_
-  starts1 <- lubridate::ymd(20200101) + lubridate::ddays(c(0, 2, 4))
-  ends1   <- lubridate::ymd(20200101) + lubridate::ddays(c(1, 3, NA_real_))
-  starts2 <- NA_POSIXct_
-  ends2   <- NA_POSIXct_
-  starts3 <- lubridate::ymd(20111111)
-  ends3   <- lubridate::ymd(20111111) + lubridate::dseconds(60)
+  phint <- phinterval()
+  expect_s3_class(phint, "phinterval")
+  expect_length(phint, 0L)
 
-  int1 <- lubridate::interval(starts1, ends1, tzone = "UTC")
-  int2 <- lubridate::interval(starts2, ends2, tzone = "UTC")
-  int3 <- lubridate::interval(starts3, ends3, tzone = "UTC")
+  phint <- phinterval(list())
+  expect_s3_class(phint, "phinterval")
+  expect_length(phint, 0L)
 
-  phint <- phinterval(intervals = list(int1, int2, int3), tzone = "UTC")
-  expect_identical(
-    phinterval(intervals = list(int1, int2, int3), tzone = "UTC"),
-    new_phinterval(
-      reference_time = c(NA_POSIXct_, NA_POSIXct_, starts3),
-      range_starts = list(NA_real_, NA_real_, 0),
-      range_ends = list(NA_real_, NA_real_, 60),
-      tzone = "UTC"
+  phint <- phinterval(NULL)
+  expect_s3_class(phint, "phinterval")
+  expect_length(phint, 0L)
+
+})
+
+test_that("zero-length phinterval() respects `tzone`", {
+
+  phint <- phinterval(tzone = "EST")
+  expect_equal(attr(phint, "tzone"), "EST")
+
+})
+
+test_that("NA or empty intervals result in NA output", {
+
+  int_NA    <- interval(NA_POSIXct_, NA_POSIXct_)
+  int_empty <- interval()
+  int1      <- interval(as.Date("2020-01-01"), as.Date("2022-01-01"))
+  phint1 <- phinterval(list(int_NA))
+  phint2 <- phinterval(list(int_empty))
+  phint3 <- phinterval(list(int_NA, int_empty))
+  phint4 <- phinterval(list(c(int1, int_NA)))
+
+  expect_true(all(is.na(phint1)))
+  expect_true(all(is.na(phint2)))
+  expect_true(all(is.na(phint3)))
+  expect_true(all(is.na(phint4)))
+  expect_length(phint1, 1L)
+  expect_length(phint2, 1L)
+  expect_length(phint3, 2L)
+  expect_length(phint4, 1L)
+
+})
+
+# TODO:
+# Invalid timezones throw an error via `timechange:::C_valid_tz`. I'm not
+# sure how I want to deal with this. I could test myself using this (unexported)
+# function, and throw my own error.
+test_that("phinterval errors on invalid inputs", {
+
+  int <- interval(as.Date("2021-01-01"), as.Date("2021-02-01"), tzone = "UTC")
+
+  expect_error(
+    phinterval(int),
+    class = "phinterval_error_wrong_list_of"
+  )
+  expect_error(
+    phinterval(list(int, 10)),
+    class = "phinterval_error_wrong_list_of"
+  )
+  expect_error(
+    phinterval(10),
+    class = "phinterval_error_wrong_list_of"
+  )
+  expect_error(
+    phinterval(as.Date("2020-01-01"), tzone = 10),
+    class = "phinterval_error_wrong_list_of"
+  )
+
+  expect_error(
+    phinterval(list(int), tzone = 1),
+    class = "phinterval_error_wrong_class"
+  )
+  expect_error(
+    phinterval(tzone = 1),
+    class = "phinterval_error_wrong_class"
+  )
+  expect_error(
+    phinterval(list(int), tzone = c("UTC", "EST")),
+    class = "phinterval_error_wrong_class"
+  )
+  expect_error(
+    phinterval(tzone = c("UTC", "EST")),
+    class = "phinterval_error_wrong_class"
+  )
+
+})
+
+# TODO: `lubridate::with_tz(.POSIXct(1L), "PST")` throws a warning, but I can
+#       use this for `interval(tzone = "PST")` and `phinterval(tzone = "PST")`.
+test_that("phinterval errors on invalid timezone", {
+
+  expect_error(phinterval(tzone = "abc123"))
+  expect_error(phinterval(list(interval()), tzone = "abc123"))
+  expect_error(
+    phinterval(
+      list(interval(as.Date("2021-01-01"), as.Date("2021-02-01"))),
+      tzone = "abc123"
     )
   )
 
 })
 
-# as_phinterval ----------------------------------------------------------------
+test_that("phinterval `tzone` argument overrides `intervals` timezone", {
 
-test_that("NA inputs result in NA output", {
+  int <- interval(as.Date("2021-01-01"), as.Date("2021-02-01"), tzone = "UTC")
+  phint <- phinterval(list(int), tzone = "EST")
 
-  NA_POSIXct_ <- lubridate::NA_POSIXct_
-
-  starts <- lubridate::ymd(20200101) + lubridate::ddays(c(0, NA_real_, 4, NA_real_))
-  ends   <- lubridate::ymd(20200101) + lubridate::ddays(c(1, 3, NA_real_, NA_real_))
-  int <- lubridate::interval(starts, ends)
-
-  expect_identical(
-    as_phinterval(int, tzone = "UTC"),
-    new_phinterval(
-      reference_time = c(lubridate::ymd(20200101, tz = "UTC"), NA_POSIXct_, NA_POSIXct_, NA_POSIXct_),
-      range_starts = list(0, NA_real_, NA_real_, NA_real_),
-      range_ends = list(24*60*60, NA_real_, NA_real_, NA_real_),
-      tzone = "UTC"
-    )
+  expect_equal(attr(phint, "tzone"), "EST")
+  expect_equal(
+    as.numeric(lubridate::int_start(int)),
+    as.numeric(phint_start(phint))
   )
+  expect_equal(
+    as.numeric(lubridate::int_end(int)),
+    as.numeric(phint_end(phint))
+  )
+
+})
+
+test_that("phinterval merges overlapping and adjacent intervals", {
+
+  t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
+  t2 <- as.POSIXct("2021-01-01 00:00:45", tz = "UTC")
+  t3 <- as.POSIXct("2021-01-01 00:00:55", tz = "UTC")
+  t4 <- as.POSIXct("2021-01-01 00:01:00", tz = "UTC")
+
+  overlapping <- interval(c(t1, t2), c(t3, t4))
+  non_lapping <- interval(t1, t4)
+  adjacent    <- interval(c(t1, t2), c(t2, t3))
+  non_adj     <- interval(t1, t3)
+
+  phint <- phinterval(list(overlapping, adjacent))
+  expect_equal(phint_to_spans(phint), list(non_lapping, non_adj))
+
+})
+
+test_that("phinterval standardizes input intervals", {
+
+  int <- interval(as.Date("2020-01-01"), as.Date("2021-01-01"))
+  expect_equal(
+    phinterval(list(int)),
+    phinterval(list(lubridate::int_flip(int)))
+  )
+
+})
+
+test_that("phinterval works as expected", {
+
+  t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "EST")
+  t2 <- as.POSIXct("2021-01-01 00:00:30", tz = "EST")
+  t3 <- as.POSIXct("2021-01-01 00:10:20", tz = "EST")
+  t4 <- as.POSIXct("2021-01-01 00:20:30", tz = "EST")
+  t5 <- as.POSIXct("2021-01-02 00:00:00", tz = "EST")
+  int1 <- interval(t1, t2, tzone = "EST")
+  int2 <- interval(c(t1, t3), c(t2, t5), tzone = "EST")
+  int3 <- interval(c(t1, t3, t5), c(t2, t4, t5), tzone = "EST")
+  int4 <- interval(t2, t2, tzone = "EST")
+
+  intervals <- list(int1, int2, int3, int4)
+  phint     <- phinterval(intervals)
+
+  expect_equal(phint_to_spans(phint), intervals)
+  expect_length(phint, length(intervals))
+  expect_s3_class(phint, "phinterval")
+  expect_equal(attr(phint, "tzone"), "EST")
 
 })
 
 # phint_start ------------------------------------------------------------------
 
-test_that("starts are correct", {
+test_that("phint_start zero-length input results in zero-length output", {
 
-  ymd      <- function(x, ...) lubridate::ymd(x, ...)
-  ddays    <- function(x, ...) lubridate::ddays(x, ...)
-  dseconds <- function(x, ...) lubridate::dseconds(x, ...)
+  phint <- phinterval(tzone = "EST")
+  start <- phint_start(phint)
 
-  starts1 <- lubridate::ymd(20200101) + ddays(c(0, 2, 4)) + dseconds(c(0, 1201, 2403))
-  ends1   <- lubridate::ymd(20200101) + ddays(c(1, 3, 5)) + dseconds(c(82, 709, 8999))
-  int1 <- lubridate::interval(starts1, ends1)
-
-  starts2 <- lubridate::ymd(20240809) + ddays(c(10, 0))
-  ends2   <- lubridate::ymd(20240809) + ddays(c(20, 5))
-  int2 <- lubridate::interval(starts2, ends2)
-
-  phint <- phinterval(intervals = list(int1, int2), tzone = "UTC")
-  expect_identical(
-    phint_start(phint),
-    c(lubridate::ymd(20200101, tz = "UTC"), lubridate::ymd(20240809, tz = "UTC"))
-  )
-})
-
-test_that("NA input results in NA output", {
-
-  int1 <- lubridate::interval(NA_POSIXct_, NA_POSIXct_)
-
-  starts2 <- lubridate::ymd(20240809) + lubridate::ddays(c(10, 0))
-  ends2   <- lubridate::ymd(20240809) + lubridate::ddays(c(20, 5))
-  int2 <- lubridate::interval(starts2, ends2)
-
-  phint <- phinterval(intervals = list(int1, int2), tzone = "UTC")
-  expect_identical(
-    phint_start(phint),
-    c(NA_POSIXct_, lubridate::ymd(20240809, tz = "UTC"))
-  )
-
-  phint <- as_phinterval(int1, tzone = "UTC")
-  expect_identical(
-    phint_start(phint),
-    NA_POSIXct_
-  )
-})
-
-# phint_invert -----------------------------------------------------------------
-
-test_that("holes are correct", {
-
-  starts1 <- lubridate::ymd(20000101) + lubridate::dseconds(c(0, 120, 240))
-  ends1   <- lubridate::ymd(20000101) + lubridate::dseconds(c(60, 180, 4000))
-  int1 <- lubridate::interval(starts1, ends1)
-
-  starts2 <- lubridate::ymd(20211011) + lubridate::dminutes(c(0, 10))
-  ends2   <- lubridate::ymd(20211011) + lubridate::dminutes(c(5, 20))
-  int2 <- lubridate::interval(starts2, ends2)
-
-  phint <- phinterval(intervals = list(int1, int2), tzone = "UTC")
-  expect_identical(
-    phint_invert(phint),
-    new_phinterval(
-      reference_time = as.POSIXct(lubridate::ymd(c(20000101, 20211011), tz = "UTC")),
-      range_starts = list(c(60, 180), c(60*5)),
-      range_ends = list(c(120, 240), c(60*10)),
-      tzone = "UTC"
-    )
-  )
+  expect_s3_class(start, "POSIXct")
+  expect_length(start, 0L)
+  expect_equal(lubridate::tz(start), "EST")
 
 })
 
-test_that("NA inputs result in NA output", {
+test_that("phint_start NA input results in NA output", {
 
-  NA_POSIXct_ <- lubridate::NA_POSIXct_
-  starts1 <- NA_POSIXct_
-  ends1   <- NA_POSIXct_
-  starts2 <- lubridate::ymd(20111111) + lubridate::dseconds(c(0, 60))
-  ends2   <- lubridate::ymd(20111111) + lubridate::dseconds(c(30, 120))
+  int1  <- interval(NA_POSIXct_, NA_POSIXct_)
+  int2  <- rep(int1, 3)
+  phint <- phinterval(list(int1, int2), tzone = "PST")
+  start <- phint_start(phint)
 
-  int1 <- lubridate::interval(starts1, ends1, tzone = "UTC")
-  int2 <- lubridate::interval(starts2, ends2, tzone = "UTC")
-
-  phint <- phinterval(intervals = list(int1, int2), tzone = "UTC")
-  expect_identical(
-    phint_invert(phint),
-    new_phinterval(
-      reference_time = c(NA_POSIXct_, lubridate::ymd(20111111, tz = "UTC")),
-      range_starts = list(NA_real_, 30),
-      range_ends = list(NA_real_, 60),
-      tzone = "UTC"
-    )
-  )
+  expect_true(all(is.na(start)))
+  expect_s3_class(start, "POSIXct")
+  expect_length(start, 2L)
+  expect_equal(lubridate::tz(start), "PST")
 
 })
 
-test_that("empty input results in empty phinterval output", {
+test_that("phint_start starts are correct", {
 
-  expect_identical(
-    phint_invert(phinterval()),
-    phinterval()
-  )
+  t1 <- as.POSIXct("2021-01-01 00:00:00")
+  t2 <- as.POSIXct("2021-01-01 00:10:00")
+  t3 <- as.POSIXct("2021-01-01 00:10:30")
+  t4 <- as.POSIXct("2021-01-01 00:10:50")
+
+  int1  <- interval(c(t3, t1), c(t4, t2))
+  int2  <- interval(t2, t4)
+  phint <- phinterval(list(int1, int2), tzone = "EST")
+  start <- phint_start(phint)
+
+  expect_equal(as.numeric(start), as.numeric(c(t1, t2)))
+  expect_equal(lubridate::tz(start), "EST")
 
 })
 
-test_that("non-holey phinterval inputs result in NA outputs", {
+test_that("phint_start and int_start are equivilant with Interval input", {
 
-  starts1 <- lubridate::ymd(20000101)
-  ends1   <- lubridate::ymd(20000102)
-  starts2 <- lubridate::ymd(20111111) + lubridate::dseconds(c(0, 60))
-  ends2   <- lubridate::ymd(20111111) + lubridate::dseconds(c(30, 120))
+  t1   <- as.POSIXct("2021-01-01 00:00:00")
+  t2   <- as.POSIXct("2021-01-01 00:10:00")
+  t3   <- as.POSIXct("2021-01-01 00:10:30")
+  t4   <- as.POSIXct("2021-01-01 00:10:50")
+  t_NA <- lubridate::NA_POSIXct_
 
-  int1 <- lubridate::interval(starts1, ends1, tzone = "UTC")
-  int2 <- lubridate::interval(starts2, ends2, tzone = "UTC")
+  int_empty <- interval()
+  int_na    <- interval(t_NA, t_NA, tzone = "EST")
+  int1      <- interval(c(t3, t1), c(t4, t2), tzone = "ROC")
+  int2      <- interval(t2, t4, tzone = "UTC")
+  int3      <- interval(c(t_NA, t1, t_NA), c(t_NA, t3, t_NA), tzone = "CET")
+  int4      <- interval(t1, t1, tzone = "WET")
 
-  phint <- phinterval(intervals = list(int1, int2), tzone = "UTC")
-  expect_identical(
-    phint_invert(phint),
-    new_phinterval(
-      reference_time = c(NA_POSIXct_, lubridate::ymd(20111111, tz = "UTC")),
-      range_starts = list(NA_real_, 30),
-      range_ends = list(NA_real_, 60),
-      tzone = "UTC"
-    )
-  )
+  expect_equal(lubridate::int_start(int_empty), phint_start(int_empty))
+  expect_equal(lubridate::int_start(int_na), phint_start(int_na))
+  expect_equal(lubridate::int_start(int1), phint_start(int1))
+  expect_equal(lubridate::int_start(int2), phint_start(int2))
+  expect_equal(lubridate::int_start(int3), phint_start(int3))
+  expect_equal(lubridate::int_start(int4), phint_start(int4))
+
+})
+
+# phint_bound ------------------------------------------------------------------
+
+test_that("phint_bound zero-length input results in zero-length output", {
+
+  t1 <- as.POSIXct("2021-01-01 00:00:00")
+  t2 <- as.POSIXct("2021-01-01 00:10:00")
+
+  phint   <- phinterval(tzone = "EST")
+  bounded <- phint_bound(phint, left = t1, right = t2)
+
+  expect_s3_class(bounded, "phinterval")
+  expect_length(bounded, 0L)
+  expect_equal(attr(bounded, "tzone"), "EST")
+
+})
+
+test_that("phint_bound NA input results in NA output", {
+
+  t1 <- as.POSIXct("2022-02-01 10:10:10", tzone = "UTC")
+  t2 <- as.POSIXct("2023-05-10 00:17:30", tzone = "UTC")
+
+  phint   <- na_phinterval(2L, tzone = "UTC")
+  bounded <- phint_bound(phint, left = t1, right = t2)
+
+  expect_equal(is.na(bounded), c(TRUE, TRUE))
+  expect_s3_class(bounded, "phinterval")
+  expect_length(bounded, 2L)
+  expect_equal(attr(bounded, "tzone"), "UTC")
+
+})
+
+test_that("phint_bound output is NA when input is out of [left, right]", {
+
+  t1 <- as.POSIXct("2021-01-01 00:00:00", tzone = "WET")
+  t2 <- as.POSIXct("2021-01-01 00:10:00", tzone = "WET")
+  t3 <- as.POSIXct("2021-01-03 00:10:30", tzone = "WET")
+  t4 <- as.POSIXct("2021-01-04 09:10:50", tzone = "WET")
+
+  phint   <- phinterval(list(interval(t1, t2)), tzone = "WET")
+  bounded <- phint_bound(phint, left = t3, right = t4)
+
+  expect_true(is.na(bounded))
+  expect_s3_class(bounded, "phinterval")
+  expect_length(bounded, 1L)
+  expect_equal(attr(bounded, "tzone"), "WET")
+
+})
+
+# For "works as expected"
+# - interval and phinterval can be bounded
+#   - left, right, both
+# - within bounds interval and phinterval are unchanged
+
+test_that("phint_bound works as expected", {
+
+  t1 <- as.POSIXct("2021-01-01 00:00:00")
+  t2 <- as.POSIXct("2021-01-02 00:10:00")
+  t3 <- as.POSIXct("2021-01-03 00:10:30")
+  t4 <- as.POSIXct("2021-01-04 09:10:50")
+  t5 <- as.POSIXct("2021-02-05 12:00:12")
+  t6 <- as.POSIXct("2022-01-01 00:00:00")
+
+  before3 <- interval(t1, t2)
+  before4 <- interval(t2, t3)
+  before5 <- interval(t3, t4)
+  before6 <- interval(t5, t6)
+
+  # phint   <- phinterval(list(interval(t1, t2)))
+  # bounded <- phint_bound(phint, left = t2, right = t1)
 
 })
 
@@ -542,7 +662,7 @@ test_that("NA inputs are removed when `na.rm = TRUE`, result in NA when `FALSE`"
   ## na.rm = FALSE
   expect_identical(
     standardize_phinterval(phint_squash(phint, na.rm = FALSE)),
-    NA_phinterval(tzone = "UTC")
+    na_phinterval(tzone = "UTC")
   )
 
 })
@@ -555,13 +675,13 @@ test_that("all NA input always results in NA output", {
   ## na.rm = TRUE
   expect_identical(
     phint_squash(phint, na.rm = TRUE),
-    NA_phinterval(tzone = "UTC")
+    na_phinterval(tzone = "UTC")
   )
 
   ## na.rm = FALSE
   expect_identical(
     phint_squash(phint, na.rm = FALSE),
-    NA_phinterval(tzone = "UTC")
+    na_phinterval(tzone = "UTC")
   )
 
 })
@@ -644,7 +764,7 @@ test_that("NA inputs are removed when `na.rm = TRUE`, result in NA when `FALSE`"
   ## na.rm = FALSE
   expect_identical(
     standardize_phinterval(int_squash(int, na.rm = FALSE)),
-    NA_phinterval(tzone = "UTC")
+    na_phinterval(tzone = "UTC")
   )
 
 })
@@ -656,13 +776,13 @@ test_that("all NA input always results in NA output", {
   ## na.rm = TRUE
   expect_identical(
     int_squash(na_int, na.rm = TRUE),
-    NA_phinterval(tzone = "UTC")
+    na_phinterval(tzone = "UTC")
   )
 
   ## na.rm = FALSE
   expect_identical(
     int_squash(na_int, na.rm = FALSE),
-    NA_phinterval(tzone = "UTC")
+    na_phinterval(tzone = "UTC")
   )
 
 })
@@ -857,8 +977,8 @@ test_that("input and output phintervals are equal", {
 test_that("NA input results in NA output", {
 
   expect_identical(
-    standardize_phinterval(NA_phinterval()),
-    NA_phinterval()
+    standardize_phinterval(na_phinterval()),
+    na_phinterval()
   )
 
 })
@@ -940,4 +1060,49 @@ test_that("datetime %within% `phinterval` works as expected", {
   expect_identical(posixct %within% phint, c(TRUE, FALSE))
   expect_identical(posixlt %within% phint, c(TRUE, FALSE))
 
+})
+
+# Test from `lubridate` as of 2024/03/09, modified to use `phinterval` instead
+# of `Interval`. `%within%` results should be same
+# https://github.com/tidyverse/lubridate/blob/main/tests/testthat/test-intervals.R
+test_that("%within% implementation matches lubridate", {
+  time1 <- as.POSIXct("2001-01-01", tz = "UTC")
+  time2 <- as.POSIXct("2003-01-01", tz = "UTC")
+  time3 <- as.POSIXct("2001-06-01", tz = "UTC")
+  time4 <- as.POSIXct("2002-06-01", tz = "UTC")
+  time5 <- as.POSIXct("2003-01-01", tz = "UTC")
+  time6 <- as.POSIXct("2004-01-01", tz = "UTC")
+  time7 <- as.POSIXct("2003-01-02", tz = "UTC")
+
+  base <- as_phinterval(interval(time1, time2))
+  ins  <- as_phinterval(interval(time3, time4))
+  bord <- as_phinterval(interval(time5, time6))
+  olap <- as_phinterval(interval(time4, time6))
+  outs <- as_phinterval(interval(time7, time6))
+
+  nbase <- as_phinterval(interval(time2, time1))
+  nins  <- as_phinterval(interval(time4, time3))
+  nbord <- as_phinterval(interval(time6, time5))
+  nolap <- as_phinterval(interval(time6, time4))
+  nouts <- as_phinterval(interval(time6, time7))
+
+  expect_true(ins %within% base)
+  expect_false(outs %within% base)
+  expect_false(bord %within% base)
+  expect_false(olap %within% base)
+
+  expect_true(nins %within% nbase)
+  expect_false(nouts %within% nbase)
+  expect_false(nbord %within% nbase)
+  expect_false(nolap %within% nbase)
+
+  expect_true(ins %within% nbase)
+  expect_false(outs %within% nbase)
+  expect_false(bord %within% nbase)
+  expect_false(olap %within% nbase)
+
+  expect_true(nins %within% base)
+  expect_false(nouts %within% base)
+  expect_false(nbord %within% base)
+  expect_false(nolap %within% base)
 })

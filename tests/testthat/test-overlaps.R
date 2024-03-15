@@ -423,7 +423,7 @@ test_that("aligned spans are extracted correctly with `alignment = FALSE`", {
   ## `n = 2`
   expect_identical(
     extract_overlaps(phint, n = 2, at = "least", alignment = FALSE),
-    NA_phinterval(tzone = "UTC")
+    na_phinterval(tzone = "UTC")
   )
 
 })
