@@ -1,6 +1,5 @@
 # locate_overlaps --------------------------------------------------------------
 test_that("span count is correct", {
-
   origin <- .POSIXct(0L, tz = "UTC")
   int <- lubridate::interval(
     origin + lubridate::dseconds(c(0, 100, 200, 300, 400, 425)),
@@ -27,11 +26,9 @@ test_that("span count is correct", {
     locate_overlaps(phint),
     list(n = n, spans = spans)
   )
-
 })
 
 test_that("non-overlapping spans result in `n = 1`", {
-
   int1_start <- lubridate::ymd(20000101, tz = "UTC")
   int1 <- lubridate::interval(
     int1_start + lubridate::dhours(c(0, 10, 30, 200)),
@@ -47,14 +44,14 @@ test_that("non-overlapping spans result in `n = 1`", {
     reference_time = .POSIXct(rep.int(0, length(n)), tz = "UTC"),
     range_starts = list(
       c(
-        (c(0, 10, 30, 200)*60*60) + as.double(int1_start),
-        (0*60*60) + as.double(int2_start)
+        (c(0, 10, 30, 200) * 60 * 60) + as.double(int1_start),
+        (0 * 60 * 60) + as.double(int2_start)
       )
     ),
     range_ends = list(
       c(
-        (c(5, 20, 40, 250)*60*60) + as.double(int1_start),
-        (50*60*60) + as.double(int2_start)
+        (c(5, 20, 40, 250) * 60 * 60) + as.double(int1_start),
+        (50 * 60 * 60) + as.double(int2_start)
       )
     )
   )
@@ -63,11 +60,9 @@ test_that("non-overlapping spans result in `n = 1`", {
     locate_overlaps(phint),
     list(n = n, spans = spans)
   )
-
 })
 
 test_that("aligned spans are counted correctly", {
-
   origin <- .POSIXct(0L, tz = "UTC")
   int <- lubridate::interval(
     origin + lubridate::dseconds(c(0, 100, 100, 100, 400, 400)),
@@ -94,11 +89,9 @@ test_that("aligned spans are counted correctly", {
     locate_overlaps(phint),
     list(n = n, spans = spans)
   )
-
 })
 
 test_that("adjacent spans are counted correctly when `alignment = FALSE`.", {
-
   origin <- .POSIXct(0L, tz = "UTC")
   int <- lubridate::interval(
     origin + lubridate::dseconds(c(0, 100)),
@@ -117,11 +110,9 @@ test_that("adjacent spans are counted correctly when `alignment = FALSE`.", {
     locate_overlaps(phint, alignment = FALSE),
     list(n = n, spans = spans)
   )
-
 })
 
 test_that("adjacent spans are counted correctly when `alignment = TRUE`", {
-
   origin <- .POSIXct(0L, tz = "UTC")
   int <- lubridate::interval(
     origin + lubridate::dseconds(c(0, 100)),
@@ -146,11 +137,9 @@ test_that("adjacent spans are counted correctly when `alignment = TRUE`", {
     locate_overlaps(phint, alignment = TRUE),
     list(n = n, spans = spans)
   )
-
 })
 
 test_that("instants are counted as expected with `alignment = FALSE`", {
-
   origin <- .POSIXct(0L, tz = "UTC")
   int <- lubridate::interval(
     origin + lubridate::dseconds(c(0, 100, 200, 300, 300, 300, 300)),
@@ -177,11 +166,9 @@ test_that("instants are counted as expected with `alignment = FALSE`", {
     locate_overlaps(phint),
     list(n = n, spans = spans)
   )
-
 })
 
 test_that("nested overlaps are counted correctly", {
-
   origin <- .POSIXct(0L, tz = "UTC")
   int <- lubridate::interval(
     origin + lubridate::dseconds(c(0, 1, 2, 3)),
@@ -210,7 +197,6 @@ test_that("nested overlaps are counted correctly", {
     locate_overlaps(phint),
     list(n = n, spans = spans)
   )
-
 })
 
 # There is one edge case to make a discontinuous `phinterval` with `count == "exact"`.
@@ -218,7 +204,6 @@ test_that("nested overlaps are counted correctly", {
 # [1, 2], [2, 3] and n = 2 are [2, 2]. The n = 1 ranges have a point discontinuity,
 # which should be flattened ([1, 2], [2, 3] -> [1, 3]).
 test_that("instants don't create phinterval spans with point discontinuities", {
-
   origin <- .POSIXct(0L, tz = "UTC")
   int <- lubridate::interval(
     origin + lubridate::dseconds(c(1, 2)),
@@ -243,11 +228,9 @@ test_that("instants don't create phinterval spans with point discontinuities", {
     locate_overlaps(phint),
     list(n = n, spans = spans)
   )
-
 })
 
 test_that("completely NA inputs result in NA ouputs", {
-
   int <- lubridate::interval(NA_POSIXct_, NA_POSIXct_)
   phint <- as_phinterval(int, tzone = "UTC")
 
@@ -267,11 +250,9 @@ test_that("completely NA inputs result in NA ouputs", {
     locate_overlaps(phint, na.rm = FALSE),
     list(n = n, spans = spans)
   )
-
 })
 
 test_that("partial NA inputs are ignored when `na.rm`", {
-
   origin <- .POSIXct(0L, tz = "UTC")
   int <- lubridate::interval(
     origin + lubridate::dseconds(c(0, 1, 2, 3, NA_real_, 0, NA_real_)),
@@ -300,11 +281,9 @@ test_that("partial NA inputs are ignored when `na.rm`", {
     locate_overlaps(phint, na.rm = TRUE),
     list(n = n, spans = spans)
   )
-
 })
 
 test_that("partial NA inputs cause NA output when not `na.rm`", {
-
   origin <- .POSIXct(0L, tz = "UTC")
   int <- lubridate::interval(
     origin + lubridate::dseconds(c(0, 1, 2, 3, NA_real_, 0, NA_real_)),
@@ -324,13 +303,11 @@ test_that("partial NA inputs cause NA output when not `na.rm`", {
     locate_overlaps(phint, na.rm = FALSE),
     list(n = n, spans = spans)
   )
-
 })
 
 # extract_overlaps -------------------------------------------------------------
 
 test_that("correct overlaps are extracted with `at = 'least'`", {
-
   origin <- .POSIXct(0, tz = "UTC")
   int <- lubridate::interval(
     origin + lubridate::dseconds(c(0, 100, 200, 300, 400, 425)),
@@ -367,11 +344,9 @@ test_that("correct overlaps are extracted with `at = 'least'`", {
       range_ends = list(430)
     )
   )
-
 })
 
 test_that("correct overlaps are extracted with `at = 'exactly'`", {
-
   origin <- .POSIXct(0, tz = "UTC")
   int <- lubridate::interval(
     origin + lubridate::dseconds(c(0, 100, 200, 300, 400, 425)),
@@ -397,11 +372,9 @@ test_that("correct overlaps are extracted with `at = 'exactly'`", {
     extract_overlaps(phint, n = 3, at = "exactly"),
     overlaps$spans[[which(overlaps$n == 3)]]
   )
-
 })
 
 test_that("aligned spans are extracted correctly with `alignment = FALSE`", {
-
   origin <- .POSIXct(0L, tz = "UTC")
   int <- lubridate::interval(
     origin + lubridate::dseconds(c(0, 50, 50, 100, 500)),
@@ -425,5 +398,4 @@ test_that("aligned spans are extracted correctly with `alignment = FALSE`", {
     extract_overlaps(phint, n = 2, at = "least", alignment = FALSE),
     na_phinterval(tzone = "UTC")
   )
-
 })

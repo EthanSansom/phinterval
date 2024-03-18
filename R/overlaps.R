@@ -23,7 +23,7 @@ locate_overlaps <- function(phint, na.rm = TRUE, alignment = FALSE) {
 
   ranges <- phint_to_ranges(phint, na.rm = na.rm)
   starts <- ranges$starts
-  ends   <- ranges$ends
+  ends <- ranges$ends
 
   if (any(is.na(starts)) || rlang::is_empty(starts)) {
     return(list(n = NA_integer_, spans = na_phinterval(tzone = tzone)))
@@ -45,7 +45,6 @@ locate_overlaps <- function(phint, na.rm = TRUE, alignment = FALSE) {
       )
     )
   }
-
 }
 
 extract_overlaps <- function(
@@ -67,7 +66,7 @@ extract_overlaps <- function(
 
   ranges <- phint_to_ranges(phint, na.rm = na.rm)
   starts <- ranges$starts
-  ends   <- ranges$ends
+  ends <- ranges$ends
 
   if (any(is.na(starts)) || rlang::is_empty(starts)) {
     return(na_phinterval(tzone = tzone))
@@ -92,10 +91,10 @@ extract_overlaps <- function(
   if (n_overlap_regions > 1) {
     overlaps <- range_flatten(list_c(overlaps$starts), list_c(overlaps$ends))
     range_starts <- list(overlaps$starts)
-    range_ends   <- list(overlaps$ends)
+    range_ends <- list(overlaps$ends)
   } else {
     range_starts <- overlaps$starts
-    range_ends   <- overlaps$ends
+    range_ends <- overlaps$ends
   }
 
   new_phinterval(
@@ -104,7 +103,6 @@ extract_overlaps <- function(
     range_ends = range_ends,
     tzone = tzone
   )
-
 }
 
 # helpers ----------------------------------------------------------------------
@@ -116,7 +114,7 @@ phint_to_ranges <- function(phint, na.rm = TRUE) {
   range_ends <- field(phint, "range_ends")
 
   starts <- as.double(list_c(map2(reference_time, range_starts, `+`)))
-  ends   <- as.double(list_c(map2(reference_time, range_ends, `+`)))
+  ends <- as.double(list_c(map2(reference_time, range_ends, `+`)))
 
   if (na.rm) {
     na_positions <- is.na(starts) | is.na(ends)
@@ -125,7 +123,6 @@ phint_to_ranges <- function(phint, na.rm = TRUE) {
   }
 
   list(starts = starts, ends = ends)
-
 }
 
 # TODO Ethan:
@@ -145,14 +142,13 @@ locate_range_overlaps <- function(
   is_start <- rep(c(TRUE, FALSE), each = length(starts))
 
   position_order <- order(positions)
-  positions  <- positions[position_order]
-  is_start   <- is_start[position_order]
+  positions <- positions[position_order]
+  is_start <- is_start[position_order]
   starts_minus_ends <- cumsum((is_start - 1L) + is_start)
 
   n_overlaps <- unique(starts_minus_ends[starts_minus_ends > 0])
   if (!is.null(n)) {
-    n_overlaps <- switch(
-      at,
+    n_overlaps <- switch(at,
       "exactly" = n_overlaps[n_overlaps == n],
       "least" = n_overlaps[n_overlaps >= n],
       "most" = n_overlaps[n_overlaps <= n]
@@ -163,10 +159,10 @@ locate_range_overlaps <- function(
     return(list(n = integer(), starts = list(), ends = list()))
   }
 
-  consecutive_same_pos  <- positions[-1L] == positions[-length(positions)]
+  consecutive_same_pos <- positions[-1L] == positions[-length(positions)]
   consecutive_same_side <- is_start[-1L] == is_start[-length(is_start)]
-  aligned_side   <- c(consecutive_same_pos & consecutive_same_side, FALSE)
-  aligned_range  <- c(consecutive_same_pos & !consecutive_same_side, FALSE)
+  aligned_side <- c(consecutive_same_pos & consecutive_same_side, FALSE)
+  aligned_range <- c(consecutive_same_pos & !consecutive_same_side, FALSE)
   is_instant <- rep(starts == ends, 2)[position_order]
 
   # TODO Ethan: Really look into how this plays out with instants and aligned
@@ -187,15 +183,15 @@ locate_range_overlaps <- function(
   )
 
   is_empty_range <- map_lgl(n_overlaps_at, rlang::is_empty)
-  n_overlaps    <- n_overlaps[!is_empty_range]
+  n_overlaps <- n_overlaps[!is_empty_range]
   n_overlaps_at <- n_overlaps_at[!is_empty_range]
 
   n_overlaps_starts <- map(n_overlaps_at, \(at) positions[at])
-  n_overlaps_ends   <- map(n_overlaps_at, \(at) positions[at + 1L])
+  n_overlaps_ends <- map(n_overlaps_at, \(at) positions[at + 1L])
 
   n_overlaps_range <- map2(n_overlaps_starts, n_overlaps_ends, range_flatten)
   n_overlaps_starts <- map(n_overlaps_range, `[[`, "starts")
-  n_overlaps_ends   <- map(n_overlaps_range, `[[`, "ends")
+  n_overlaps_ends <- map(n_overlaps_range, `[[`, "ends")
 
   return(
     list(
@@ -204,5 +200,4 @@ locate_range_overlaps <- function(
       ends = n_overlaps_ends
     )
   )
-
 }

@@ -20,17 +20,15 @@ test_that("phinterval() returns zero-length vector", {
 })
 
 test_that("zero-length phinterval() respects `tzone`", {
-
   phint <- phinterval(tzone = "EST")
   expect_equal(attr(phint, "tzone"), "EST")
-
 })
 
 test_that("NA or empty intervals result in NA output", {
 
-  int_NA    <- interval(NA_POSIXct_, NA_POSIXct_)
+  int_NA <- interval(NA_POSIXct_, NA_POSIXct_)
   int_empty <- interval()
-  int1      <- interval(as.Date("2020-01-01"), as.Date("2022-01-01"))
+  int1 <- interval(as.Date("2020-01-01"), as.Date("2022-01-01"))
   phint1 <- phinterval(list(int_NA))
   phint2 <- phinterval(list(int_empty))
   phint3 <- phinterval(list(int_NA, int_empty))
@@ -47,10 +45,6 @@ test_that("NA or empty intervals result in NA output", {
 
 })
 
-# TODO:
-# Invalid timezones throw an error via `timechange:::C_valid_tz`. I'm not
-# sure how I want to deal with this. I could test myself using this (unexported)
-# function, and throw my own error.
 test_that("phinterval errors on invalid inputs", {
 
   int <- interval(as.Date("2021-01-01"), as.Date("2021-02-01"), tzone = "UTC")
@@ -91,21 +85,6 @@ test_that("phinterval errors on invalid inputs", {
 
 })
 
-# TODO: `lubridate::with_tz(.POSIXct(1L), "PST")` throws a warning, but I can
-#       use this for `interval(tzone = "PST")` and `phinterval(tzone = "PST")`.
-test_that("phinterval errors on invalid timezone", {
-
-  expect_error(phinterval(tzone = "abc123"))
-  expect_error(phinterval(list(interval()), tzone = "abc123"))
-  expect_error(
-    phinterval(
-      list(interval(as.Date("2021-01-01"), as.Date("2021-02-01"))),
-      tzone = "abc123"
-    )
-  )
-
-})
-
 test_that("phinterval `tzone` argument overrides `intervals` timezone", {
 
   int <- interval(as.Date("2021-01-01"), as.Date("2021-02-01"), tzone = "UTC")
@@ -132,8 +111,8 @@ test_that("phinterval merges overlapping and adjacent intervals", {
 
   overlapping <- interval(c(t1, t2), c(t3, t4))
   non_lapping <- interval(t1, t4)
-  adjacent    <- interval(c(t1, t2), c(t2, t3))
-  non_adj     <- interval(t1, t3)
+  adjacent <- interval(c(t1, t2), c(t2, t3))
+  non_adj <- interval(t1, t3)
 
   phint <- phinterval(list(overlapping, adjacent))
   expect_equal(phint_to_spans(phint), list(non_lapping, non_adj))
@@ -141,13 +120,11 @@ test_that("phinterval merges overlapping and adjacent intervals", {
 })
 
 test_that("phinterval standardizes input intervals", {
-
   int <- interval(as.Date("2020-01-01"), as.Date("2021-01-01"))
   expect_equal(
     phinterval(list(int)),
     phinterval(list(lubridate::int_flip(int)))
   )
-
 })
 
 test_that("phinterval works as expected", {
@@ -163,7 +140,7 @@ test_that("phinterval works as expected", {
   int4 <- interval(t2, t2, tzone = "EST")
 
   intervals <- list(int1, int2, int3, int4)
-  phint     <- phinterval(intervals)
+  phint <- phinterval(intervals)
 
   expect_equal(phint_to_spans(phint), intervals)
   expect_length(phint, length(intervals))
@@ -172,23 +149,76 @@ test_that("phinterval works as expected", {
 
 })
 
+# as_phinterval ----------------------------------------------------------------
+
+test_that("as_phinterval works as expected", {
+
+  t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
+  t2 <- as.POSIXct("2021-01-01 00:00:30", tz = "UTC")
+  t3 <- as.POSIXct("2021-01-01 00:10:20", tz = "UTC")
+  t4 <- as.POSIXct("2021-01-01 00:20:30", tz = "UTC")
+
+  int0 <- interval()
+  int1 <- interval(t1, t2)
+  int2 <- interval(c(t1, t3), c(t2, t4))
+
+  as_phint1 <- as_phinterval(int1)
+  as_phint2 <- as_phinterval(int2)
+  phint0 <- phinterval()
+  phint1 <- phinterval(list(int1))
+  phint2 <- phinterval(list(interval(t1, t2), interval(t3, t4)))
+
+  expect_equal(as_phinterval(int0), phinterval())
+  expect_equal(as_phint1, phint1)
+  expect_equal(as_phint2, phint2)
+  expect_equal(as_phinterval(phint0), phint0)
+  expect_equal(as_phinterval(phint1), phint1)
+  expect_equal(as_phinterval(phint2), phint2)
+
+  as_phint1 <- as_phinterval(int1, tzone = "EST")
+  as_phint2 <- as_phinterval(int2, tzone = "EST")
+  phint1 <- phinterval(list(int1), tzone = "EST")
+  phint2 <- phinterval(list(interval(t1, t2), interval(t3, t4)), tzone = "EST")
+
+  expect_equal(as_phinterval(int0, tzone = "EST"), phinterval(tzone = "EST"))
+  expect_equal(as_phint1, phint1)
+  expect_equal(as_phint2, phint2)
+
+})
+
+# is_phinterval ----------------------------------------------------------------
+
+test_that("is_phinterval works as expected", {
+
+  t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
+  t2 <- as.POSIXct("2021-01-01 00:00:30", tz = "UTC")
+  int1 <- interval(t1, t2)
+
+  expect_true(is_phinterval(phinterval()))
+  expect_true(is_phinterval(phinterval(list(int1))))
+  expect_true(is_phinterval(na_phinterval()))
+  expect_false(is_phinterval(t1))
+  expect_false(is_phinterval(int1))
+  expect_false(is_phinterval("a"))
+  expect_false(is_phinterval(logical()))
+
+})
+
 # phint_start ------------------------------------------------------------------
 
 test_that("phint_start zero-length input results in zero-length output", {
-
   phint <- phinterval(tzone = "EST")
   start <- phint_start(phint)
 
   expect_s3_class(start, "POSIXct")
   expect_length(start, 0L)
   expect_equal(lubridate::tz(start), "EST")
-
 })
 
 test_that("phint_start NA input results in NA output", {
 
-  int1  <- interval(NA_POSIXct_, NA_POSIXct_)
-  int2  <- rep(int1, 3)
+  int1 <- interval(NA_POSIXct_, NA_POSIXct_)
+  int2 <- rep(int1, 3)
   phint <- phinterval(list(int1, int2), tzone = "PST")
   start <- phint_start(phint)
 
@@ -206,8 +236,8 @@ test_that("phint_start starts are correct", {
   t3 <- as.POSIXct("2021-01-01 00:10:30")
   t4 <- as.POSIXct("2021-01-01 00:10:50")
 
-  int1  <- interval(c(t3, t1), c(t4, t2))
-  int2  <- interval(t2, t4)
+  int1 <- interval(c(t3, t1), c(t4, t2))
+  int2 <- interval(t2, t4)
   phint <- phinterval(list(int1, int2), tzone = "EST")
   start <- phint_start(phint)
 
@@ -218,18 +248,18 @@ test_that("phint_start starts are correct", {
 
 test_that("phint_start and int_start are equivilant with Interval input", {
 
-  t1   <- as.POSIXct("2021-01-01 00:00:00")
-  t2   <- as.POSIXct("2021-01-01 00:10:00")
-  t3   <- as.POSIXct("2021-01-01 00:10:30")
-  t4   <- as.POSIXct("2021-01-01 00:10:50")
+  t1 <- as.POSIXct("2021-01-01 00:00:00")
+  t2 <- as.POSIXct("2021-01-01 00:10:00")
+  t3 <- as.POSIXct("2021-01-01 00:10:30")
+  t4 <- as.POSIXct("2021-01-01 00:10:50")
   t_NA <- lubridate::NA_POSIXct_
 
   int_empty <- interval()
-  int_na    <- interval(t_NA, t_NA, tzone = "EST")
-  int1      <- interval(c(t3, t1), c(t4, t2), tzone = "ROC")
-  int2      <- interval(t2, t4, tzone = "UTC")
-  int3      <- interval(c(t_NA, t1, t_NA), c(t_NA, t3, t_NA), tzone = "CET")
-  int4      <- interval(t1, t1, tzone = "WET")
+  int_na <- interval(t_NA, t_NA, tzone = "EST")
+  int1 <- interval(c(t3, t1), c(t4, t2), tzone = "ROC")
+  int2 <- interval(t2, t4, tzone = "UTC")
+  int3 <- interval(c(t_NA, t1, t_NA), c(t_NA, t3, t_NA), tzone = "CET")
+  int4 <- interval(t1, t1, tzone = "WET")
 
   expect_equal(lubridate::int_start(int_empty), phint_start(int_empty))
   expect_equal(lubridate::int_start(int_na), phint_start(int_na))
@@ -240,6 +270,46 @@ test_that("phint_start and int_start are equivilant with Interval input", {
 
 })
 
+# phint_starts -----------------------------------------------------------------
+
+test_that("phint_starts zero-length input results in zero-length list", {
+  phint <- phinterval()
+  starts <- phint_starts(phint)
+
+  expect_identical(starts, list())
+  expect_length(starts, 0L)
+})
+
+test_that("phint_starts NA input results in NA output", {
+
+  int1 <- interval(NA_POSIXct_, NA_POSIXct_)
+  int2 <- rep(int1, 3)
+  phint <- phinterval(list(int1, int2), tzone = "PST")
+  starts <- phint_starts(phint)
+
+  expect_true(all(map_lgl(starts, is.na)))
+  expect_true(all(map_lgl(starts, lubridate::is.POSIXct)))
+  expect_length(starts, 2L)
+  expect_true(all(map_lgl(starts, \(s) lubridate::tz(s) == "PST")))
+
+})
+
+test_that("phint_starts starts are correct", {
+
+  t1 <- as.POSIXct("2021-01-01 00:00:00", tzone = "EST")
+  t2 <- as.POSIXct("2021-01-01 00:10:00", tzone = "EST")
+  t3 <- as.POSIXct("2021-01-01 00:10:30", tzone = "EST")
+  t4 <- as.POSIXct("2021-01-01 00:10:50", tzone = "EST")
+
+  int <- interval(c(t3, t1), c(t4, t2), tzone = "EST")
+  phint <- phint_squash(int)
+  starts <- phint_starts(phint)
+
+  expect_true(all(map_lgl(starts, \(s) lubridate::tz(s) == "EST")))
+  expect_equal(map(starts, as.numeric), list(as.numeric(c(t1, t3))))
+
+})
+
 # phint_bound ------------------------------------------------------------------
 
 test_that("phint_bound zero-length input results in zero-length output", {
@@ -247,7 +317,7 @@ test_that("phint_bound zero-length input results in zero-length output", {
   t1 <- as.POSIXct("2021-01-01 00:00:00")
   t2 <- as.POSIXct("2021-01-01 00:10:00")
 
-  phint   <- phinterval(tzone = "EST")
+  phint <- phinterval(tzone = "EST")
   bounded <- phint_bound(phint, left = t1, right = t2)
 
   expect_s3_class(bounded, "phinterval")
@@ -261,7 +331,7 @@ test_that("phint_bound NA input results in NA output", {
   t1 <- as.POSIXct("2022-02-01 10:10:10", tzone = "UTC")
   t2 <- as.POSIXct("2023-05-10 00:17:30", tzone = "UTC")
 
-  phint   <- na_phinterval(2L, tzone = "UTC")
+  phint <- na_phinterval(2L, tzone = "UTC")
   bounded <- phint_bound(phint, left = t1, right = t2)
 
   expect_equal(is.na(bounded), c(TRUE, TRUE))
@@ -271,44 +341,304 @@ test_that("phint_bound NA input results in NA output", {
 
 })
 
-test_that("phint_bound output is NA when input is out of [left, right]", {
+test_that("phint_bound recycles `left` and `right` to length of `phint`", {
 
-  t1 <- as.POSIXct("2021-01-01 00:00:00", tzone = "WET")
-  t2 <- as.POSIXct("2021-01-01 00:10:00", tzone = "WET")
-  t3 <- as.POSIXct("2021-01-03 00:10:30", tzone = "WET")
-  t4 <- as.POSIXct("2021-01-04 09:10:50", tzone = "WET")
+  expect_phint_equal <- function(object, expected, ...) {
+    expect_equal(
+      standardize_phinterval(object),
+      standardize_phinterval(expected),
+      ...
+    )
+  }
 
-  phint   <- phinterval(list(interval(t1, t2)), tzone = "WET")
-  bounded <- phint_bound(phint, left = t3, right = t4)
+  left <- as.POSIXct("2021-01-01 00:00:00")
+  right <- as.POSIXct("2021-01-02 00:00:00")
+  left_within <- left + 100
+  right_within <- right - 100
 
-  expect_true(is.na(bounded))
-  expect_s3_class(bounded, "phinterval")
-  expect_length(bounded, 1L)
-  expect_equal(attr(bounded, "tzone"), "WET")
+  contains1 <- as_phinterval(interval(left - 100, right + 100))
+  contains2 <- rep(contains1, 2)
+  contains3 <- rep(contains1, 3)
+  contains4 <- rep(contains1, 4)
+
+  expect_phint_equal(
+    phint_bound(contains2, left = left, right = right),
+    as_phinterval(interval(c(left, left), c(right, right)))
+  )
+  expect_phint_equal(
+    phint_bound(contains2, right = right),
+    as_phinterval(interval(phint_start(contains2), c(right, right)))
+  )
+  expect_phint_equal(
+    phint_bound(contains2, left = left),
+    as_phinterval(interval(c(left, left), phint_end(contains2)))
+  )
+  expect_phint_equal(
+    phint_bound(contains4, left = left, right = c(right, right_within)),
+    as_phinterval(interval(
+      rep(left, 4),
+      c(right, right_within, right, right_within)
+    ))
+  )
+  expect_phint_equal(
+    phint_bound(contains4, left = c(left, left_within), right = right),
+    as_phinterval(interval(
+      c(left, left_within, left, left_within),
+      rep(right, 4)
+    ))
+  )
+  expect_phint_equal(
+    phint_bound(contains4, right = c(right, right_within)),
+    as_phinterval(interval(
+      phint_start(contains4),
+      c(right, right_within, right, right_within)
+    ))
+  )
+  expect_phint_equal(
+    phint_bound(contains4, left = c(left, left_within)),
+    as_phinterval(interval(
+      c(left, left_within, left, left_within),
+      phint_end(contains4)
+    ))
+  )
+  expect_error(
+    phint_bound(contains1, left = c(left, left), right = c(right, right)),
+    class = "phinterval_error_incompatible_length"
+  )
+  expect_error(
+    phint_bound(contains3, left = c(left, left), right = c(right, right)),
+    class = "phinterval_error_incompatible_length"
+  )
+  expect_error(
+    phint_bound(contains1, right = c(right, right)),
+    class = "phinterval_error_incompatible_length"
+  )
+  expect_error(
+    phint_bound(contains3, left = c(left, left)),
+    class = "phinterval_error_incompatible_length"
+  )
 
 })
 
-# For "works as expected"
-# - interval and phinterval can be bounded
-#   - left, right, both
-# - within bounds interval and phinterval are unchanged
+test_that("phint_bound works as expected", {
+
+  expect_phint_equal <- function(object, expected, ...) {
+    expect_equal(
+      standardize_phinterval(object),
+      standardize_phinterval(expected),
+      ...
+    )
+  }
+
+  left <- as.POSIXct("2021-01-01 00:00:00")
+  right <- as.POSIXct("2021-01-02 00:00:00")
+  left_within <- left + 100
+  left_outside <- left - 100
+  right_within <- right - 100
+  right_outside <- right + 100
+  lisland_start <- left_outside - 100
+  lisland_end <- left_outside - 10
+  risland_start <- right_outside + 10
+  risland_end <- right_outside + 100
+
+  center_hole <- interval(left + 1000, right - 1000)
+  left_island <- interval(lisland_start, lisland_end)
+  right_island <- interval(risland_start, risland_end)
+
+  within <- as_phinterval(interval(left_within, right_within))
+  within_hole <- phint_diff(within, center_hole)
+  contains <- as_phinterval(interval(left_outside, right_outside))
+  bounded_left <- as_phinterval(interval(left_outside, left_within))
+  bounded_right <- as_phinterval(interval(right_within, right_outside))
+  island_left <- phint_union(bounded_left, left_island)
+  island_right <- phint_union(bounded_right, right_island)
+
+  # Within Bounds
+  expect_phint_equal(phint_bound(within, left = left, right = right), within)
+  expect_phint_equal(phint_bound(within, left = left), within)
+  expect_phint_equal(phint_bound(within, right = right), within)
+  expect_phint_equal(
+    phint_bound(within_hole, left = left, right = right),
+    within_hole
+  )
+  expect_phint_equal(phint_bound(within_hole, left = left), within_hole)
+  expect_phint_equal(phint_bound(within_hole, right = right), within_hole)
+  # Contains Bounds
+  expect_phint_equal(
+    phint_bound(contains, left = left, right = right),
+    as_phinterval(interval(left, right))
+  )
+  expect_phint_equal(
+    phint_bound(contains, left = left),
+    as_phinterval(interval(left, right_outside))
+  )
+  expect_phint_equal(
+    phint_bound(contains, right = right),
+    as_phinterval(interval(left_outside, right))
+  )
+  # Outside of Left Bound
+  expect_phint_equal(
+    phint_bound(bounded_left, left = left, right = right),
+    as_phinterval(interval(left, left_within))
+  )
+  expect_phint_equal(
+    phint_bound(bounded_left, left = left),
+    as_phinterval(interval(left, left_within))
+  )
+  expect_phint_equal(
+    phint_bound(bounded_left, right = right),
+    bounded_left
+  )
+  # Island Outside of Left Bound
+  expect_phint_equal(
+    phint_bound(island_left, left = left, right = right),
+    as_phinterval(interval(left, left_within))
+  )
+  expect_phint_equal(
+    phint_bound(island_left, left = left),
+    as_phinterval(interval(left, left_within))
+  )
+  expect_phint_equal(
+    phint_bound(island_left, right = right),
+    island_left
+  )
+  # Outside of Right Bound
+  expect_phint_equal(
+    phint_bound(bounded_right, left = left, right = right),
+    as_phinterval(interval(right_within, right))
+  )
+  expect_phint_equal(
+    phint_bound(bounded_right, left = left),
+    bounded_right
+  )
+  expect_phint_equal(
+    phint_bound(bounded_right, right = right),
+    as_phinterval(interval(right_within, right))
+  )
+  # Island Outside of Right Bound
+  expect_phint_equal(
+    phint_bound(island_right, left = left, right = right),
+    as_phinterval(interval(right_within, right))
+  )
+  expect_phint_equal(
+    phint_bound(island_right, left = left),
+    island_right
+  )
+  expect_phint_equal(
+    phint_bound(island_right, right = right),
+    as_phinterval(interval(right_within, right))
+  )
+
+})
 
 test_that("phint_bound works as expected", {
 
-  t1 <- as.POSIXct("2021-01-01 00:00:00")
-  t2 <- as.POSIXct("2021-01-02 00:10:00")
-  t3 <- as.POSIXct("2021-01-03 00:10:30")
-  t4 <- as.POSIXct("2021-01-04 09:10:50")
-  t5 <- as.POSIXct("2021-02-05 12:00:12")
-  t6 <- as.POSIXct("2022-01-01 00:00:00")
+  expect_phint_equal <- function(object, expected, ...) {
+    expect_equal(
+      standardize_phinterval(object),
+      standardize_phinterval(expected),
+      ...
+    )
+  }
 
-  before3 <- interval(t1, t2)
-  before4 <- interval(t2, t3)
-  before5 <- interval(t3, t4)
-  before6 <- interval(t5, t6)
+  left <- as.POSIXct("2021-01-01 00:00:00")
+  right <- as.POSIXct("2021-01-02 00:00:00")
+  left_within <- left + 100
+  left_outside <- left - 100
+  right_within <- right - 100
+  right_outside <- right + 100
+  lisland_start <- left_outside - 100
+  lisland_end <- left_outside - 10
+  risland_start <- right_outside + 10
+  risland_end <- right_outside + 100
 
-  # phint   <- phinterval(list(interval(t1, t2)))
-  # bounded <- phint_bound(phint, left = t2, right = t1)
+  center_hole <- interval(left + 1000, right - 1000)
+  left_island <- interval(lisland_start, lisland_end)
+  right_island <- interval(risland_start, risland_end)
+
+  within <- as_phinterval(interval(left_within, right_within))
+  within_hole <- phint_diff(within, center_hole)
+  contains <- as_phinterval(interval(left_outside, right_outside))
+  bounded_left <- as_phinterval(interval(left_outside, left_within))
+  bounded_right <- as_phinterval(interval(right_within, right_outside))
+  island_left <- phint_union(bounded_left, left_island)
+  island_right <- phint_union(bounded_right, right_island)
+
+  # Within Bounds
+  expect_phint_equal(phint_bound(within, left = left, right = right), within)
+  expect_phint_equal(phint_bound(within, left = left), within)
+  expect_phint_equal(phint_bound(within, right = right), within)
+  expect_phint_equal(
+    phint_bound(within_hole, left = left, right = right),
+    within_hole
+  )
+  expect_phint_equal(phint_bound(within_hole, left = left), within_hole)
+  expect_phint_equal(phint_bound(within_hole, right = right), within_hole)
+  # Contains Bounds
+  expect_phint_equal(
+    phint_bound(contains, left = left, right = right),
+    as_phinterval(interval(left, right))
+  )
+  expect_phint_equal(
+    phint_bound(contains, left = left),
+    as_phinterval(interval(left, right_outside))
+  )
+  expect_phint_equal(
+    phint_bound(contains, right = right),
+    as_phinterval(interval(left_outside, right))
+  )
+  # Outside of Left Bound
+  expect_phint_equal(
+    phint_bound(bounded_left, left = left, right = right),
+    as_phinterval(interval(left, left_within))
+  )
+  expect_phint_equal(
+    phint_bound(bounded_left, left = left),
+    as_phinterval(interval(left, left_within))
+  )
+  expect_phint_equal(
+    phint_bound(bounded_left, right = right),
+    bounded_left
+  )
+  # Island Outside of Left Bound
+  expect_phint_equal(
+    phint_bound(island_left, left = left, right = right),
+    as_phinterval(interval(left, left_within))
+  )
+  expect_phint_equal(
+    phint_bound(island_left, left = left),
+    as_phinterval(interval(left, left_within))
+  )
+  expect_phint_equal(
+    phint_bound(island_left, right = right),
+    island_left
+  )
+  # Outside of Right Bound
+  expect_phint_equal(
+    phint_bound(bounded_right, left = left, right = right),
+    as_phinterval(interval(right_within, right))
+  )
+  expect_phint_equal(
+    phint_bound(bounded_right, left = left),
+    bounded_right
+  )
+  expect_phint_equal(
+    phint_bound(bounded_right, right = right),
+    as_phinterval(interval(right_within, right))
+  )
+  # Island Outside of Right Bound
+  expect_phint_equal(
+    phint_bound(island_right, left = left, right = right),
+    as_phinterval(interval(right_within, right))
+  )
+  expect_phint_equal(
+    phint_bound(island_right, left = left),
+    island_right
+  )
+  expect_phint_equal(
+    phint_bound(island_right, right = right),
+    as_phinterval(interval(right_within, right))
+  )
 
 })
 
@@ -317,11 +647,11 @@ test_that("phint_bound works as expected", {
 test_that("holey phintervals correctly identified", {
 
   starts1 <- lubridate::ymd(20000101) + lubridate::dseconds(c(0, 120, 240))
-  ends1   <- lubridate::ymd(20000101) + lubridate::dseconds(c(60, 180, 4000))
+  ends1 <- lubridate::ymd(20000101) + lubridate::dseconds(c(60, 180, 4000))
   int1 <- lubridate::interval(starts1, ends1)
 
   starts2 <- lubridate::ymd(20211011) + lubridate::dminutes(c(0, 10))
-  ends2   <- lubridate::ymd(20211011) + lubridate::dminutes(c(5, 20))
+  ends2 <- lubridate::ymd(20211011) + lubridate::dminutes(c(5, 20))
   int2 <- lubridate::interval(starts2, ends2)
 
   int3 <- lubridate::interval(lubridate::ymd(20200101), lubridate::ymd(20200201))
@@ -335,23 +665,21 @@ test_that("holey phintervals correctly identified", {
 })
 
 test_that("intervals have no holes", {
-
   starts <- lubridate::ymd(20000101) + lubridate::dseconds(c(0, 240))
-  ends   <- lubridate::ymd(20000101) + lubridate::dseconds(c(60, 4000))
+  ends <- lubridate::ymd(20000101) + lubridate::dseconds(c(60, 4000))
   int <- lubridate::interval(starts, ends)
 
   expect_identical(
     is_holey(int),
     c(FALSE, FALSE)
   )
-
 })
 
 test_that("NA inputs result in NA outputs", {
 
   ## `interval` input
   starts <- lubridate::ymd(20000101) + lubridate::dseconds(c(0, NA_real_))
-  ends   <- lubridate::ymd(20000101) + lubridate::dseconds(c(60, 4000))
+  ends <- lubridate::ymd(20000101) + lubridate::dseconds(c(60, 4000))
   int <- lubridate::interval(starts, ends)
 
   expect_identical(
@@ -361,11 +689,11 @@ test_that("NA inputs result in NA outputs", {
 
   ## `phinterval` input
   starts1 <- lubridate::ymd(20000101) + lubridate::dseconds(c(0, 120, 240))
-  ends1   <- lubridate::ymd(20000101) + lubridate::dseconds(c(60, 180, 4000))
+  ends1 <- lubridate::ymd(20000101) + lubridate::dseconds(c(60, 180, 4000))
   int1 <- lubridate::interval(starts1, ends1)
 
   starts2 <- lubridate::ymd(20211011) + lubridate::dminutes(c(NA_real_, 10))
-  ends2   <- lubridate::ymd(20211011) + lubridate::dminutes(c(5, 20))
+  ends2 <- lubridate::ymd(20211011) + lubridate::dminutes(c(5, 20))
   int2 <- lubridate::interval(starts2, ends2)
 
   int3 <- lubridate::interval(lubridate::ymd(20200101), lubridate::ymd(20200201))
@@ -375,28 +703,24 @@ test_that("NA inputs result in NA outputs", {
     is_holey(phint),
     c(TRUE, NA, FALSE)
   )
-
 })
 
 test_that("empty inputs result in empty logical outputs", {
-
   expect_identical(
     is_holey(phinterval()),
     logical()
   )
-
 })
 
 # n_spans ----------------------------------------------------------------------
 
 test_that("phintervals have correct span count", {
-
   starts1 <- lubridate::ymd(20000101) + lubridate::dseconds(c(0, 120, 240))
-  ends1   <- lubridate::ymd(20000101) + lubridate::dseconds(c(60, 180, 4000))
+  ends1 <- lubridate::ymd(20000101) + lubridate::dseconds(c(60, 180, 4000))
   int1 <- lubridate::interval(starts1, ends1)
 
   starts2 <- lubridate::ymd(20211011) + lubridate::dminutes(c(0, 10))
-  ends2   <- lubridate::ymd(20211011) + lubridate::dminutes(c(5, 20))
+  ends2 <- lubridate::ymd(20211011) + lubridate::dminutes(c(5, 20))
   int2 <- lubridate::interval(starts2, ends2)
 
   int3 <- lubridate::interval(lubridate::ymd(20200101), lubridate::ymd(20200201))
@@ -406,13 +730,11 @@ test_that("phintervals have correct span count", {
     n_spans(phint),
     c(3L, 2L, 1L)
   )
-
 })
 
 test_that("intervals have 1L span", {
-
   starts <- lubridate::ymd(20000101) + lubridate::dseconds(c(0, 120, 240))
-  ends   <- lubridate::ymd(20000101) + lubridate::dseconds(c(60, 180, 4000))
+  ends <- lubridate::ymd(20000101) + lubridate::dseconds(c(60, 180, 4000))
   int <- lubridate::interval(starts, ends)
 
   phint <- as_phinterval(int, tzone = "UTC")
@@ -420,13 +742,11 @@ test_that("intervals have 1L span", {
     n_spans(int),
     rep(1L, length(int))
   )
-
 })
 
 test_that("NA inputs result in NA outputs", {
-
   starts1 <- lubridate::ymd(20000101) + lubridate::dseconds(c(0, 120, 240, 400))
-  ends1   <- lubridate::ymd(20000101) + lubridate::dseconds(c(6, 180, 360, 500))
+  ends1 <- lubridate::ymd(20000101) + lubridate::dseconds(c(6, 180, 360, 500))
   int1 <- lubridate::interval(starts1, ends1)
   int2 <- lubridate::interval(NA_POSIXct_, NA_POSIXct_)
 
@@ -435,28 +755,24 @@ test_that("NA inputs result in NA outputs", {
     n_spans(phint),
     c(4L, NA_integer_)
   )
-
 })
 
 test_that("empty inputs result in empty integer outputs", {
-
   expect_identical(
     n_spans(phinterval()),
     integer()
   )
-
 })
 
 # phint_to_spans ---------------------------------------------------------------
 
 test_that("spans are correct", {
-
   starts1 <- lubridate::ymd(20000101) + lubridate::dseconds(c(0, 120, 240))
-  ends1   <- lubridate::ymd(20000101) + lubridate::dseconds(c(60, 180, 4000))
+  ends1 <- lubridate::ymd(20000101) + lubridate::dseconds(c(60, 180, 4000))
   int1 <- lubridate::interval(starts1, ends1)
 
   starts2 <- lubridate::ymd(20211011) + lubridate::dminutes(c(0, 10))
-  ends2   <- lubridate::ymd(20211011) + lubridate::dminutes(c(5, 20))
+  ends2 <- lubridate::ymd(20211011) + lubridate::dminutes(c(5, 20))
   int2 <- lubridate::interval(starts2, ends2)
 
   phint <- phinterval(intervals = list(int1, int2), tzone = "UTC")
@@ -464,17 +780,15 @@ test_that("spans are correct", {
     phint_to_spans(phint),
     list(int1, int2)
   )
-
 })
 
 test_that("spans are ordered by start date", {
-
   starts1 <- lubridate::ymd(20000101) + lubridate::dseconds(c(0, 120, 240))
-  ends1   <- lubridate::ymd(20000101) + lubridate::dseconds(c(60, 180, 4000))
+  ends1 <- lubridate::ymd(20000101) + lubridate::dseconds(c(60, 180, 4000))
   int1 <- lubridate::interval(starts1, ends1)
 
   starts2 <- lubridate::ymd(20211011) + lubridate::dminutes(c(0, 10))
-  ends2   <- lubridate::ymd(20211011) + lubridate::dminutes(c(5, 20))
+  ends2 <- lubridate::ymd(20211011) + lubridate::dminutes(c(5, 20))
   int2 <- lubridate::interval(starts2, ends2)
 
   phint <- phinterval(intervals = list(int1, int2), tzone = "UTC")
@@ -482,11 +796,9 @@ test_that("spans are ordered by start date", {
     phint_to_spans(phint),
     list(int1, int2)
   )
-
 })
 
 test_that("equivilant phintervals with different fields have the same output", {
-
   origin <- .POSIXct(0, tz = "UTC")
   phint1 <- new_phinterval(
     reference_time = c(rep(origin, 2), NA_POSIXct_, origin),
@@ -525,15 +837,13 @@ test_that("equivilant phintervals with different fields have the same output", {
     phint_to_spans(phint1),
     phint_to_spans(phint2)
   )
-
 })
 
 test_that("NA inputs result in NA output", {
-
   starts1 <- NA_POSIXct_
-  ends1   <- NA_POSIXct_
+  ends1 <- NA_POSIXct_
   starts2 <- lubridate::ymd(20111111) + lubridate::dseconds(c(0, 60))
-  ends2   <- lubridate::ymd(20111111) + lubridate::dseconds(c(30, 120))
+  ends2 <- lubridate::ymd(20111111) + lubridate::dseconds(c(30, 120))
 
   int1 <- lubridate::interval(starts1, ends1, tzone = "UTC")
   int2 <- lubridate::interval(starts2, ends2, tzone = "UTC")
@@ -543,22 +853,18 @@ test_that("NA inputs result in NA output", {
     phint_to_spans(phint),
     list(int1, int2)
   )
-
 })
 
 test_that("empty input results an empty list output", {
-
   expect_identical(
     phint_to_spans(phinterval()),
     list()
   )
-
 })
 
 # phint_lengths ----------------------------------------------------------------
 
 test_that("equivilant phintervals with different fields have the same output", {
-
   origin <- .POSIXct(0, tz = "UTC")
   phint1 <- new_phinterval(
     reference_time = c(rep(origin, 2), NA_POSIXct_, origin),
@@ -597,23 +903,21 @@ test_that("equivilant phintervals with different fields have the same output", {
     phint_lengths(phint1),
     phint_lengths(phint2)
   )
-
 })
 
 # phint_squash -----------------------------------------------------------------
 
 test_that("overlaps in the phinterval are flattened", {
-
   starts1 <- lubridate::ymd(20000101) + lubridate::dseconds(c(0, 120, 240))
-  ends1   <- lubridate::ymd(20000101) + lubridate::dseconds(c(60, 180, 4000))
+  ends1 <- lubridate::ymd(20000101) + lubridate::dseconds(c(60, 180, 4000))
   int1 <- lubridate::interval(starts1, ends1)
 
   starts2 <- lubridate::ymd(20000101) + lubridate::dseconds(c(0, 10))
-  ends2   <- lubridate::ymd(20000101) + lubridate::dseconds(c(5, 20))
+  ends2 <- lubridate::ymd(20000101) + lubridate::dseconds(c(5, 20))
   int2 <- lubridate::interval(starts2, ends2)
 
   starts3 <- lubridate::ymd(20000101) + lubridate::dseconds(1000)
-  ends3   <- lubridate::ymd(20000101) + lubridate::dseconds(5000)
+  ends3 <- lubridate::ymd(20000101) + lubridate::dseconds(5000)
   int3 <- lubridate::interval(starts3, ends3)
 
   phint <- phinterval(intervals = list(int1, int2, int3), tzone = "UTC")
@@ -628,19 +932,17 @@ test_that("overlaps in the phinterval are flattened", {
     standardize_phinterval(phint_squash(phint)),
     standardize_phinterval(flat_phint)
   )
-
 })
 
 test_that("NA inputs are removed when `na.rm = TRUE`, result in NA when `FALSE`", {
-
   date <- lubridate::ymd(20000101)
 
   starts1 <- date + lubridate::dseconds(c(0, 120, 240))
-  ends1   <- date + lubridate::dseconds(c(60, 180, 4000))
+  ends1 <- date + lubridate::dseconds(c(60, 180, 4000))
   int1 <- lubridate::interval(starts1, ends1)
 
   starts2 <- date + lubridate::dseconds(c(0, 10, 5000))
-  ends2   <- date + lubridate::dseconds(c(5, 20, 6000))
+  ends2 <- date + lubridate::dseconds(c(5, 20, 6000))
   int2 <- lubridate::interval(starts2, ends2)
 
   int3 <- lubridate::interval(NA_POSIXct_, NA_POSIXct_)
@@ -664,11 +966,9 @@ test_that("NA inputs are removed when `na.rm = TRUE`, result in NA when `FALSE`"
     standardize_phinterval(phint_squash(phint, na.rm = FALSE)),
     na_phinterval(tzone = "UTC")
   )
-
 })
 
 test_that("all NA input always results in NA output", {
-
   na_int <- lubridate::interval(NA_POSIXct_, NA_POSIXct_)
   phint <- phinterval(intervals = list(na_int, na_int), tzone = "UTC")
 
@@ -683,11 +983,9 @@ test_that("all NA input always results in NA output", {
     phint_squash(phint, na.rm = FALSE),
     na_phinterval(tzone = "UTC")
   )
-
 })
 
 test_that("empty input results in empty phinterval output", {
-
   ## na.rm = TRUE
   expect_identical(
     phint_squash(phinterval(), na.rm = TRUE),
@@ -699,23 +997,21 @@ test_that("empty input results in empty phinterval output", {
     phint_squash(phinterval(), na.rm = FALSE),
     phinterval()
   )
-
 })
 
 # int_squash -------------------------------------------------------------------
 
 test_that("overlaps in the Interval are flattened", {
-
   starts1 <- lubridate::ymd(20000101) + lubridate::dseconds(c(0, 120, 240))
-  ends1   <- lubridate::ymd(20000101) + lubridate::dseconds(c(60, 180, 4000))
+  ends1 <- lubridate::ymd(20000101) + lubridate::dseconds(c(60, 180, 4000))
   int1 <- lubridate::interval(starts1, ends1, tzone = "UTC")
 
   starts2 <- lubridate::ymd(20000101) + lubridate::dseconds(c(0, 10))
-  ends2   <- lubridate::ymd(20000101) + lubridate::dseconds(c(5, 20))
+  ends2 <- lubridate::ymd(20000101) + lubridate::dseconds(c(5, 20))
   int2 <- lubridate::interval(starts2, ends2, tzone = "UTC")
 
   starts3 <- lubridate::ymd(20000101) + lubridate::dseconds(1000)
-  ends3   <- lubridate::ymd(20000101) + lubridate::dseconds(5000)
+  ends3 <- lubridate::ymd(20000101) + lubridate::dseconds(5000)
   int3 <- lubridate::interval(starts3, ends3, tzone = "UTC")
 
   int <- c(int1, int2, int3)
@@ -730,19 +1026,17 @@ test_that("overlaps in the Interval are flattened", {
     standardize_phinterval(int_squash(int)),
     standardize_phinterval(flat_phint)
   )
-
 })
 
 test_that("NA inputs are removed when `na.rm = TRUE`, result in NA when `FALSE`", {
-
   date <- lubridate::ymd(20000101)
 
   starts1 <- date + lubridate::dseconds(c(0, 120, 240))
-  ends1   <- date + lubridate::dseconds(c(60, 180, 4000))
+  ends1 <- date + lubridate::dseconds(c(60, 180, 4000))
   int1 <- lubridate::interval(starts1, ends1, tzone = "UTC")
 
   starts2 <- date + lubridate::dseconds(c(0, 10, 5000))
-  ends2   <- date + lubridate::dseconds(c(5, 20, 6000))
+  ends2 <- date + lubridate::dseconds(c(5, 20, 6000))
   int2 <- lubridate::interval(starts2, ends2, tzone = "UTC")
 
   int3 <- lubridate::interval(NA_POSIXct_, NA_POSIXct_, tzone = "UTC")
@@ -766,11 +1060,9 @@ test_that("NA inputs are removed when `na.rm = TRUE`, result in NA when `FALSE`"
     standardize_phinterval(int_squash(int, na.rm = FALSE)),
     na_phinterval(tzone = "UTC")
   )
-
 })
 
 test_that("all NA input always results in NA output", {
-
   na_int <- lubridate::interval(NA_POSIXct_, NA_POSIXct_)
 
   ## na.rm = TRUE
@@ -784,11 +1076,9 @@ test_that("all NA input always results in NA output", {
     int_squash(na_int, na.rm = FALSE),
     na_phinterval(tzone = "UTC")
   )
-
 })
 
 test_that("empty input results in empty phinterval output", {
-
   ## na.rm = TRUE
   expect_identical(
     int_squash(lubridate::interval(), na.rm = TRUE),
@@ -800,13 +1090,11 @@ test_that("empty input results in empty phinterval output", {
     int_squash(lubridate::interval(), na.rm = FALSE),
     phinterval()
   )
-
 })
 
 # phint_overlaps ---------------------------------------------------------------
 
 test_that("overlaps are correctly identified", {
-
   origin <- .POSIXct(0, tz = "UTC")
   phint1 <- new_phinterval(
     reference_time = rep(origin, 2),
@@ -823,11 +1111,9 @@ test_that("overlaps are correctly identified", {
     phint_overlaps(phint1, phint2),
     c(TRUE, FALSE)
   )
-
 })
 
 test_that("instants within ranges are overlaps iff `inclusive = TRUE`", {
-
   origin <- .POSIXct(0, tz = "UTC")
   phint1 <- new_phinterval(
     reference_time = origin,
@@ -842,11 +1128,9 @@ test_that("instants within ranges are overlaps iff `inclusive = TRUE`", {
 
   expect_true(phint_overlaps(phint1, phint2, inclusive = TRUE))
   expect_false(phint_overlaps(phint1, phint2, inclusive = FALSE))
-
 })
 
 test_that("aligned spans are not overlaps if `inclusive = FALSE`", {
-
   origin <- .POSIXct(0, tz = "UTC")
   phint1 <- new_phinterval(
     reference_time = origin,
@@ -860,11 +1144,9 @@ test_that("aligned spans are not overlaps if `inclusive = FALSE`", {
   )
 
   expect_false(phint_overlaps(phint1, phint2, inclusive = FALSE))
-
 })
 
 test_that("aligned spans are overlaps if `inclusive = TRUE`", {
-
   origin <- .POSIXct(0, tz = "UTC")
   phint1 <- new_phinterval(
     reference_time = rep(origin, 2),
@@ -881,13 +1163,11 @@ test_that("aligned spans are overlaps if `inclusive = TRUE`", {
     phint_overlaps(phint1, phint2, inclusive = TRUE),
     c(TRUE, TRUE)
   )
-
 })
 
 # phint_union ------------------------------------------------------------------
 
 test_that("overlapping phintervals are merged correctly", {
-
   origin <- .POSIXct(0, tz = "UTC")
   phint1 <- new_phinterval(
     reference_time = rep(origin, 2),
@@ -908,25 +1188,23 @@ test_that("overlapping phintervals are merged correctly", {
       range_ends = list(c(30, 90, 120), c(5, 70))
     )
   )
-
 })
 
 # standardize_phinterval -------------------------------------------------------
 
 test_that("`ranges_starts` start at 0 and are ordered", {
-
   origin <- .POSIXct(0, tz = "UTC")
 
   starts1 <- NA_POSIXct_
-  ends1   <- NA_POSIXct_
+  ends1 <- NA_POSIXct_
   int1 <- lubridate::interval(starts1, ends1, tzone = "UTC")
 
   starts2 <- origin + lubridate::dseconds(c(10, 60, 240, 50))
-  ends2   <- origin + lubridate::dseconds(c(30, 120, 300, 55))
+  ends2 <- origin + lubridate::dseconds(c(30, 120, 300, 55))
   int2 <- lubridate::interval(starts2, ends2, tzone = "UTC")
 
   starts3 <- origin + lubridate::dseconds(c(15.60))
-  ends3   <- origin + lubridate::dseconds(c(27.99))
+  ends3 <- origin + lubridate::dseconds(c(27.99))
   int3 <- lubridate::interval(starts3, ends3, tzone = "UTC")
 
   phint <- phinterval(intervals = list(int1, int2, int3), tzone = "UTC")
@@ -942,11 +1220,9 @@ test_that("`ranges_starts` start at 0 and are ordered", {
       0
     )
   )
-
 })
 
 test_that("input and output phintervals are equal", {
-
   origin <- .POSIXct(0, tz = "UTC")
   phint <- new_phinterval(
     reference_time = c(rep(origin, 2), NA_POSIXct_, origin),
@@ -971,31 +1247,25 @@ test_that("input and output phintervals are equal", {
     all(vec_equal(phint, standardize_phinterval(phint), na_equal = TRUE)),
     TRUE
   )
-
 })
 
 test_that("NA input results in NA output", {
-
   expect_identical(
     standardize_phinterval(na_phinterval()),
     na_phinterval()
   )
-
 })
 
 test_that("empty input results in empty output", {
-
   expect_identical(
     standardize_phinterval(phinterval()),
     phinterval()
   )
-
 })
 
 # %within% ---------------------------------------------------------------------
 
 test_that("`phinterval` %within% `phinterval` works as expected", {
-
   origin <- .POSIXct(0, tz = "UTC")
   phint1 <- new_phinterval(
     reference_time = rep(origin, 2),
@@ -1012,11 +1282,9 @@ test_that("`phinterval` %within% `phinterval` works as expected", {
     phint1 %within% phint2,
     c(TRUE, FALSE)
   )
-
 })
 
 test_that("`Interval` %within% `phinterval` works as expected", {
-
   origin <- .POSIXct(0, tz = "UTC")
   int <- lubridate::interval(c(origin + 60, origin - 5), c(origin + 90, origin))
   phint <- new_phinterval(
@@ -1026,11 +1294,9 @@ test_that("`Interval` %within% `phinterval` works as expected", {
   )
 
   expect_identical(int %within% phint, c(TRUE, FALSE))
-
 })
 
 test_that("`phinterval` %within% `Interval` works as expected", {
-
   origin <- .POSIXct(0, tz = "UTC")
   phint <- new_phinterval(
     reference_time = rep(origin, 2),
@@ -1039,12 +1305,10 @@ test_that("`phinterval` %within% `Interval` works as expected", {
   )
   int <- lubridate::interval(c(origin, origin - 5), c(origin + 300, origin))
 
-  expect_identical(phint %within% int,c(TRUE, FALSE))
-
+  expect_identical(phint %within% int, c(TRUE, FALSE))
 })
 
 test_that("datetime %within% `phinterval` works as expected", {
-
   origin <- .POSIXct(0, tz = "UTC")
   phint <- new_phinterval(
     reference_time = rep(origin, 2),
@@ -1059,7 +1323,6 @@ test_that("datetime %within% `phinterval` works as expected", {
   expect_identical(date %within% phint, c(FALSE, TRUE))
   expect_identical(posixct %within% phint, c(TRUE, FALSE))
   expect_identical(posixlt %within% phint, c(TRUE, FALSE))
-
 })
 
 # Test from `lubridate` as of 2024/03/09, modified to use `phinterval` instead
@@ -1075,13 +1338,13 @@ test_that("%within% implementation matches lubridate", {
   time7 <- as.POSIXct("2003-01-02", tz = "UTC")
 
   base <- as_phinterval(interval(time1, time2))
-  ins  <- as_phinterval(interval(time3, time4))
+  ins <- as_phinterval(interval(time3, time4))
   bord <- as_phinterval(interval(time5, time6))
   olap <- as_phinterval(interval(time4, time6))
   outs <- as_phinterval(interval(time7, time6))
 
   nbase <- as_phinterval(interval(time2, time1))
-  nins  <- as_phinterval(interval(time4, time3))
+  nins <- as_phinterval(interval(time4, time3))
   nbord <- as_phinterval(interval(time6, time5))
   nolap <- as_phinterval(interval(time6, time4))
   nouts <- as_phinterval(interval(time6, time7))

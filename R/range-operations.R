@@ -62,9 +62,9 @@ range_intersect <- function(
     y_non_instants <- y_starts != y_ends
 
     x_starts <- x_starts[x_non_instants]
-    x_ends   <- x_ends[x_non_instants]
+    x_ends <- x_ends[x_non_instants]
     y_starts <- y_starts[y_non_instants]
-    y_ends   <- y_ends[y_non_instants]
+    y_ends <- y_ends[y_non_instants]
   }
 
   positions <- c(x_starts, y_starts, x_ends, y_ends)
@@ -81,7 +81,6 @@ range_intersect <- function(
   ends <- positions[intersection_starts + 1L]
 
   list(starts = starts, ends = ends)
-
 }
 
 range_intersects <- function(
@@ -90,16 +89,16 @@ range_intersects <- function(
     y_starts,
     y_ends,
     inclusive = FALSE
-) {
+  ) {
 
   if (!inclusive) {
     x_non_instants <- x_starts != x_ends
     y_non_instants <- y_starts != y_ends
 
     x_starts <- x_starts[x_non_instants]
-    x_ends   <- x_ends[x_non_instants]
+    x_ends <- x_ends[x_non_instants]
     y_starts <- y_starts[y_non_instants]
-    y_ends   <- y_ends[y_non_instants]
+    y_ends <- y_ends[y_non_instants]
   }
 
   starts <- c(x_starts, y_starts)
@@ -111,7 +110,6 @@ range_intersects <- function(
   } else {
     any(starts[start_order][-1L] < cummax(ends[start_order][-length(ends)]))
   }
-
 }
 
 range_setdifference <- function(
@@ -133,7 +131,6 @@ range_setdifference <- function(
   # Remove any instants which are shared between x and y.
   is_y_instant <- y_starts == y_ends
   if (any(is_y_instant)) {
-
     y_instants <- y_starts[is_y_instant]
     is_in_y <- map_lgl(
       x_starts[is_x_instant],
@@ -142,7 +139,7 @@ range_setdifference <- function(
 
     non_shared_instants <- !(is_in_y & is_x_instant)
     x_starts <- x_starts[non_shared_instants]
-    x_ends   <- x_ends[non_shared_instants]
+    x_ends <- x_ends[non_shared_instants]
 
     is_x_instant <- x_starts == x_ends
     if (!any(is_x_instant)) {
@@ -160,7 +157,6 @@ range_setdifference <- function(
     # any y instants which could split an x range into two adjacent ranges.
     y_starts <- y_starts[!is_y_instant]
     y_ends <- y_ends[!is_y_instant]
-
   }
 
   y_starts_order <- order(y_starts)
@@ -202,9 +198,7 @@ range_setdifference <- function(
       starts = c(setdiff_instants, setdiff$starts),
       ends = c(setdiff_instants, setdiff$ends)
     )
-
   } else {
-
     range_intersect(
       x_starts = x_starts,
       x_ends = x_ends,
@@ -212,14 +206,11 @@ range_setdifference <- function(
       y_ends = y_comp_ends,
       inclusive = FALSE
     )
-
   }
-
 }
 
 # Set difference in the simple case where x contains no instants
 range_setdifference_happy_path <- function(x_starts, x_ends, y_starts, y_ends) {
-
   # Don't want instantaneous splits in the output ranges (ex. [0, 1], [1, 2]),
   # so removing any y instants which could cause this split.
   is_y_instant <- y_starts == y_ends
@@ -256,17 +247,14 @@ range_setdifference_happy_path <- function(x_starts, x_ends, y_starts, y_ends) {
     y_ends = y_comp_ends,
     inclusive = FALSE
   )
-
 }
 
 range_within <- function(x_starts, x_ends, y_starts, y_ends) {
-
   y_order <- order(y_starts)
   identical(
     range_flatten(c(x_starts, y_starts), c(x_ends, y_ends)),
     list(starts = y_starts[y_order], ends = y_ends[y_order])
   )
-
 }
 
 range_bound <- function(starts, ends, left, right) {
@@ -280,10 +268,9 @@ range_bound <- function(starts, ends, left, right) {
   ends <- ends[!out_of_bounds]
 
   starts[starts < left] <- left
-  ends[ends > right]    <- right
+  ends[ends > right] <- right
 
   list(starts = starts, ends = ends)
-
 }
 
 range_bound_lower <- function(starts, ends, left) {
@@ -296,7 +283,6 @@ range_bound_lower <- function(starts, ends, left) {
   ends <- ends[!out_of_bounds]
   starts[starts < left] <- left
   list(starts = starts, ends = ends)
-
 }
 
 range_bound_upper <- function(starts, ends, right) {
@@ -309,5 +295,4 @@ range_bound_upper <- function(starts, ends, right) {
   ends <- ends[!out_of_bounds]
   ends[ends > right] <- right
   list(starts = starts, ends = ends)
-
 }

@@ -35,7 +35,6 @@ recycle2_common <- function(
       class = "phinterval_error_incompatible_length"
     )
   }
-
 }
 
 # TODO Ethan: What we really want is a `recycle_to(to, arg)` option, which
@@ -67,45 +66,15 @@ recycle_to <- function(
       class = "phinterval_error_incompatible_length"
     )
   }
-
-}
-
-# TODO: Recycling of zero-length vectors doesn't make sense here.
-# - try `recyclep_common(list(x = numeric(), y = 1:10, z = 1:2))` vs
-#   `recycle2_common(x = numeric(), y = 1:10)`
-recyclep_common <- function(args, error_call = rlang::caller_env()) {
-
-  arg_names    <- names(args)
-  longest_at   <- which.max(map_int(args, length))
-  longest_arg  <- args[[longest_at]]
-  longest_name <- arg_names[[longest_at]]
-
-  map2(
-    args,
-    arg_names,
-    \(arg, arg_name) {
-      recycled <- recycle2_common(
-        x = arg,
-        x_arg = arg_name,
-        y = longest_arg,
-        y_arg = longest_name,
-        error_call = error_call
-      )
-      recycled$x
-    }
-  )
-
 }
 
 commas <- function(x, sep = ",", sep2 = "", last = "or") {
-
   x_len <- length(x)
   if (x_len == 1) {
     return(x)
   }
   sep <- if (x_len == 2) sep2 else sep
   paste(c(paste0(x[-x_len], sep), last, x[[x_len]]), collapse = " ")
-
 }
 
 # time wrangling ---------------------------------------------------------------

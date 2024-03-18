@@ -120,7 +120,6 @@ test_that("handles length-1 inputs as expected.", {
 # range_within -----------------------------------------------------------------
 
 test_that("range_within works as expected", {
-
   expect_true(range_within(1, 2, 0, 3))
   expect_true(range_within(1, 1, 1, 1))
   expect_true(range_within(0, 1, 0, 1))
@@ -142,13 +141,11 @@ test_that("range_within works as expected", {
   expect_false(range_within(c(0, 4), c(3, 11), c(1, 5), c(2, 10)))
   expect_false(range_within(c(0, 4, 12), c(3, 11, 12), c(1, 5), c(1, 10)))
   expect_false(range_within(-10, 10, c(0, 4, 8), c(3, 7, 9)))
-
 })
 
 # range_intersects -------------------------------------------------------------
 
 test_that("range_intersects correctly identifies non-instant intersections", {
-
   # Within
   expect_true(range_intersects(-5, 5, -1, 1))
   expect_true(range_intersects(-1, 1, -5, 5))
@@ -166,19 +163,15 @@ test_that("range_intersects correctly identifies non-instant intersections", {
   expect_true(range_intersects(5, 20, 1, 10))
   expect_true(range_intersects(c(0, 10), c(5, 20), c(1, 15, 50), c(2, 23, 60)))
   expect_true(range_intersects(c(1, 15, 50), c(2, 23, 60), c(0, 10), c(5, 20)))
-
 })
 
 test_that("range_intersects correctly identifies non-intersections", {
-
   expect_false(range_intersects(0, 0, 1, 1))
   expect_false(range_intersects(0, 10, 11, 20))
   expect_false(range_intersects(c(0, 5), c(1, 6), c(2, 12), c(3, 20)))
-
 })
 
 test_that("range_intersects `inclusive` argument works as expected", {
-
   x_starts <- 1
   x_ends <- 2
   y_starts <- c(0, 2)
@@ -196,18 +189,14 @@ test_that("range_intersects `inclusive` argument works as expected", {
   expect_true(
     range_intersects(y_starts, y_ends, x_starts, x_ends, inclusive = TRUE)
   )
-
 })
 
 test_that("range_intersects instant x instant intersections are as expected", {
-
   expect_false(range_intersects(1, 1, 1, 1, inclusive = FALSE))
   expect_true(range_intersects(1, 1, 1, 1, inclusive = TRUE))
-
 })
 
 test_that("range_intersect instant x range edge intersections are as expected", {
-
   # instant x range start
   expect_false(range_intersects(0, 0, 0, 1, inclusive = FALSE))
   expect_true(range_intersects(0, 0, 0, 1, inclusive = TRUE))
@@ -219,22 +208,18 @@ test_that("range_intersect instant x range edge intersections are as expected", 
   expect_true(range_intersects(1, 1, 0, 1, inclusive = TRUE))
   expect_false(range_intersects(0, 1, 1, 1, inclusive = FALSE))
   expect_true(range_intersects(0, 1, 1, 1, inclusive = TRUE))
-
 })
 
 test_that("range_intersects instant x range intersections are as expected", {
-
   expect_false(range_intersects(0, 0, -1, 1, inclusive = FALSE))
   expect_true(range_intersects(0, 0, -1, 1, inclusive = TRUE))
   expect_false(range_intersects(-1, 1, 0, 0, inclusive = FALSE))
   expect_true(range_intersects(-1, 1, 0, 0, inclusive = TRUE))
-
 })
 
 # range_intersect --------------------------------------------------------------
 
 test_that("range_intersect correctly identifies non-instant intersections", {
-
   # Within
   expect_identical(range_intersect(-5, 5, -1, 1), list(starts = -1, ends = 1))
   expect_identical(range_intersect(-1, 1, -5, 5), list(starts = -1, ends = 1))
@@ -270,11 +255,9 @@ test_that("range_intersect correctly identifies non-instant intersections", {
     range_intersect(c(1, 15, 100), c(2, 23, 110), c(0, 10), c(5, 20)),
     list(starts = c(1, 15), ends = c(2, 20))
   )
-
 })
 
 test_that("range_intersect returns empty numeric when no intersection", {
-
   x_starts <- c(1, 10)
   x_ends <- c(2, 11)
   y_starts <- c(3, 20)
@@ -294,14 +277,12 @@ test_that("range_intersect returns empty numeric when no intersection", {
     out
   )
   expect_identical(
-    range_intersect(y_starts, y_ends, x_starts, x_ends,  inclusive = TRUE),
+    range_intersect(y_starts, y_ends, x_starts, x_ends, inclusive = TRUE),
     out
   )
-
 })
 
 test_that("range_intersect `inclusive` argument works as expected", {
-
   x_starts <- 1
   x_ends <- 2
   y_starts <- c(0, 2)
@@ -323,11 +304,9 @@ test_that("range_intersect `inclusive` argument works as expected", {
     range_intersect(y_starts, y_ends, x_starts, x_ends, inclusive = TRUE),
     list(starts = c(1, 2), ends = c(1, 2))
   )
-
 })
 
 test_that("range_intersect instant x instant intersections are as expected", {
-
   expect_identical(
     range_intersect(1, 1, 1, 1, inclusive = FALSE),
     list(starts = numeric(), ends = numeric())
@@ -336,11 +315,9 @@ test_that("range_intersect instant x instant intersections are as expected", {
     range_intersect(1, 1, 1, 1, inclusive = TRUE),
     list(starts = 1, ends = 1)
   )
-
 })
 
 test_that("range_intersect instant x range edge intersections are as expected", {
-
   # instant x range start
   expect_identical(
     range_intersect(0, 0, 0, 1, inclusive = FALSE),
@@ -376,11 +353,9 @@ test_that("range_intersect instant x range edge intersections are as expected", 
     range_intersect(0, 1, 1, 1, inclusive = TRUE),
     list(starts = 1, ends = 1)
   )
-
 })
 
 test_that("range_intersect instant x range intersections are as expected", {
-
   expect_identical(
     range_intersect(0, 0, -1, 1, inclusive = FALSE),
     list(starts = numeric(), ends = numeric())
@@ -397,5 +372,4 @@ test_that("range_intersect instant x range intersections are as expected", {
     range_intersect(-1, 1, 0, 0, inclusive = TRUE),
     list(starts = 0, ends = 0)
   )
-
 })

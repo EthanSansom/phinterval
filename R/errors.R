@@ -13,7 +13,6 @@ stop_wrong_class <- function(
   ) {
 
   if (is.null(n)) {
-
     if (!inherits(x, cls)) {
       correct_cls <- commas(paste0("{.cls ", cls, "}"))
       cli::cli_abort(
@@ -53,7 +52,6 @@ stop_wrong_class <- function(
       class = "phinterval_error_wrong_class"
     )
   }
-
 }
 
 stop_not_list_of <- function(
@@ -94,7 +92,6 @@ stop_not_list_of <- function(
       class = "phinterval_error_wrong_list_of"
     )
   }
-
 }
 
 check_is_phinty <- function(
@@ -119,5 +116,4 @@ check_is_phinty <- function(
     call = error_call,
     class = "phinterval_error_wrong_class"
   )
-
 }

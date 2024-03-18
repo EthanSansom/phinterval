@@ -12,11 +12,11 @@ setOldClass("phinterval")
 
 # phinterval class -------------------------------------------------------------
 new_phinterval <- function(
-    reference_time = lubridate::POSIXct(tz = tzone),
+    reference_time = empty_posixct(tz = tzone),
     range_starts = list(),
     range_ends = list(),
     tzone = "UTC"
-) {
+  ) {
 
   bullets <- character()
   if (!lubridate::is.POSIXct(reference_time)) {
@@ -70,18 +70,19 @@ new_phinterval <- function(
     tzone = tzone,
     class = "phinterval"
   )
-
 }
 
 na_phinterval <- function(n = 1L, tzone = "UTC") {
-
   new_phinterval(
     reference_time = rep(NA_POSIXct_, n),
     range_starts = as.list(rep(NA_real_, n)),
     range_ends = as.list(rep(NA_real_, n)),
     tzone = tzone
   )
+}
 
+empty_posixct <- function(tzone = "UTC") {
+  as.POSIXct(logical(), tz = tzone)
 }
 
 na_posixct <- function(n = 1L, tzone = "UTC") {
@@ -89,7 +90,7 @@ na_posixct <- function(n = 1L, tzone = "UTC") {
 }
 
 origin_posixct <- function(n = 1L, tzone = "UTC") {
-  lubridate::POSIXct(n, tz = tzone)
+  as.POSIXct(rep(0L, n), origin = lubridate::origin, tz = tzone)
 }
 
 #' @export
@@ -98,10 +99,7 @@ format.phinterval <- function(x, ...) {
   reference_time <- field(x, "reference_time")
   range_starts <- field(x, "range_starts")
   range_ends <- field(x, "range_ends")
-  tzone <- attr(x, "tzone")
-
-  # Hack to get the local timezone abbreviation - not sure how else to do this
-  tzone <- if (tzone == "") strftime(x = .POSIXct(0L), format = "%Z") else tzone
+  tzone <- trimws(format(reference_time, format = " ", usetz = TRUE))
 
   starts_order <- map(range_starts, order)
   interval_starts <-
@@ -125,14 +123,13 @@ format.phinterval <- function(x, ...) {
   )
   out[is.na(reference_time)] <- NA_character_
   out
-
 }
 
 vec_ptype_abbr.phinterval <- function(x, ...) {
   "phintrvl"
 }
 
-vec_ptype2.phinterval.phinterval <- function(x, y, ...){
+vec_ptype2.phinterval.phinterval <- function(x, y, ...) {
   new_phinterval(tzone = tz_union(x, y))
 }
 
@@ -168,13 +165,13 @@ as_phinterval.Interval <- function(x, tzone = NULL) {
   int <- lubridate::int_standardize(x)
   na_at <- is.na(int)
 
-  reference_time <- lubridate::int_start(int)
-  range_starts   <- as.list(rep(0, length(int)))
-  range_ends     <- as.list(as.double(lubridate::int_length(int)))
+  reference_time <- lubridate::with_tz(lubridate::int_start(int), tzone = tzone)
+  range_starts <- as.list(rep(0, length(int)))
+  range_ends <- as.list(as.double(lubridate::int_length(int)))
 
   reference_time[na_at] <- lubridate::NA_POSIXct_
-  range_starts[na_at]   <- NA_real_
-  range_ends[na_at]     <- NA_real_
+  range_starts[na_at] <- NA_real_
+  range_ends[na_at] <- NA_real_
 
   new_phinterval(
     reference_time = reference_time,
@@ -182,7 +179,6 @@ as_phinterval.Interval <- function(x, tzone = NULL) {
     range_ends = range_ends,
     tzone = tzone
   )
-
 }
 
 # TODO: Check for invalid timezones at the VERY start. Maybe just make an invalid
@@ -215,17 +211,23 @@ phinterval <- function(intervals = NULL, tzone = NULL) {
   range_starts <- as.list(rep(NA_real_, length(ints)))
   range_ends <- range_starts
 
+  # TODO Ethan: Replace all of this with some nice function like, `recenter_ranges`
+  #             or something.
   min_start_time <- map_dbl(non_na_ints, \(int) min(lubridate::int_start(int)))
   reference_time[non_na_at] <- lubridate::as_datetime(min_start_time)
   range_starts[non_na_at] <- map2(
     non_na_ints,
     min_start_time,
-    \(int, min_start) { as.double(lubridate::int_start(int)) - min_start }
+    \(int, min_start) {
+      as.double(lubridate::int_start(int)) - min_start
+    }
   )
   range_ends[non_na_at] <- map2(
     non_na_ints,
     min_start_time,
-    \(int, min_start) { as.double(lubridate::int_end(int)) - min_start }
+    \(int, min_start) {
+      as.double(lubridate::int_end(int)) - min_start
+    }
   )
 
   ranges <- flatten_overlapping_ranges(range_starts, range_ends)
@@ -236,7 +238,6 @@ phinterval <- function(intervals = NULL, tzone = NULL) {
     range_ends = ranges$ends,
     tzone = tzone
   )
-
 }
 
 # TODO: Consolidate the `range_is_flat` and `range_contains_overlaps` functions.
@@ -257,7 +258,6 @@ flatten_overlapping_ranges <- function(range_starts, range_ends) {
   }
 
   list(starts = range_starts, ends = range_ends)
-
 }
 
 # `phinterval`s are equal when they represent the same collection of time-spans,
@@ -272,22 +272,21 @@ vec_proxy_equal.phinterval <- function(x, ...) {
   range_ends <- field(x, "range_ends")
 
   starts_uid <- rep(NA_character_, length(reference_time))
-  ends_uid   <- starts_uid
+  ends_uid <- starts_uid
 
   # TODO: This feels illegal, but should (?) uniquely ID a set of time spans
   non_na_at <- !is.na(reference_time)
   seconds <- as.double(reference_time)[non_na_at]
   starts <- range_starts[non_na_at]
-  ends   <- range_ends[non_na_at]
+  ends <- range_ends[non_na_at]
 
   starts_uid[non_na_at] <- map2(seconds, starts, \(t, s) t + sort(s)) |> map_chr(range_to_uid)
-  ends_uid[non_na_at]   <- map2(seconds, ends, \(t, e) t + sort(e)) |> map_chr(range_to_uid)
+  ends_uid[non_na_at] <- map2(seconds, ends, \(t, e) t + sort(e)) |> map_chr(range_to_uid)
 
   data.frame(
     range_starts = starts_uid,
     range_ends = ends_uid
   )
-
 }
 
 range_to_uid <- function(x) paste0(sort(x), collapse = ",")
@@ -309,7 +308,6 @@ vec_proxy_compare.phinterval <- function(x, ...) {
     ends_first = -max_end,
     shortest = -duration_seconds
   )
-
 }
 
 # division ---------------------------------------------------------------------
@@ -410,7 +408,6 @@ within_phinterval <- function(x_phint, y_phint) {
     range_within
   )
   out
-
 }
 
 within_instant <- function(instant, phint) {
@@ -426,11 +423,10 @@ within_instant <- function(instant, phint) {
   phint <- phint[non_na_at]
 
   in_starts <- map2(instant, phint_starts(phint), `>=`)
-  in_ends   <- map2(instant, phint_ends(phint), `<=`)
+  in_ends <- map2(instant, phint_ends(phint), `<=`)
 
   out[non_na_at] <- map2_lgl(in_starts, in_ends, \(in_s, in_e) any(in_s & in_e))
   out
-
 }
 
 # TODO: Export this method appropriately
@@ -442,7 +438,7 @@ tz.phinterval <- function(x) {
 # See https://stackoverflow.com/questions/31317366/in-r-how-can-i-extend-generic-methods-from-one-package-in-another
 # I'm not sure of the right way to extend a generic. Check R Packages for details (?)
 # or the S3 chapter of Advanced R
-setGeneric("as.duration", getGeneric("as.duration", package="lubridate"))
+setGeneric("as.duration", getGeneric("as.duration", package = "lubridate"))
 setMethod("as.duration", signature(x = "phinterval"), function(x) {
   as.duration(phint_length(x))
 })
@@ -451,7 +447,7 @@ is_holey <- function(phint) {
 
   if (lubridate::is.interval(phint)) {
     out <- rep(FALSE, length(phint))
-  } else{
+  } else {
     phint <- check_is_phinty(phint)
     range_starts <- field(phint, "range_starts")
     out <- map_lgl(range_starts, \(s) length(s) > 1)
@@ -459,14 +455,13 @@ is_holey <- function(phint) {
 
   out[is.na(phint)] <- NA
   out
-
 }
 
 n_spans <- function(phint) {
 
   if (lubridate::is.interval(phint)) {
     out <- rep(1L, length(phint))
-  } else{
+  } else {
     phint <- check_is_phinty(phint)
     range_starts <- field(phint, "range_starts")
     out <- map_int(range_starts, length)
@@ -474,23 +469,18 @@ n_spans <- function(phint) {
 
   out[is.na(phint)] <- NA_integer_
   out
-
 }
 
 n_holes <- function(phint) {
-
   n_spans <- n_spans(phint)
   n_spans - 1L
-
 }
 
 phint_start <- function(phint) {
-
   phint <- check_is_phinty(phint)
   reference_time <- field(phint, "reference_time")
   range_starts <- field(phint, "range_starts")
   reference_time + map_dbl(range_starts, min)
-
 }
 
 phint_starts <- function(phint) {
@@ -508,16 +498,13 @@ phint_starts <- function(phint) {
     \(t, s) t + sort(s)
   )
   out
-
 }
 
 phint_end <- function(phint) {
-
   phint <- check_is_phinty(phint)
   reference_time <- field(phint, "reference_time")
   range_ends <- field(phint, "range_ends")
   reference_time + map_dbl(range_ends, max)
-
 }
 
 phint_ends <- function(phint) {
@@ -535,13 +522,10 @@ phint_ends <- function(phint) {
     \(t, e) t + sort(e)
   )
   out
-
 }
 
 phint_length <- function(phint) {
-
   map_dbl(phint_lengths(phint), sum)
-
 }
 
 phint_lengths <- function(phint) {
@@ -559,7 +543,6 @@ phint_lengths <- function(phint) {
     \(s, e) sort(e - s)
   )
   out
-
 }
 
 phint_invert <- function(phint) {
@@ -578,15 +561,15 @@ phint_invert <- function(phint) {
   is_holey <- !(is.na(phint) | map_lgl(range_starts, \(s) length(s) == 1))
 
   holey_ranges <- order_ranges(range_starts[is_holey], range_ends[is_holey])
-  hole_starts  <- map(holey_ranges$ends, \(e) e[-length(e)])
-  hole_ends    <- map(holey_ranges$starts, \(s) s[-1L])
+  hole_starts <- map(holey_ranges$ends, \(e) e[-length(e)])
+  hole_ends <- map(holey_ranges$starts, \(s) s[-1L])
 
   reference_time[!is_holey] <- na_posixct(1L, tzone = tzone)
 
   new_starts <- as.list(rep(NA_real_, length(phint)))
-  new_ends   <- new_starts
+  new_ends <- new_starts
   new_starts[is_holey] <- hole_starts
-  new_ends[is_holey]   <- hole_ends
+  new_ends[is_holey] <- hole_ends
 
   new_phinterval(
     reference_time = reference_time,
@@ -594,16 +577,13 @@ phint_invert <- function(phint) {
     range_ends = new_ends,
     tzone = tzone
   )
-
 }
 
 order_ranges <- function(range_starts, range_ends) {
-
   starts_order <- map(range_starts, order)
   starts <- map2(range_starts, starts_order, \(s, o) s[o])
   ends <- map2(range_ends, starts_order, \(e, o) e[o])
   list(starts = starts, ends = ends)
-
 }
 
 phint_to_spans <- function(phint) {
@@ -617,18 +597,15 @@ phint_to_spans <- function(phint) {
   tzone <- tz(phint)
 
   int_starts <- map2(reference_time, range_starts, `+`)
-  int_ends   <- map2(reference_time, range_ends, `+`)
+  int_ends <- map2(reference_time, range_ends, `+`)
   map2(int_starts, int_ends, interval, tzone = tzone)
-
 }
 
 phint_to_holes <- function(phint) {
-
   phint |>
     check_is_phinty() |>
     phint_invert() |>
     phint_to_spans()
-
 }
 
 phint_shift <- function(phint, by, on = c("all", "start")) {
@@ -647,9 +624,9 @@ phint_shift <- function(phint, by, on = c("all", "start")) {
 
   # `lubridate` uses the recycling rules of `+` to recycle both the time-span
   # and the shift `by`. Using `recycle2_common` to match this approach.
-  objs  <- recycle2_common(phint, by)
+  objs <- recycle2_common(phint, by)
   phint <- standardize_phinterval(check_is_phinty(objs$x))
-  by    <- objs$y
+  by <- objs$y
 
   new_phinterval(
     reference_time = field(phint, "reference_time") + by,
@@ -657,7 +634,6 @@ phint_shift <- function(phint, by, on = c("all", "start")) {
     range_ends = field(phint, "range_ends"),
     tzone = tz(phint)
   )
-
 }
 
 # This matches the `lubridate` implementation of `int_shift. In particular,
@@ -671,19 +647,19 @@ phint_shift_faithful <- function(phint, by) {
     cli::cli_abort("{.arg by} can't be a {.cls Interval}.")
   }
 
-  objs  <- recycle2_common(phint, by)
+  objs <- recycle2_common(phint, by)
   phint <- check_is_phinty(objs$x)
-  by    <- objs$y
+  by <- objs$y
   tzone <- tz(phint)
 
   reference_time <- rep(.POSIXct(0, tz = tzone), length(phint))
   range_starts <- map(phint_starts(phint), \(dates) as.double(dates + by))
-  range_ends   <- map(phint_ends(phint), \(dates) as.double(dates + by))
+  range_ends <- map(phint_ends(phint), \(dates) as.double(dates + by))
 
   na_at <- map2_lgl(range_starts, range_ends, \(s, e) any(is.na(s) | is.na(e)))
   reference_time[na_at] <- lubridate::NA_POSIXct_
-  range_starts[na_at]   <- NA_real_
-  range_ends[na_at]     <- NA_real_
+  range_starts[na_at] <- NA_real_
+  range_ends[na_at] <- NA_real_
 
   new_phinterval(
     reference_time = reference_time,
@@ -691,7 +667,6 @@ phint_shift_faithful <- function(phint, by) {
     range_ends = range_ends,
     tzone = tzone
   )
-
 }
 
 phint_bound <- function(phint, left = NULL, right = NULL) {
@@ -699,7 +674,7 @@ phint_bound <- function(phint, left = NULL, right = NULL) {
   phint <- check_is_phinty(phint)
   phint_len <- length(phint)
 
-  left_null  <- is.null(left)
+  left_null <- is.null(left)
   right_null <- is.null(right)
   if (left_null && right_null) {
     cli::cli_abort("Must supply at least one of {.arg left} or {.arg right}.")
@@ -735,23 +710,17 @@ phint_bound <- function(phint, left = NULL, right = NULL) {
   range_starts <- as.list(rep(NA_real_, phint_len))
   range_ends <- range_starts
 
-  range_left  <- as.double(as.POSIXct(left))
+  range_left <- as.double(as.POSIXct(left))
   range_right <- as.double(as.POSIXct(right))
   range <- rangify_phinterval(phint)
 
   if (left_null) {
-    # TODO Ethan: Implement `out_of_bounds` check. We want to return NA
-    #             for `phinterval` that is outside of the provided [left, right]
-    #             bounds!
-    #
-    #             Actually, that's super annoying. Just implement this in the
-    #             three `range_bound*` functions
     non_na_at <- !(is.na(right) | is.na(phint))
     range_bounded <- pmap(
       list(
-        starts = range$starts[non_na_at & !out_of_bounds],
-        ends = range$ends[non_na_at & !out_of_bounds],
-        right = range_right[non_na_at & !out_of_bounds]
+        starts = range$starts[non_na_at],
+        ends = range$ends[non_na_at],
+        right = range_right[non_na_at]
       ),
       range_bound_upper
     )
@@ -788,7 +757,6 @@ phint_bound <- function(phint, left = NULL, right = NULL) {
     range_ends = range_ends,
     tzone = tzone
   )
-
 }
 
 # set operations ---------------------------------------------------------------
@@ -817,7 +785,7 @@ phint_squash <- function(phint, na.rm = TRUE) {
 
   reference_seconds <- as.double(reference_time)
   span_starts <- map2(reference_seconds, range_starts, `+`)
-  span_ends   <- map2(reference_seconds, range_ends, `+`)
+  span_ends <- map2(reference_seconds, range_ends, `+`)
 
   na_at <- is.na(reference_time)
   if (all(na_at) || (any(na_at) && !na.rm)) {
@@ -825,7 +793,7 @@ phint_squash <- function(phint, na.rm = TRUE) {
   }
   if (na.rm) {
     span_starts <- span_starts[!na_at]
-    span_ends   <- span_ends[!na_at]
+    span_ends <- span_ends[!na_at]
   }
 
   flat_ranges <- range_flatten(list_c(span_starts), list_c(span_ends))
@@ -835,7 +803,6 @@ phint_squash <- function(phint, na.rm = TRUE) {
     range_ends = list(flat_ranges$ends),
     tzone = tzone
   )
-
 }
 
 int_squash <- function(int, na.rm = TRUE) {
@@ -865,7 +832,6 @@ int_squash <- function(int, na.rm = TRUE) {
     range_ends = list(flat_ranges$ends),
     tzone = tzone
   )
-
 }
 
 phint_overlaps <- function(phint1, phint2, inclusive = FALSE) {
@@ -880,9 +846,9 @@ phint_overlaps <- function(phint1, phint2, inclusive = FALSE) {
   non_na_at <- !(is.na(phint1) | is.na(phint2))
 
   range1_starts <- range1$starts[non_na_at]
-  range1_ends   <- range1$ends[non_na_at]
+  range1_ends <- range1$ends[non_na_at]
   range2_starts <- range2$starts[non_na_at]
-  range2_ends   <- range2$ends[non_na_at]
+  range2_ends <- range2$ends[non_na_at]
 
   out <- rep(NA, length(phint1))
   out[non_na_at] <- pmap_lgl(
@@ -895,7 +861,6 @@ phint_overlaps <- function(phint1, phint2, inclusive = FALSE) {
     range_intersects,
     inclusive = inclusive
   )
-
 }
 
 phint_union <- function(phint1, phint2) {
@@ -937,9 +902,9 @@ combine_phintervals <- function(.phint1, .phint2, .f, ...) {
   non_na_at <- !(is.na(phint1) | is.na(phint2))
 
   range1_starts <- range1$starts[non_na_at]
-  range1_ends   <- range1$ends[non_na_at]
+  range1_ends <- range1$ends[non_na_at]
   range2_starts <- range2$starts[non_na_at]
-  range2_ends   <- range2$ends[non_na_at]
+  range2_ends <- range2$ends[non_na_at]
 
   out_range <- pmap(
     list(
@@ -954,13 +919,13 @@ combine_phintervals <- function(.phint1, .phint2, .f, ...) {
 
   out_length <- length(phint1)
 
-  tzone <-          tz_union(phint1, phint2)
+  tzone <- tz_union(phint1, phint2)
   reference_time <- origin_posixct(out_length, tzone = tzone)
-  range_starts <-   as.list(rep(NA_real_, out_length))
-  range_ends <-     range_starts
+  range_starts <- as.list(rep(NA_real_, out_length))
+  range_ends <- range_starts
 
   range_starts[non_na_at] <- map(out_range, `[[`, "starts")
-  range_ends[non_na_at] <-   map(out_range, `[[`, "ends")
+  range_ends[non_na_at] <- map(out_range, `[[`, "ends")
 
   new_phinterval(
     reference_time = reference_time,
@@ -968,7 +933,6 @@ combine_phintervals <- function(.phint1, .phint2, .f, ...) {
     range_ends = range_ends,
     tzone = tzone
   )
-
 }
 
 rangify_phinterval <- function(phint) {
@@ -981,7 +945,6 @@ rangify_phinterval <- function(phint) {
     starts = map2(reference_seconds, range_starts, `+`),
     ends = map2(reference_seconds, range_ends, `+`)
   )
-
 }
 
 # TODO Ethan: See if this has any use case
@@ -994,7 +957,6 @@ phintify_ranges <- function(starts, ends, tzone) {
     range_ends = ends,
     tzone = tzone
   )
-
 }
 
 standardize_phinterval <- function(phint) {
@@ -1005,7 +967,7 @@ standardize_phinterval <- function(phint) {
   tzone <- tz(phint)
 
   starts_order <- map(range_starts, order)
-  starts_min   <- map_dbl(range_starts, min)
+  starts_min <- map_dbl(range_starts, min)
 
   new_time <- reference_time + starts_min
   new_starts <- pmap(
@@ -1027,5 +989,4 @@ standardize_phinterval <- function(phint) {
     range_ends = new_ends,
     tzone = tzone
   )
-
 }
