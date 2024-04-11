@@ -763,20 +763,24 @@ phint_bound <- function(phint, left = NULL, right = NULL) {
 
 # TODO Ethan: You might want an option to return NA on empty, so
 #             that you can use this in a `summarize` statement
-#             and reliably return a length-1 output
-phint_squash <- function(phint, na.rm = TRUE) {
+#             and reliably return a length-1 output. Maybe switch
+#             na and empty in `empty`
+phint_squash <- function(phint, na.rm = TRUE, empty = c("empty", "na")) {
 
   stop_wrong_class(na.rm, "logical", n = 1L)
-
-  if (lubridate::is.interval(phint)) {
-    return(int_squash(phint, na.rm = na.rm))
-  }
-
+  empty <- rlang::arg_match(empty)
   phint <- check_is_phinty(phint)
   tzone <- tz(phint)
 
   if (rlang::is_empty(phint)) {
-    return(phinterval(tzone = tzone))
+    return(switch(
+      empty,
+      "empty" = phinterval(tzone = tzone),
+      "na" = na_phinterval(n = 1L, tzone = tzone)
+    ))
+  }
+  if (lubridate::is.interval(phint)) {
+    return(int_squash(phint, na.rm = na.rm))
   }
 
   reference_time <- field(phint, "reference_time")
@@ -798,11 +802,12 @@ phint_squash <- function(phint, na.rm = TRUE) {
 
   flat_ranges <- range_flatten(list_c(span_starts), list_c(span_ends))
   new_phinterval(
-    reference_time = lubridate::POSIXct(1L, tz = tzone),
+    reference_time = origin_posixct(1L, tzone = tzone),
     range_starts = list(flat_ranges$starts),
     range_ends = list(flat_ranges$ends),
     tzone = tzone
   )
+
 }
 
 int_squash <- function(int, na.rm = TRUE) {
@@ -811,10 +816,6 @@ int_squash <- function(int, na.rm = TRUE) {
   int_starts <- lubridate::int_start(int)
   int_ends <- lubridate::int_end(int)
   tzone <- lubridate::tz(int_starts)
-
-  if (rlang::is_empty(int)) {
-    return(phinterval(tzone = tzone))
-  }
 
   na_at <- is.na(int)
   if (all(na_at) || (any(na_at) && !na.rm)) {

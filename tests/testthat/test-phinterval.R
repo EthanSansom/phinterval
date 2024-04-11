@@ -489,7 +489,7 @@ test_that("phint_bound works as expected", {
     phint_bound(bounded_left, right = right),
     bounded_left
   )
-  # Island Outside of Left Bound
+  # Island Outside of Left Bound is cut off
   expect_phint_equal(
     phint_bound(island_left, left = left, right = right),
     as_phinterval(interval(left, left_within))
@@ -515,7 +515,7 @@ test_that("phint_bound works as expected", {
     phint_bound(bounded_right, right = right),
     as_phinterval(interval(right_within, right))
   )
-  # Island Outside of Right Bound
+  # Island Outside of Right Bound is cut off
   expect_phint_equal(
     phint_bound(island_right, left = left, right = right),
     as_phinterval(interval(right_within, right))
@@ -999,7 +999,7 @@ test_that("empty input results in empty phinterval output", {
   )
 })
 
-# int_squash -------------------------------------------------------------------
+# phint_squash -------------------------------------------------------------------
 
 test_that("overlaps in the Interval are flattened", {
   starts1 <- lubridate::ymd(20000101) + lubridate::dseconds(c(0, 120, 240))
@@ -1023,7 +1023,7 @@ test_that("overlaps in the Interval are flattened", {
   flat_phint <- phinterval(intervals = list(flat_int), tzone = "UTC")
 
   expect_identical(
-    standardize_phinterval(int_squash(int)),
+    standardize_phinterval(phint_squash(int)),
     standardize_phinterval(flat_phint)
   )
 })
@@ -1051,13 +1051,13 @@ test_that("NA inputs are removed when `na.rm = TRUE`, result in NA when `FALSE`"
 
   ## na.rm = TRUE
   expect_identical(
-    standardize_phinterval(int_squash(int, na.rm = TRUE)),
+    standardize_phinterval(phint_squash(int, na.rm = TRUE)),
     standardize_phinterval(flat_phint)
   )
 
   ## na.rm = FALSE
   expect_identical(
-    standardize_phinterval(int_squash(int, na.rm = FALSE)),
+    standardize_phinterval(phint_squash(int, na.rm = FALSE)),
     na_phinterval(tzone = "UTC")
   )
 })
@@ -1067,13 +1067,13 @@ test_that("all NA input always results in NA output", {
 
   ## na.rm = TRUE
   expect_identical(
-    int_squash(na_int, na.rm = TRUE),
+    phint_squash(na_int, na.rm = TRUE),
     na_phinterval(tzone = "UTC")
   )
 
   ## na.rm = FALSE
   expect_identical(
-    int_squash(na_int, na.rm = FALSE),
+    phint_squash(na_int, na.rm = FALSE),
     na_phinterval(tzone = "UTC")
   )
 })
@@ -1081,13 +1081,13 @@ test_that("all NA input always results in NA output", {
 test_that("empty input results in empty phinterval output", {
   ## na.rm = TRUE
   expect_identical(
-    int_squash(lubridate::interval(), na.rm = TRUE),
+    phint_squash(lubridate::interval(), na.rm = TRUE),
     phinterval()
   )
 
   ## na.rm = FALSE
   expect_identical(
-    int_squash(lubridate::interval(), na.rm = FALSE),
+    phint_squash(lubridate::interval(), na.rm = FALSE),
     phinterval()
   )
 })

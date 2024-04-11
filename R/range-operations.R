@@ -193,7 +193,6 @@ range_setdifference <- function(
       y_ends = y_comp_ends,
       inclusive = FALSE
     )
-
     list(
       starts = c(setdiff_instants, setdiff$starts),
       ends = c(setdiff_instants, setdiff$ends)
@@ -274,7 +273,6 @@ range_bound <- function(starts, ends, left, right) {
 }
 
 range_bound_lower <- function(starts, ends, left) {
-
   out_of_bounds <- left > ends
   starts <- starts[!out_of_bounds]
   if (rlang::is_empty(starts)) {
@@ -286,7 +284,6 @@ range_bound_lower <- function(starts, ends, left) {
 }
 
 range_bound_upper <- function(starts, ends, right) {
-
   out_of_bounds <- starts > right
   starts <- starts[!out_of_bounds]
   if (rlang::is_empty(starts)) {
