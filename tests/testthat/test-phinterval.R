@@ -50,10 +50,6 @@ test_that("phinterval errors on invalid inputs", {
   int <- interval(as.Date("2021-01-01"), as.Date("2021-02-01"), tzone = "UTC")
 
   expect_error(
-    phinterval(int),
-    class = "phinterval_error_wrong_list_of"
-  )
-  expect_error(
     phinterval(list(int, 10)),
     class = "phinterval_error_wrong_list_of"
   )
@@ -642,6 +638,738 @@ test_that("phint_bound works as expected", {
 
 })
 
+# phint_diff -------------------------------------------------------------------
+
+# TODO:
+# - recycling
+# - NA's
+# - 0-length inputs
+# - error on bad inputs
+
+test_that("phint_diff works as expected", {
+
+  expect_phint_equal <- function(object, expected, ...) {
+    expect_equal(
+      standardize_phinterval(object),
+      standardize_phinterval(expected),
+      ...
+    )
+  }
+
+  t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
+  t2 <- as.POSIXct("2021-01-01 00:00:45", tz = "UTC")
+  t3 <- as.POSIXct("2021-01-01 00:00:55", tz = "UTC")
+  t4 <- as.POSIXct("2021-01-01 00:01:00", tz = "UTC")
+  t5 <- as.POSIXct("2021-01-01 00:04:00", tz = "UTC")
+  t6 <- as.POSIXct("2021-01-01 00:08:00", tz = "UTC")
+
+  int12 <- interval(t1, t2)
+  int23 <- interval(t2, t3)
+  int34 <- interval(t3, t4)
+  int45 <- interval(t4, t5)
+  int56 <- interval(t5, t6)
+
+  int13 <- interval(t1, t3)
+  int25 <- interval(t2, t5)
+  int36 <- interval(t3, t6)
+
+  phint12 <- phinterval(int12)
+  phint23 <- phinterval(int23)
+  phint34 <- phinterval(int34)
+  phint45 <- phinterval(int45)
+  phint56 <- phinterval(int56)
+  phint13 <- phinterval(int13)
+
+  hole <- new_phinterval(
+    reference_time = origin_posixct(),
+    range_starts = list(numeric()),
+    range_ends = list(numeric()),
+    tzone = "UTC"
+  )
+
+  # Self Difference
+  expect_phint_equal(phint_diff(int12, int12), hole)
+  expect_phint_equal(phint_diff(phint12, phint12), hole)
+  expect_phint_equal(phint_diff(int12, phint12), hole)
+  expect_phint_equal(phint_diff(phint12, int12), hole)
+  expect_phint_equal(phint_diff(rep(phint12, 3), rep(phint12, 3)), rep(hole, 3))
+
+  # Difference with Hole
+  expect_phint_equal(phint_diff(phint12, hole), phint12)
+  expect_phint_equal(phint_diff(hole, phint12), hole)
+  expect_phint_equal(phint_diff(int12, hole), phint12)
+  expect_phint_equal(phint_diff(hole, int12), hole)
+  expect_phint_equal(phint_diff(rep(phint12, 3), rep(hole, 3)), rep(phint12, 3))
+  expect_phint_equal(phint_diff(rep(hole, 3), rep(phint12)), rep(hole, 3))
+
+  # Difference with Non-Intersection
+  expect_phint_equal(phint_diff(int23, int45), phint23)
+  expect_phint_equal(phint_diff(int45, int23), phint45)
+  expect_phint_equal(phint_diff(phint45, phint23), phint45)
+  expect_phint_equal(phint_diff(phint23, phint45), phint23)
+  expect_phint_equal(
+    phint_diff(phinterval(c(int12, int56)), int34),
+    phinterval(c(int12, int56))
+  )
+  expect_phint_equal(
+    phint_diff(int34, phinterval(c(int12, int56))),
+    phint34
+  )
+  expect_phint_equal(
+    phint_diff(
+      c(phinterval(c(int12, int56)), phint34),
+      c(int34, int12)
+    ),
+    c(phinterval(c(int12, int56)), phint34)
+  )
+
+  # Difference with Intersection
+  expect_phint_equal(phint_diff(int13, int12), phint23)
+  expect_phint_equal(phint_diff(int12, int13), hole)
+  expect_phint_equal(phint_diff(phint13, phint12), phint23)
+  expect_phint_equal(phint_diff(phint12, phint13), hole)
+  expect_phint_equal(
+    phint_diff(phint_squash(c(phint12, phint45)), phint12),
+    phint45
+  )
+  expect_phint_equal(
+    phint_diff(phint12, phint_squash(c(phint12, phint45))),
+    hole
+  )
+  expect_phint_equal(
+    phint_diff(phint_squash(c(phint13, phint45)), phint12),
+    phint_squash(c(phint23, phint45))
+  )
+  expect_phint_equal(
+    phint_diff(phint12, phint_squash(c(phint13, phint45))),
+    hole
+  )
+  expect_phint_equal(
+    phint_diff(int25, int34),
+    phint_squash(c(int23, int45))
+  )
+  expect_phint_equal(phint_diff(int25, int36), phint23)
+  expect_phint_equal(phint_diff(int36, int25), phint56)
+
+  # All together
+  phint_x <- phinterval(list(
+    # Self Difference
+    int12,
+    c(int12, int34),
+    # Difference with Hole
+    interval(), # Subbed with a hole later
+    int12,
+    # Difference with Non-Intersection
+    c(int12, int56),
+    int34,
+    # Difference with Intersection
+    int13,
+    c(int13, int45)
+  ))
+  phint_y <- phinterval(list(
+    # Self Difference
+    int12,
+    c(int12, int34),
+    # Difference with Hole
+    int12,
+    interval(), # Subbed with a hole later
+    # Difference with Non-Intersection
+    int34,
+    c(int12, int56),
+    # Difference with Intersection
+    int12,
+    int12
+  ))
+  phint_x[is.na(phint_x)] <- hole
+  phint_y[is.na(phint_y)] <- hole
+
+  expect_phint_equal(
+    phint_diff(phint_x, phint_y),
+    c(
+      # Self Difference
+      hole,
+      hole,
+      # Difference with Hole
+      hole,
+      phint12,
+      # Difference with Non-Intersection
+      phint_squash(c(phint12, phint56)),
+      phint34,
+      # Difference with Intersection
+      phint23,
+      phint_squash(c(phint23, phint45))
+    )
+  )
+
+})
+
+# phint_intersect --------------------------------------------------------------
+
+# TODO:
+# - recycling
+# - NA's
+# - 0-length inputs
+# - error on bad inputs
+
+test_that("phint_intersect works as expected", {
+
+  expect_phint_equal <- function(object, expected, ...) {
+    expect_equal(
+      standardize_phinterval(object),
+      standardize_phinterval(expected),
+      ...
+    )
+  }
+
+  t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
+  t2 <- as.POSIXct("2021-01-01 00:00:45", tz = "UTC")
+  t3 <- as.POSIXct("2021-01-01 00:00:55", tz = "UTC")
+  t4 <- as.POSIXct("2021-01-01 00:01:00", tz = "UTC")
+  t5 <- as.POSIXct("2021-01-01 00:04:00", tz = "UTC")
+  t6 <- as.POSIXct("2021-01-01 00:08:00", tz = "UTC")
+
+  int12 <- interval(t1, t2)
+  int23 <- interval(t2, t3)
+  int34 <- interval(t3, t4)
+  int45 <- interval(t4, t5)
+  int56 <- interval(t5, t6)
+
+  int13 <- interval(t1, t3)
+  int25 <- interval(t2, t5)
+  int35 <- interval(t3, t5)
+  int36 <- interval(t3, t6)
+
+  phint12 <- phinterval(int12)
+  phint23 <- phinterval(int23)
+  phint34 <- phinterval(int34)
+  phint45 <- phinterval(int45)
+  phint56 <- phinterval(int56)
+  phint13 <- phinterval(int13)
+  phint35 <- phinterval(int35)
+  phint16 <- phinterval(c(int13, int36))
+
+  hole <- new_phinterval(
+    reference_time = origin_posixct(),
+    range_starts = list(numeric()),
+    range_ends = list(numeric()),
+    tzone = "UTC"
+  )
+
+  # Self Intersection
+  expect_phint_equal(phint_intersect(int12, int12), phint12)
+  expect_phint_equal(phint_intersect(phint12, phint12), phint12)
+  expect_phint_equal(phint_intersect(int12, phint12), phint12)
+  expect_phint_equal(phint_intersect(phint12, int12), phint12)
+  expect_phint_equal(phint_intersect(rep(phint12, 3), rep(phint12, 3)), rep(phint12, 3))
+
+  # Intersect with Hole
+  expect_phint_equal(phint_intersect(phint12, hole), hole)
+  expect_phint_equal(phint_intersect(hole, phint12), hole)
+  expect_phint_equal(phint_intersect(int12, hole), hole)
+  expect_phint_equal(phint_intersect(hole, int12), hole)
+  expect_phint_equal(phint_intersect(rep(phint12, 3), rep(hole, 3)), rep(hole, 3))
+  expect_phint_equal(phint_intersect(rep(hole, 3), rep(phint12)), rep(hole, 3))
+
+  # Intersect with Non-Overlapping
+  expect_phint_equal(phint_intersect(int23, int45), hole)
+  expect_phint_equal(phint_intersect(int45, int23), hole)
+  expect_phint_equal(phint_intersect(phint45, phint23), hole)
+  expect_phint_equal(phint_intersect(phint23, phint45), hole)
+  expect_phint_equal(
+    phint_intersect(phinterval(c(int12, int56)), int34),
+    hole
+  )
+  expect_phint_equal(
+    phint_intersect(int34, phinterval(c(int12, int56))),
+    hole
+  )
+  expect_phint_equal(
+    phint_intersect(
+      c(phinterval(c(int12, int56)), phint34),
+      c(int34, int12)
+    ),
+    c(hole, hole)
+  )
+
+  # Intersection with Overlapping
+  expect_phint_equal(phint_intersect(int13, int12), phint12)
+  expect_phint_equal(phint_intersect(int12, int13), phint12)
+  expect_phint_equal(phint_intersect(phint13, phint12), phint12)
+  expect_phint_equal(phint_intersect(phint12, phint13), phint12)
+  expect_phint_equal(phint_intersect(int25, int36), phint35)
+  expect_phint_equal(phint_intersect(int36, int25), phint35)
+
+  expect_phint_equal(
+    phint_intersect(phint_squash(c(phint12, phint45)), phint12),
+    phint12
+  )
+  expect_phint_equal(
+    phint_intersect(phint12, phint_squash(c(phint12, phint45))),
+    phint12
+  )
+  expect_phint_equal(
+    phint_intersect(phint_squash(c(phint13, phint45)), phint_squash(c(phint12, phint45))),
+    phint_squash(c(phint12, phint45))
+  )
+  expect_phint_equal(phint_intersect(int25, int34), phint34)
+  expect_phint_equal(phint_intersect(int25, int36), phint35)
+  expect_phint_equal(phint_intersect(int36, int25), phint35)
+
+  expect_phint_equal(
+    phint_intersect(phint_squash(c(int12, int34, int45, int56)), int25),
+    phint_squash(c(int34, int45))
+  )
+  expect_phint_equal(
+    phint_intersect(int25, phint_squash(c(int12, int34, int45, int56))),
+    phint_squash(c(int34, int45))
+  )
+  expect_phint_equal(
+    phint_intersect(phint16, phint_squash(c(int12, int34, int56))),
+    phint_squash(c(int12, int34, int56))
+  )
+  expect_phint_equal(
+    phint_intersect(phint_squash(c(int12, int34, int56)), phint16),
+    phint_squash(c(int12, int34, int56))
+  )
+  expect_phint_equal(
+    phint_intersect(phint16, phint_squash(c(int12, int34, int56))),
+    phint_squash(c(int12, int34, int56))
+  )
+
+})
+
+# phint_overlaps ---------------------------------------------------------------
+
+# TODO:
+# - works as expected (can be taken from `_diff` and `_intersect`)
+# - recycling
+# - NA's
+# - 0-length inputs
+# - error on bad inputs
+
+# %within% ---------------------------------------------------------------------
+
+test_that("`%within%` zero-length input results in zero-length output", {
+
+  t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
+  t2 <- as.POSIXct("2021-01-01 00:00:45", tz = "UTC")
+  int <- interval(t1, t2)
+  phint <- as_phinterval(int)
+
+  expect_identical(empty_posixct() %within% phint, logical())
+  expect_identical(t1 %within% phinterval(), logical())
+  expect_identical(empty_posixct() %within% phinterval(), logical())
+
+  expect_error(phinterval() %within% t1)
+  expect_error(phinterval() %within% empty_posixct())
+
+  expect_identical(int %within% phinterval(), logical())
+  expect_identical(phint %within% interval(), logical())
+  expect_identical(phinterval() %within% interval(), logical())
+  expect_identical(interval() %within% phinterval(), logical())
+
+})
+
+test_that("`%within%` NA input results in NA output", {
+
+  t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
+  t2 <- as.POSIXct("2021-01-01 00:00:45", tz = "UTC")
+  t_na <- na_posixct(tzone = "UTC")
+
+  int <- interval(t1, t2, tzone = "UTC")
+  int_na <- interval(t_na, t_na, tzone = "UTC")
+
+  phint <- as_phinterval(int)
+  ph_na <- na_phinterval(tzone = "UTC")
+
+  expect_true(is.na(t1 %within% ph_na))
+  expect_true(is.na(t_na %within% phint))
+  expect_true(is.na(t_na %within% ph_na))
+  expect_equal(is.na(t1 %within% c(phint, ph_na)), c(FALSE, TRUE))
+  expect_equal(is.na(t_na %within% c(phint, ph_na)), c(TRUE, TRUE))
+  expect_equal(is.na(t_na %within% c(ph_na, ph_na)), c(TRUE, TRUE))
+
+  expect_true(is.na(phint %within% int_na))
+  expect_true(is.na(int %within% ph_na))
+  expect_true(is.na(ph_na %within% int_na))
+  expect_true(is.na(int_na %within% ph_na))
+  expect_equal(is.na(int %within% c(ph_na, phint)), c(TRUE, FALSE))
+  expect_equal(is.na(int_na %within% c(phint, ph_na)), c(TRUE, TRUE))
+  expect_equal(is.na(int_na %within% c(ph_na, ph_na)), c(TRUE, TRUE))
+
+  expect_true(is.na(ph_na %within% phint))
+  expect_true(is.na(phint %within% ph_na))
+  expect_true(is.na(ph_na %within% ph_na))
+  expect_equal(is.na(phint %within% c(ph_na, phint)), c(TRUE, FALSE))
+  expect_equal(is.na(ph_na %within% c(phint, phint)), c(TRUE, TRUE))
+  expect_equal(is.na(ph_na %within% c(phint, ph_na)), c(TRUE, TRUE))
+
+})
+
+test_that("`%within%` recycles LHS and RHS inputs correctly", {
+
+  t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
+  t2 <- as.POSIXct("2021-01-01 00:00:45", tz = "UTC")
+  t3 <- as.POSIXct("2021-01-01 00:12:12", tz = "UTC")
+  t4 <- as.POSIXct("2021-01-01 00:17:18", tz = "UTC")
+  int <- interval(t1, t2, tzone = "UTC")
+  int_out <- interval(t3, t4)
+  phint <- as_phinterval(int)
+  phint_out <- as_phinterval(int_out)
+
+  expect_length(t1 %within% phinterval(), 0L)
+  expect_length(c(t1, t2) %within% phinterval(), 0L)
+  expect_length(empty_posixct() %within% phint, 0L)
+  expect_length(empty_posixct() %within% c(phint, phint), 0L)
+
+  expect_length(rep(t1, 3) %within% phint, 3L)
+  expect_length(t1 %within% rep(phint, 4), 4L)
+  expect_length(rep(t1, 3) %within% rep(phint, 6), 6L)
+  expect_error(
+    rep(t1, 4) %within% rep(phint, 3),
+    class = "phinterval_error_incompatible_length"
+  )
+
+  expect_equal(t3 %within% c(phint, phint), c(FALSE, FALSE))
+  expect_equal(c(t1, t3) %within% phint, c(TRUE, FALSE))
+  expect_equal(c(t1, t3) %within% rep(phint, 4), c(TRUE, FALSE, TRUE, FALSE))
+
+  expect_length(interval() %within% phint, 0L)
+  expect_length(interval() %within% c(phint, phint), 0L)
+  expect_length(int %within% phinterval(), 0L)
+  expect_length(c(int, int) %within% phinterval(), 0L)
+
+  expect_length(rep(int, 3) %within% phint, 3L)
+  expect_length(int %within% rep(phint, 4), 4L)
+  expect_length(rep(int, 3) %within% rep(phint, 6), 6L)
+  expect_error(
+    rep(int, 4) %within% rep(phint, 3),
+    class = "phinterval_error_incompatible_length"
+  )
+
+  expect_equal(int %within% c(phint_out, phint), c(FALSE, TRUE))
+  expect_equal(c(int, int_out) %within% phint, c(TRUE, FALSE))
+  expect_equal(c(int, int_out) %within% rep(phint, 4), c(TRUE, FALSE, TRUE, FALSE))
+
+  expect_length(phinterval() %within% int, 0L)
+  expect_length(phinterval() %within% c(int, int), 0L)
+  expect_length(phint %within% interval(), 0L)
+  expect_length(c(phint, phint) %within% interval(), 0L)
+
+  expect_length(rep(phint, 3) %within% int, 3L)
+  expect_length(phint %within% rep(int, 4), 4L)
+  expect_length(rep(phint, 3) %within% rep(int, 6), 6L)
+  expect_error(
+    rep(phint, 4) %within% rep(int, 3),
+    class = "phinterval_error_incompatible_length"
+  )
+
+  expect_equal(phint %within% c(int_out, int), c(FALSE, TRUE))
+  expect_equal(c(phint, phint_out) %within% int, c(TRUE, FALSE))
+  expect_equal(c(phint, phint_out) %within% rep(int, 4), c(TRUE, FALSE, TRUE, FALSE))
+
+  expect_length(phinterval() %within% phint, 0L)
+  expect_length(phinterval() %within% c(phint, phint), 0L)
+  expect_length(phint %within% phinterval(), 0L)
+  expect_length(c(phint, phint) %within% phinterval(), 0L)
+
+  expect_length(rep(phint, 3) %within% phint, 3L)
+  expect_length(phint %within% rep(phint, 4), 4L)
+  expect_length(rep(phint, 3) %within% rep(phint, 6), 6L)
+  expect_error(
+    rep(phint, 4) %within% rep(phint, 3),
+    class = "phinterval_error_incompatible_length"
+  )
+
+  expect_equal(phint %within% c(phint_out, phint), c(FALSE, TRUE))
+  expect_equal(c(phint, phint_out) %within% phint, c(TRUE, FALSE))
+  expect_equal(c(phint, phint_out) %within% rep(phint, 4), c(TRUE, FALSE, TRUE, FALSE))
+
+})
+
+test_that("`(ph)interval` %within% `(ph)interval` works as expected", {
+
+  t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
+  t2 <- as.POSIXct("2021-01-01 00:00:45", tz = "UTC")
+  t3 <- as.POSIXct("2021-01-01 00:00:55", tz = "UTC")
+  t4 <- as.POSIXct("2021-01-01 00:01:00", tz = "UTC")
+  t5 <- as.POSIXct("2021-01-01 00:02:00", tz = "UTC")
+  t6 <- as.POSIXct("2021-01-01 00:03:00", tz = "UTC")
+
+  int12 <- interval(t1, t2)
+  int23 <- interval(t2, t3)
+  int34 <- interval(t3, t4)
+  int45 <- interval(t4, t5)
+  int56 <- interval(t5, t6)
+  int14 <- interval(t1, t4)
+  int24 <- interval(t2, t4)
+  int25 <- interval(t2, t5)
+  int36 <- interval(t3, t6)
+
+  # `self %within% self`
+  expect_true(int12 %within% as_phinterval(int12))
+  expect_true(as_phinterval(int12) %within% int12)
+  expect_true(as_phinterval(int12) %within% as_phinterval(int12))
+  expect_true(phinterval(c(int12, int45)) %within% phinterval(c(int12, int45)))
+
+  expect_equal(
+    rep(as_phinterval(int12), 2) %within% rep(int12, 2),
+    c(TRUE, TRUE)
+  )
+  expect_equal(
+    rep(int12, 2) %within% rep(as_phinterval(int12), 2),
+    c(TRUE, TRUE)
+  )
+  expect_equal(
+    phinterval(c(int12, int45)) %within% rep(phinterval(c(int12, int45)), 2),
+    c(TRUE, TRUE)
+  )
+  expect_equal(
+    rep(phinterval(c(int12, int45)), 2) %within% phinterval(c(int12, int45)),
+    c(TRUE, TRUE)
+  )
+
+  # Within a portion of the phinterval
+  expect_true(int12 %within% phinterval(c(int12, int45)))
+  expect_true(as_phinterval(int12) %within% phinterval(c(int12, int45)))
+
+  expect_equal(
+    rep(int12, 3) %within% phinterval(c(int12, int45)),
+    c(TRUE, TRUE, TRUE)
+  )
+  expect_equal(
+    as_phinterval(int12) %within% rep(phinterval(c(int12, int45)), 2),
+    c(TRUE, TRUE)
+  )
+
+  # Partial intersection
+  expect_false(as_phinterval(int36) %within% as_phinterval(int25))
+  expect_false(int36 %within% as_phinterval(int25))
+  expect_false(as_phinterval(int36) %within% int25)
+  expect_false(phinterval(c(int24, int56)) %within% int25)
+  expect_false(int25 %within% phinterval(c(int24, int56)))
+
+  # No intersection
+  expect_false(as_phinterval(int12) %within% as_phinterval(int56))
+  expect_false(int12 %within% as_phinterval(int56))
+  expect_false(as_phinterval(int12) %within% int56)
+  expect_false(phinterval(c(int12, int34)) %within% int56)
+  expect_false(int56 %within% phinterval(c(int12, int34)))
+
+  # All together
+  phint1 <- phinterval(list(
+    # Self intersection
+    int12,
+    c(int12, int34),
+    # Within a portion
+    int24,
+    # Partial intersection
+    c(int24, int56),
+    int36,
+    int24,
+    # No intersection
+    int12,
+    int56
+  ))
+  phint2 <- phinterval(list(
+    # Self intersection
+    int12,
+    c(int12, int34),
+    # Within a portion
+    c(int24, int56),
+    # Partial intersection
+    int36,
+    c(int24, int56),
+    int36,
+    # No intersection
+    int56,
+    int12
+  ))
+  expect_equal(
+    phint1 %within% phint2,
+    c(rep(TRUE, 3), rep(FALSE, 5))
+  )
+
+})
+
+test_that("datetime %within% `phinterval` works as expected", {
+
+  t1 <- as.POSIXct("2021-01-01 00:01:00", tz = "UTC")
+  t2 <- as.POSIXct("2021-01-07 00:02:00", tz = "UTC")
+
+  time_in <- as.POSIXct("2021-01-03 00:00:00", tz = "UTC")
+  time_out <- as.POSIXct("2021-06-13 00:00:45", tz = "UTC")
+  date_in <- as.Date("2021-01-03")
+  date_out <-as.Date("2021-06-13")
+
+  phint <- phinterval(interval(t1, t2))
+
+  expect_true(date_in %within% phint)
+  expect_true(time_in %within% phint)
+  expect_false(date_out %within% phint)
+  expect_false(time_out %within% phint)
+  expect_true(t1 %within% phint)
+  expect_true(t2 %within% phint)
+
+})
+
+# This is a modified test from `lubridate` as of 2024/03/09. In particular, I
+# test whether the `lubridate` test results are unaffected by the implementation
+# of the `phinterval` `%within%` method and whether `as_phinterval(int) %within% ...`
+# is equivalent to `int %within% ...`.
+#
+# See: https://github.com/tidyverse/lubridate/blob/main/tests/testthat/test-intervals.R
+test_that("%within% implementation matches lubridate", {
+
+  time1 <- as.POSIXct("2001-01-01", tz = "UTC")
+  time2 <- as.POSIXct("2003-01-01", tz = "UTC")
+  time3 <- as.POSIXct("2001-06-01", tz = "UTC")
+  time4 <- as.POSIXct("2002-06-01", tz = "UTC")
+  time5 <- as.POSIXct("2003-01-01", tz = "UTC")
+  time6 <- as.POSIXct("2004-01-01", tz = "UTC")
+  time7 <- as.POSIXct("2003-01-02", tz = "UTC")
+
+  # `interval` `%within%` methods shouldn't be affected
+
+  base <- interval(time1, time2)
+  ins <- interval(time3, time4)
+  bord <- interval(time5, time6)
+  olap <- interval(time4, time6)
+  outs <- interval(time7, time6)
+
+  nbase <- interval(time2, time1)
+  nins <- interval(time4, time3)
+  nbord <- interval(time6, time5)
+  nolap <- interval(time6, time4)
+  nouts <- interval(time6, time7)
+
+  expect_true(ins %within% base)
+  expect_false(outs %within% base)
+  expect_false(bord %within% base)
+  expect_false(olap %within% base)
+
+  expect_true(nins %within% nbase)
+  expect_false(nouts %within% nbase)
+  expect_false(nbord %within% nbase)
+  expect_false(nolap %within% nbase)
+
+  expect_true(ins %within% nbase)
+  expect_false(outs %within% nbase)
+  expect_false(bord %within% nbase)
+  expect_false(olap %within% nbase)
+
+  expect_true(nins %within% base)
+  expect_false(nouts %within% base)
+  expect_false(nbord %within% base)
+  expect_false(nolap %within% base)
+
+  expect_true(time3 %within% base)
+  expect_false(time6 %within% base)
+  expect_error(base %within% time3)
+
+  expect_equal(
+    c(time1, time2, time3, time4, time5, time6) %within% base,
+    c(TRUE, TRUE, TRUE, TRUE, TRUE, FALSE)
+  )
+  expect_equal(
+    c(time1, time2, time3, time4, time5, time6) %within% list(base, olap),
+    c(TRUE, TRUE, TRUE, TRUE, TRUE, TRUE)
+  )
+
+  # `phinterval` `%within%` methods
+
+  pbase <- as_phinterval(base)
+  pins <- as_phinterval(ins)
+  pbord <- as_phinterval(bord)
+  polap <- as_phinterval(olap)
+  pouts <- as_phinterval(outs)
+
+  pnbase <- as_phinterval(nbase)
+  pnins <- as_phinterval(nins)
+  pnbord <- as_phinterval(nbord)
+  pnolap <- as_phinterval(nolap)
+  pnouts <- as_phinterval(nouts)
+
+  ## `datetime %within% phinterval`
+
+  expect_true(time3 %within% pbase)
+  expect_false(time6 %within% pbase)
+  expect_error(pbase %within% time3)
+
+  expect_equal(
+    c(time1, time2, time3, time4, time5, time6) %within% pbase,
+    c(TRUE, TRUE, TRUE, TRUE, TRUE, FALSE)
+  )
+
+  ## `interval %within% phinterval`
+
+  expect_true(ins %within% pbase)
+  expect_false(outs %within% pbase)
+  expect_false(bord %within% pbase)
+  expect_false(olap %within% pbase)
+
+  expect_true(nins %within% pnbase)
+  expect_false(nouts %within% pnbase)
+  expect_false(nbord %within% pnbase)
+  expect_false(nolap %within% pnbase)
+
+  expect_true(ins %within% pnbase)
+  expect_false(outs %within% pnbase)
+  expect_false(bord %within% pnbase)
+  expect_false(olap %within% pnbase)
+
+  expect_true(nins %within% pbase)
+  expect_false(nouts %within% pbase)
+  expect_false(nbord %within% pbase)
+  expect_false(nolap %within% pbase)
+
+  ## `phinterval %within% interval`
+
+  expect_true(pins %within% base)
+  expect_false(pouts %within% base)
+  expect_false(pbord %within% base)
+  expect_false(polap %within% base)
+
+  expect_true(pnins %within% nbase)
+  expect_false(pnouts %within% nbase)
+  expect_false(pnbord %within% nbase)
+  expect_false(pnolap %within% nbase)
+
+  expect_true(pins %within% nbase)
+  expect_false(pouts %within% nbase)
+  expect_false(pbord %within% nbase)
+  expect_false(polap %within% nbase)
+
+  expect_true(nins %within% base)
+  expect_false(nouts %within% base)
+  expect_false(nbord %within% base)
+  expect_false(nolap %within% base)
+
+  ## `phinterval %within% phinterval`
+
+  expect_true(pins %within% pbase)
+  expect_false(pouts %within% pbase)
+  expect_false(pbord %within% pbase)
+  expect_false(polap %within% pbase)
+
+  expect_true(pnins %within% pnbase)
+  expect_false(pnouts %within% pnbase)
+  expect_false(pnbord %within% pnbase)
+  expect_false(pnolap %within% pnbase)
+
+  expect_true(pins %within% pnbase)
+  expect_false(pouts %within% pnbase)
+  expect_false(pbord %within% pnbase)
+  expect_false(polap %within% pnbase)
+
+  expect_true(nins %within% pbase)
+  expect_false(nouts %within% pbase)
+  expect_false(nbord %within% pbase)
+  expect_false(nolap %within% pbase)
+
+})
+
+
 # is_holey ---------------------------------------------------------------------
 
 test_that("holey phintervals correctly identified", {
@@ -988,13 +1716,13 @@ test_that("all NA input always results in NA output", {
 test_that("empty input results in empty phinterval output", {
   ## na.rm = TRUE
   expect_identical(
-    phint_squash(phinterval(), na.rm = TRUE),
+    phint_squash(phinterval(), na.rm = TRUE, empty = "empty"),
     phinterval()
   )
 
   ## na.rm = FALSE
   expect_identical(
-    phint_squash(phinterval(), na.rm = FALSE),
+    phint_squash(phinterval(), na.rm = FALSE, empty = "empty"),
     phinterval()
   )
 })
@@ -1067,13 +1795,13 @@ test_that("all NA input always results in NA output", {
 
   ## na.rm = TRUE
   expect_identical(
-    phint_squash(na_int, na.rm = TRUE),
+    phint_squash(na_int, na.rm = TRUE, empty = "empty"),
     na_phinterval(tzone = "UTC")
   )
 
   ## na.rm = FALSE
   expect_identical(
-    phint_squash(na_int, na.rm = FALSE),
+    phint_squash(na_int, na.rm = FALSE, empty = "empty"),
     na_phinterval(tzone = "UTC")
   )
 })
@@ -1081,13 +1809,13 @@ test_that("all NA input always results in NA output", {
 test_that("empty input results in empty phinterval output", {
   ## na.rm = TRUE
   expect_identical(
-    phint_squash(lubridate::interval(), na.rm = TRUE),
+    phint_squash(lubridate::interval(), na.rm = TRUE, empty = "empty"),
     phinterval()
   )
 
   ## na.rm = FALSE
   expect_identical(
-    phint_squash(lubridate::interval(), na.rm = FALSE),
+    phint_squash(lubridate::interval(), na.rm = FALSE, empty = "empty"),
     phinterval()
   )
 })
@@ -1261,111 +1989,4 @@ test_that("empty input results in empty output", {
     standardize_phinterval(phinterval()),
     phinterval()
   )
-})
-
-# %within% ---------------------------------------------------------------------
-
-test_that("`phinterval` %within% `phinterval` works as expected", {
-  origin <- .POSIXct(0, tz = "UTC")
-  phint1 <- new_phinterval(
-    reference_time = rep(origin, 2),
-    range_starts = list(c(60, 120), 10),
-    range_ends = list(c(90, 150), 100)
-  )
-  phint2 <- new_phinterval(
-    reference_time = rep(origin, 2),
-    range_starts = list(c(50, 110), 0),
-    range_ends = list(c(100, 200), 5)
-  )
-
-  expect_identical(
-    phint1 %within% phint2,
-    c(TRUE, FALSE)
-  )
-})
-
-test_that("`Interval` %within% `phinterval` works as expected", {
-  origin <- .POSIXct(0, tz = "UTC")
-  int <- lubridate::interval(c(origin + 60, origin - 5), c(origin + 90, origin))
-  phint <- new_phinterval(
-    reference_time = rep(origin, 2),
-    range_starts = list(c(50, 110), 0),
-    range_ends = list(c(100, 200), 5)
-  )
-
-  expect_identical(int %within% phint, c(TRUE, FALSE))
-})
-
-test_that("`phinterval` %within% `Interval` works as expected", {
-  origin <- .POSIXct(0, tz = "UTC")
-  phint <- new_phinterval(
-    reference_time = rep(origin, 2),
-    range_starts = list(c(50, 110), 0),
-    range_ends = list(c(100, 200), 5)
-  )
-  int <- lubridate::interval(c(origin, origin - 5), c(origin + 300, origin))
-
-  expect_identical(phint %within% int, c(TRUE, FALSE))
-})
-
-test_that("datetime %within% `phinterval` works as expected", {
-  origin <- .POSIXct(0, tz = "UTC")
-  phint <- new_phinterval(
-    reference_time = rep(origin, 2),
-    range_starts = list(c(50, 110), 0),
-    range_ends = list(c(100, 200), 5)
-  )
-
-  date <- as.Date(c("2010-01-01", "1970-01-01"))
-  posixct <- c(origin + 75, origin + 1000)
-  posixlt <- as.POSIXlt(posixct)
-
-  expect_identical(date %within% phint, c(FALSE, TRUE))
-  expect_identical(posixct %within% phint, c(TRUE, FALSE))
-  expect_identical(posixlt %within% phint, c(TRUE, FALSE))
-})
-
-# Test from `lubridate` as of 2024/03/09, modified to use `phinterval` instead
-# of `Interval`. `%within%` results should be same
-# https://github.com/tidyverse/lubridate/blob/main/tests/testthat/test-intervals.R
-test_that("%within% implementation matches lubridate", {
-  time1 <- as.POSIXct("2001-01-01", tz = "UTC")
-  time2 <- as.POSIXct("2003-01-01", tz = "UTC")
-  time3 <- as.POSIXct("2001-06-01", tz = "UTC")
-  time4 <- as.POSIXct("2002-06-01", tz = "UTC")
-  time5 <- as.POSIXct("2003-01-01", tz = "UTC")
-  time6 <- as.POSIXct("2004-01-01", tz = "UTC")
-  time7 <- as.POSIXct("2003-01-02", tz = "UTC")
-
-  base <- as_phinterval(interval(time1, time2))
-  ins <- as_phinterval(interval(time3, time4))
-  bord <- as_phinterval(interval(time5, time6))
-  olap <- as_phinterval(interval(time4, time6))
-  outs <- as_phinterval(interval(time7, time6))
-
-  nbase <- as_phinterval(interval(time2, time1))
-  nins <- as_phinterval(interval(time4, time3))
-  nbord <- as_phinterval(interval(time6, time5))
-  nolap <- as_phinterval(interval(time6, time4))
-  nouts <- as_phinterval(interval(time6, time7))
-
-  expect_true(ins %within% base)
-  expect_false(outs %within% base)
-  expect_false(bord %within% base)
-  expect_false(olap %within% base)
-
-  expect_true(nins %within% nbase)
-  expect_false(nouts %within% nbase)
-  expect_false(nbord %within% nbase)
-  expect_false(nolap %within% nbase)
-
-  expect_true(ins %within% nbase)
-  expect_false(outs %within% nbase)
-  expect_false(bord %within% nbase)
-  expect_false(olap %within% nbase)
-
-  expect_true(nins %within% base)
-  expect_false(nouts %within% base)
-  expect_false(nbord %within% base)
-  expect_false(nolap %within% base)
 })
