@@ -1,9 +1,8 @@
 #' @keywords internal
 "_PACKAGE"
 
-#' @import vctrs
-
 ## usethis namespace: start
+#' @import vctrs
 #' @importFrom lubridate %within% NA_POSIXct_
 #' @importFrom lubridate as.duration
 #' @importFrom lubridate as.interval
