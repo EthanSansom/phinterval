@@ -1,6 +1,12 @@
 setOldClass("phinterval")
 
 # TODO:
+# - Improve timezone management, make some methods for getting the timezone from
+#   POSIX, lubridate::interval, and phinterval
+# - `phint_starts`, `phint_ends`, `phint_spans` might want to return
+#   a one-column `tibble` so that use in a col "just works" - test this
+
+# TODO:
 # - make a different display method for tibbles! See https://vctrs.r-lib.org/articles/s3-vector.html#format-method
 # - see vctrs::list_of, since you're using lists of a lot https://vctrs.r-lib.org/reference/list_of.html
 # - review the `clock` package to see if they have any cool ideas for `phinterval`
@@ -229,7 +235,8 @@ vec_ptype_abbr.phinterval <- function(x, ...) {
 #
 #' @export
 vec_ptype_full.phinterval <- function(x, ...) {
-  tzone <- if (tz_is_local(x)) "local" else tzone(x)
+  tzone <- tzone(field(x, "reference_time"))
+  if (tz_is_local(tzone)) tzone <- "local"
   paste0("phinterval<", tzone, ">")
 }
 
