@@ -10,7 +10,7 @@ phinterval provides a `<phinterval>` (say “potentially-holey-interval”)
 class for working with time intervals that potentially contain gaps such
 as:
 
-- An employment or educational history.
+- An individual’s employment or educational history.
 
 - A meeting schedule for the work day.
 
@@ -18,15 +18,17 @@ as:
 
 Sometimes it is useful to consider these holey time-spans as a single
 observation rather than a collection of observations. phinterval
-provides tools to work with such holey time-span observations.
+provides tools to work with such observations.
 
-The implementation of and conventions used in this package borrow
+The implementation of, and conventions used by, this package borrow
 heavily from the [lubridate](https://lubridate.tidyverse.org/)
 `<interval>` class. The `<phinterval>` class is meant to be a
-super-class of `<interval>` and the two classes are often
+super-class of `<interval>`, meaning that the two classes are often
 interchangeable.
 
 ## Installation
+
+⚠️ This package is still **under construction**. ⚠️
 
 You can install the development version of phinterval from
 [GitHub](https://github.com/) with:
