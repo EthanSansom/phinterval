@@ -1,5 +1,25 @@
 setOldClass("phinterval")
 
+# TODO Long Term:
+# After all of the tests and documentation is in place it would be nice to get
+# some speed improvements all around.
+#
+# - simplify the process used to create a `phinterval`, since it's relatively slow
+#   even ignoring the interval squashing step
+#   - reduce the number of `new_phinterval` checks and instead introduce a validator
+#
+# - look into storing the `range_starts` and `range_ends` fields as `vctrs::list_of`
+#   - use fast `vctrs::` functions where possible
+#   - is using `standalone-purrr` causing any slowdowns? Using `vapply`
+#     directly might help in some cases
+# - find better algorithms for these phinterval set operations
+# - potentially implement some of the important set operations in C
+# - we create a lot of `non_na_at` indices, is there a way to side-step doing
+#   this in some places (everywhere?)
+# - there are a TON of unnecessary assignments. In general, it's fine to make an
+#   assignment, but make sure the object is at least used more than once, otherwise
+#   don't make it into an assignment.
+
 # TODO:
 # - Improve timezone management, make some methods for getting the timezone from
 #   POSIX, lubridate::interval, and phinterval
@@ -32,6 +52,8 @@ setOldClass("phinterval")
 #' @export
 phinterval <- function(intervals = NULL, tzone = NULL) {
 
+  # TODO: Once you have `specifyr`, update all of the class checks.
+
   if (rlang::is_empty(intervals)) {
     tzone <- tzone %||% "UTC"
     stop_wrong_class(tzone, "character", n = 1)
@@ -44,9 +66,19 @@ phinterval <- function(intervals = NULL, tzone = NULL) {
     stop_not_list_of(intervals, "Interval")
   }
 
+  # TODO: Make a `get_tzone`, `tzone`, `tz`, generic that "just works"
+  #
   # Defaulting to the timezone of the first Interval supplied
   tzone <- tzone %||% interval_tzone(intervals[[1]])
   stop_wrong_class(tzone, "character", n = 1)
+
+  # TODO: From this point on, you should `vctrs::list_unchop` the supplied
+  # interval vectors and work in a vectorized way. As in `phint_to_spans`.
+  # - this way, operations like the `int_standardize` below can take place
+  #   on a single integer
+  #   - I don't think you even need to call `int_standardize`. Just reverse
+  #     the start and ends yourself if start > end.
+
   ints <- map(intervals, lubridate::int_standardize)
 
   # If intervals[[i]] is empty, setting [[i]] to NA. Removing empty intervals
@@ -55,8 +87,7 @@ phinterval <- function(intervals = NULL, tzone = NULL) {
   non_na_ints <- ints[non_na_at]
 
   reference_time <- na_posixct(length(ints), tzone = tzone)
-  range_starts <- as.list(rep(NA_real_, length(ints)))
-  range_ends <- range_starts
+  range_starts <- range_ends <- as.list(rep(NA_real_, length(ints)))
 
   # TODO Ethan: Replace all of this with some nice function like, `recenter_ranges`
   #             or something.
@@ -77,6 +108,16 @@ phinterval <- function(intervals = NULL, tzone = NULL) {
     }
   )
 
+  # TODO: A later implementation could take the element ID / index as well,
+  # instead of a list, so we never have to convert `range_starts` and `range_ends`
+  # back from being a list.
+  #
+  # In C, we'd just do this range overlap operation WITHIN the element ID. We just
+  # provide two numeric args (range_starts/ends) and one integer (index).
+  # <index> <start> <end>
+  # 1       3        5    -> only one range at index 1, return [3, 5]
+  # 2       1        3    -> two ranges at index 2, flatten [1, 3], [3, 7]
+  # 2       3        7
   ranges <- flatten_overlapping_ranges(range_starts, range_ends)
 
   new_phinterval(
@@ -186,6 +227,12 @@ empty_posixct <- function(tzone = "UTC") {
 #' @export
 na_posixct <- function(n = 1L, tzone = "UTC") {
   as.POSIXct(rep(NA, n), tz = tzone)
+}
+
+#' @export
+na_interval <- function(n = 1L, tzone = "UTC") {
+  na_times <- na_posixct(n = n, tzone = tzone)
+  lubridate::interval(start = na_times, end = na_times)
 }
 
 #' @export
@@ -726,8 +773,7 @@ order_ranges <- function(range_starts, range_ends) {
   list(starts = starts, ends = ends)
 }
 
-#' @export
-phint_to_spans <- function(phint) {
+phint_to_spans_v1 <- function(phint) {
 
   phint <- check_is_phinty(phint)
   phint <- standardize_phinterval(phint)
@@ -737,9 +783,105 @@ phint_to_spans <- function(phint) {
   range_ends <- field(phint, "range_ends")
   tzone <- tz(phint)
 
+  # ES: This takes a super long time because we make a ton
+  # of intervals. What if we just made one interval and then
+  # split it?
+
   int_starts <- map2(reference_time, range_starts, `+`)
   int_ends <- map2(reference_time, range_ends, `+`)
   map2(int_starts, int_ends, interval, tzone = tzone)
+}
+
+# - make an `interval` only once and then split it, instead of mapping it
+phint_to_spans_v2 <- function(phint) {
+
+  phint <- check_is_phinty(phint)
+  phint <- standardize_phinterval(phint)
+
+  reference_time <- field(phint, "reference_time")
+  range_starts <- field(phint, "range_starts")
+  range_ends <- field(phint, "range_ends")
+  tzone <- tz(phint)
+
+  # TODO ES: This takes a super long time because we make a ton
+  # of intervals. What if we just made one interval and then
+  # split it?
+  #
+  # In a benchmark this saves a little bit of time... 42.5ms -> 36.8ms
+  #
+  # In `standardize_phinterval` we get all of the fields and map over all
+  # of the elements like we do here - basically doing everything twice. I
+  # don't see why we need to do that.
+
+  int_starts <- map2(reference_time, range_starts, `+`)
+  int_ends <- map2(reference_time, range_ends, `+`)
+
+  n_spans <- vapply(int_starts, length, integer(1L))
+  int_id <- rep(seq_along(n_spans), times = n_spans)
+  empty_at <- n_spans <= 0
+
+  out <- vector("list", length(phint))
+  spans <- split(interval(list_c(int_starts), list_c(int_ends), tzone = tzone), int_id)
+  out[!empty_at] <- spans
+  out[empty_at] <- list()
+
+  out
+}
+
+# TODO: Where possible the approach that got us from `phint_to_spans_v1` to
+# the current iteration should be taken. In particular, work with vectors instead
+# of lists of vectors where possible (i.e. avoid `map`).
+#
+# In the current `phint_to_spans`, we avoid creating a ton of intervals in
+# the V1 `map2(int_starts, int_ends, interval, tzone = tzone)` call by creating
+# a single interval and then splitting it.
+#
+# The function below transforms a `phinterval` into a list of parallel of POSIX
+# starts and ends, with their `index` in the phinterval. Empty (hole) elements
+# are NOT included. I.e. You'd assign this back to the non-hole elements.
+flatten_phinterval <- function(phint) {
+
+  reference_time <- field(phint, "reference_time")
+  range_starts <- field(phint, "range_starts") |> map2(reference_time, `+`)
+  range_ends <- field(phint, "range_ends") |> map2(reference_time, `+`)
+
+  n_spans <- vctrs::list_sizes(range_starts)
+  list(
+    index = rep(seq_along(n_spans), times = n_spans),
+    range_starts = vctrs::list_unchop(range_starts),
+    range_ends = vctrs::list_unchop(range_ends)
+  )
+
+}
+
+# - Use `vctrs::list_unchop` instead of `list_c`
+# - Don't bother with `standardize_phinterval`
+#' @export
+phint_to_spans <- function(phint, hole_to = c("null", "na")) {
+
+  phint <- check_is_phinty(phint)
+  hole_to <- rlang::arg_match(hole_to)
+
+  reference_time <- field(phint, "reference_time")
+  int_starts <- field(phint, "range_starts") |> map2(reference_time, `+`)
+  int_ends <- field(phint, "range_ends") |> map2(reference_time, `+`)
+
+  n_spans <- lengths(int_starts)
+  spans <- interval(
+    vctrs::list_unchop(int_starts),
+    vctrs::list_unchop(int_ends),
+    tzone = tz(phint)
+  )
+
+  # There will be no elements of `split(spans, ...)` generated for empty
+  # phintervals (holes), so we can just ignore them. The holes will be an empty
+  # (NULL) list element in `out` which makes sense.
+  out <- vector("list", length(phint))
+  out[n_spans > 0] <- split(spans, rep(seq_along(n_spans), times = n_spans))
+  if (hole_to  == "na") {
+    out[n_spans <= 0] <- list(na_interval(1L))
+  }
+  out
 }
 
 #' @export
@@ -922,23 +1064,19 @@ phint_squash <- function(phint, na.rm = TRUE, empty = c("na", "empty", "hole")) 
     return(switch(
       empty,
       "empty" = phinterval(tzone = tzone),
-      "na" = na_phinterval(n = 1L, tzone = tzone),
-      "hole" =
+      "na" = na_phinterval(tzone = tzone),
+      "hole" = hole_phinterval(tzone = tzone)
     ))
   }
   if (lubridate::is.interval(phint)) {
     return(int_squash(phint, na.rm = na.rm))
   }
 
-  reference_time <- field(phint, "reference_time")
-  range_starts <- field(phint, "range_starts")
-  range_ends <- field(phint, "range_ends")
+  reference_seconds <- as.double(field(phint, "reference_time"))
+  range_starts <- field(phint, "range_starts") |> map2(reference_seconds, `+`)
+  range_ends <- field(phint, "range_ends") |> map2(reference_seconds, `+`)
 
-  reference_seconds <- as.double(reference_time)
-  span_starts <- map2(reference_seconds, range_starts, `+`)
-  span_ends <- map2(reference_seconds, range_ends, `+`)
-
-  na_at <- is.na(reference_time)
+  na_at <- is.na(reference_seconds)
   if (all(na_at) || (any(na_at) && !na.rm)) {
     return(na_phinterval(tzone = tzone))
   }
