@@ -1052,6 +1052,8 @@ phint_bound <- function(phint, left = NULL, right = NULL) {
 #             and reliably return a length-1 output. Maybe switch
 #             na and empty in `empty`
 
+# TODO: Re-test this and update the version that you're using.
+
 #' @export
 phint_squash <- function(phint, na.rm = TRUE, empty = c("na", "empty", "hole")) {
 
@@ -1081,11 +1083,11 @@ phint_squash <- function(phint, na.rm = TRUE, empty = c("na", "empty", "hole")) 
     return(na_phinterval(tzone = tzone))
   }
   if (na.rm) {
-    span_starts <- span_starts[!na_at]
-    span_ends <- span_ends[!na_at]
+    range_starts <- range_starts[!na_at]
+    range_ends <- range_ends[!na_at]
   }
 
-  flat_ranges <- range_flatten(list_c(span_starts), list_c(span_ends))
+  flat_ranges <- range_flatten(list_c(range_starts), list_c(range_ends))
   new_phinterval(
     reference_time = origin_posixct(1L, tzone = tzone),
     range_starts = list(flat_ranges$starts),
