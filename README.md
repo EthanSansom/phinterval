@@ -26,6 +26,10 @@ heavily from the [lubridate](https://lubridate.tidyverse.org/)
 super-class of `<interval>`, meaning that the two classes are often
 interchangeable.
 
+See my [blog post](https://www.ethansansom.com/posts/2025_01_31_phinterval/) for
+details of how the `<phinterval>` vector class can be used to answer common
+questions about datetime intervals.
+
 ## Installation
 
 ⚠️ This package is still **under construction**. ⚠️
