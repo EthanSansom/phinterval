@@ -92,7 +92,7 @@ get_tzone.Interval <- function(x) {
 }
 
 get_tzone.phinterval <- function(x) {
-  attr(x, "get_tzone")
+  attr(x, "tzone")
 }
 
 get_tzone.default <- function(x) {

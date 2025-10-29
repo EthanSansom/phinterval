@@ -3,211 +3,54 @@ setOldClass("phinterval")
 #' @export
 phinterval <- function(intervals = NULL, tzone = NULL) {
 
+  # TODO: Allow the `intervals` to be phintervals OR intervals
+  # TODO: Add input checking for `intervals` and `tzone`
   if (rlang::is_empty(intervals)) {
     tzone <- tzone %||% "UTC"
-    stop_wrong_class(tzone, "character", n = 1)
     return(new_phinterval(tzone = tzone))
   }
-
   if (lubridate::is.interval(intervals)) {
-    intervals <- list(intervals)
-  } else {
-    stop_not_list_of(intervals, "Interval")
+    tzone <- tzone %||% get_tzone(intervals)
+    interval_set <- phint_squash(intervals, na.rm = FALSE)
+    return(new_phinterval(interval_sets = interval_set, tzone = tzone))
   }
 
-  # TODO: Make a `get_tzone`, `tzone`, `tz`, generic that "just works"
-  #
-  # Defaulting to the timezone of the first Interval supplied
-  tzone <- tzone %||% interval_tzone(intervals[[1]])
-  stop_wrong_class(tzone, "character", n = 1)
-
-  # TODO: From this point on, you should `vctrs::list_unchop` the supplied
-  # interval vectors and work in a vectorized way. As in `phint_to_spans`.
-  # - this way, operations like the `int_standardize` below can take place
-  #   on a single integer
-  #   - I don't think you even need to call `int_standardize`. Just reverse
-  #     the start and ends yourself if start > end.
-
-  ints <- map(intervals, lubridate::int_standardize)
-
-  # If intervals[[i]] is empty, setting [[i]] to NA. Removing empty intervals
-  # would make the output length harder to predict
-  non_na_at <- !map_lgl(ints, \(int) rlang::is_empty(int) || any(is.na(int)))
-  non_na_ints <- ints[non_na_at]
-
-  reference_time <- na_posixct(length(ints), tzone = tzone)
-  range_starts <- range_ends <- as.list(rep(NA_real_, length(ints)))
-
-  # TODO Ethan: Replace all of this with some nice function like, `recenter_ranges`
-  #             or something.
-  min_start_time <- map_dbl(non_na_ints, \(int) min(lubridate::int_start(int)))
-  reference_time[non_na_at] <- lubridate::as_datetime(min_start_time)
-  range_starts[non_na_at] <- map2(
-    non_na_ints,
-    min_start_time,
-    \(int, min_start) {
-      as.double(lubridate::int_start(int)) - min_start
-    }
-  )
-  range_ends[non_na_at] <- map2(
-    non_na_ints,
-    min_start_time,
-    \(int, min_start) {
-      as.double(lubridate::int_end(int)) - min_start
-    }
-  )
-
-  ranges <- flatten_overlapping_ranges(range_starts, range_ends)
-
+  stop_not_list_of(intervals, "Interval")
+  tzone <- tzone %||% get_tzone(intervals[[1]])
   new_phinterval(
-    reference_time = reference_time,
-    range_starts = ranges$starts,
-    range_ends = ranges$ends,
+    interval_sets = map(intervals, phint_squash, na.rm = FALSE),
     tzone = tzone
   )
 }
 
-new_phinterval <- function(
-    reference_time = empty_posixct(tzone = tzone),
-    range_starts = list(),
-    range_ends = list(),
-    tzone = "UTC"
-  ) {
-
-  bullets <- character()
-  if (!lubridate::is.POSIXct(reference_time)) {
-    bullets <- c(
-      bullets,
-      paste0(
-        "{.var reference_time} must be a {.cls {POSIXct}}, ",
-        "not a {.cls {class(reference_time)}."
-      )
-    )
-  }
-  if (!(is.list(range_starts) && all(map_lgl(range_starts, is.numeric)))) {
-    bullets <- c(
-      bullets,
-      "{.var range_starts} must be a list of numeric vectors."
-    )
-  }
-  if (!(is.list(range_ends) && all(map_lgl(range_ends, is.numeric)))) {
-    bullets <- c(
-      bullets,
-      "{.var range_ends} must be a list of numeric vectors."
-    )
-  }
-  if (!rlang::is_scalar_character(tzone)) {
-    bullets <- c(
-      bullets,
-      "{.var tzone} must be a scalar character vector."
-    )
-  }
-  if (lubridate::tz(reference_time) != tzone) {
-    bullets <- c(
-      bullets,
-      "{.var reference_time} must be have timezone {.var tzone}."
-    )
-  }
-  if (!rlang::is_empty(bullets)) {
-    cli::cli_abort(
-      c(
-        "Attempted to create malformed {.cls phinterval}.",
-        setNames(bullets, rep("x", length(bullets)))
-      )
-    )
-  }
-
-  vctrs::new_rcrd(
-    fields = list(
-      reference_time = reference_time,
-      range_starts = range_starts,
-      range_ends = range_ends
-    ),
+new_phinterval <- function(interval_sets = list(), tzone = "UTC") {
+  vctrs::new_vctr(
+    if (is.matrix(interval_sets)) list(interval_sets) else interval_sets,
     tzone = tzone,
     class = "phinterval"
   )
 }
 
 #' @export
-na_phinterval <- function(n = 1L, tzone = "UTC") {
-  new_phinterval(
-    reference_time = rep(NA_POSIXct_, n),
-    range_starts = as.list(rep(NA_real_, n)),
-    range_ends = as.list(rep(NA_real_, n)),
-    tzone = tzone
-  )
-}
+format.phinterval <- function(x, max_width = 60, ...) {
 
-hole_phinterval <- function(n = 1L, tzone = "UTC") {
-  if (n == 0) {
-    return(
-      new_phinterval(
-        reference_time = empty_posixct(tzone = tzone),
-        range_starts = list(),
-        range_ends = list(),
-        tzone = tzone
-      )
-    )
-  }
-  range <- lapply(seq(n), \(x) numeric())
-  new_phinterval(
-    reference_time = origin_posixct(n = n, tzone = tzone),
-    range_starts = range,
-    range_ends = range,
-    tzone = tzone
-  )
-}
+  origin <- lubridate::with_tz(lubridate::origin, tzone = get_tzone(x))
+  n_spans <- map(vec_data(x), nrow)
+  starts <- map(vec_data(x), \(x) format(x[ , 1] + origin, usetz = FALSE))
+  ends <- map(vec_data(x), \(x) format(x[ , 2] + origin, usetz = FALSE))
 
-#' @export
-empty_posixct <- function(tzone = "UTC") {
-  as.POSIXct(logical(), tz = tzone)
-}
-
-#' @export
-na_posixct <- function(n = 1L, tzone = "UTC") {
-  as.POSIXct(rep(NA, n), tz = tzone)
-}
-
-#' @export
-na_interval <- function(n = 1L, tzone = "UTC") {
-  na_times <- na_posixct(n = n, tzone = tzone)
-  lubridate::interval(start = na_times, end = na_times)
-}
-
-#' @export
-origin_posixct <- function(n = 1L, tzone = "UTC") {
-  as.POSIXct(rep(0L, n), origin = lubridate::origin, tz = tzone)
-}
-
-#' @export
-format.phinterval <- function(x, ...) {
-
-  reference_time <- field(x, "reference_time")
-  range_starts <- field(x, "range_starts")
-  range_ends <- field(x, "range_ends")
-  tzone <- trimws(format(reference_time, format = " ", usetz = TRUE))
-
-  starts_order <- map(range_starts, order)
-  interval_starts <-
-    map2(reference_time, range_starts, `+`) |>
-    map2(starts_order, `[`) |>
-    map(format, usetz = FALSE)
-  interval_ends <-
-    map2(reference_time, range_ends, `+`) |>
-    map2(starts_order, `[`) |>
-    map(format, usetz = FALSE)
-
-  out <- paste0(
-    "[",
+  out <- paste0("{",
     map2_chr(
-      interval_starts,
-      interval_ends,
+      starts,
+      ends,
       \(x, y) paste(x, y, sep = "--", collapse = ", ")
     ),
-    "] ",
-    tzone
-  )
-  out[is.na(reference_time)] <- NA_character_
+  "}")
+
+  too_wide <- nchar(out) > max_width
+  out[too_wide] <- paste0("<phint[", n_spans[too_wide], "]>")
+  out[n_spans == 0] <- "<hole>"
+  out[is.na(starts)] <- NA_character_
   out
 }
 
@@ -221,7 +64,7 @@ vec_ptype_abbr.phinterval <- function(x, ...) {
 #
 #' @export
 vec_ptype_full.phinterval <- function(x, ...) {
-  tzone <- tzone(field(x, "reference_time"))
+  tzone <- get_tzone(x)
   if (tz_is_local(tzone)) tzone <- "local"
   paste0("phinterval<", tzone, ">")
 }
@@ -265,7 +108,7 @@ as_phinterval.default <- function(x, ...) {
 #' @export
 as_phinterval.Interval <- function(x, tzone = NULL) {
 
-  tzone <- tzone %||% interval_tzone(x)
+  tzone <- tzone %||% get_tzone(x)
   stop_wrong_class(tzone, "character", n = 1L)
 
   int <- lubridate::int_standardize(x)
@@ -415,7 +258,7 @@ phint_lengths <- function(phint) {
 phint_invert <- function(phint) {
 
   if (lubridate::is.interval(phint)) {
-    tzone <- interval_tzone(phint)
+    tzone <- get_tzone(phint)
     return(na_phinterval(n = length(phint), tzone = tzone))
   }
 
@@ -516,6 +359,60 @@ phint_to_holes <- function(phint) {
     phint_invert() |>
     phint_to_spans()
 }
+
+# constructors -----------------------------------------------------------------
+
+#' @export
+na_phinterval <- function(n = 1L, tzone = "UTC") {
+  new_phinterval(
+    reference_time = rep(NA_POSIXct_, n),
+    range_starts = as.list(rep(NA_real_, n)),
+    range_ends = as.list(rep(NA_real_, n)),
+    tzone = tzone
+  )
+}
+
+hole_phinterval <- function(n = 1L, tzone = "UTC") {
+  if (n == 0) {
+    return(
+      new_phinterval(
+        reference_time = empty_posixct(tzone = tzone),
+        range_starts = list(),
+        range_ends = list(),
+        tzone = tzone
+      )
+    )
+  }
+  range <- lapply(seq(n), \(x) numeric())
+  new_phinterval(
+    reference_time = origin_posixct(n = n, tzone = tzone),
+    range_starts = range,
+    range_ends = range,
+    tzone = tzone
+  )
+}
+
+#' @export
+empty_posixct <- function(tzone = "UTC") {
+  as.POSIXct(logical(), tz = tzone)
+}
+
+#' @export
+na_posixct <- function(n = 1L, tzone = "UTC") {
+  as.POSIXct(rep(NA, n), tz = tzone)
+}
+
+#' @export
+na_interval <- function(n = 1L, tzone = "UTC") {
+  na_times <- na_posixct(n = n, tzone = tzone)
+  lubridate::interval(start = na_times, end = na_times)
+}
+
+#' @export
+origin_posixct <- function(n = 1L, tzone = "UTC") {
+  as.POSIXct(rep(0L, n), origin = lubridate::origin, tz = tzone)
+}
+
 
 # helpers ----------------------------------------------------------------------
 
