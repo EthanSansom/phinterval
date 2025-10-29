@@ -11,7 +11,9 @@
 #' @importFrom lubridate is.interval
 #' @importFrom lubridate tz
 #' @importFrom methods setOldClass
+#' @importFrom Rcpp sourceCpp
 #' @importFrom rlang %||%
 #' @importFrom stats setNames
+#' @useDynLib phinterval, .registration = TRUE
 ## usethis namespace: end
 NULL
