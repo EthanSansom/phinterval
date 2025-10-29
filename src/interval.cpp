@@ -11,6 +11,7 @@ NumericMatrix cpp_squash_lubridate_interval(
     bool na_rm
 ) {
   int n = starts.size();
+  if (n == 0) return empty_interval();
 
   Endpoints endpoints;
   endpoints.reserve(n * 2);
