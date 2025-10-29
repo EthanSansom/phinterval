@@ -1,7 +1,5 @@
 setOldClass("phinterval")
 
-# phinterval class -------------------------------------------------------------
-
 #' @export
 phinterval <- function(intervals = NULL, tzone = NULL) {
 
@@ -289,139 +287,6 @@ as_phinterval.Interval <- function(x, tzone = NULL) {
   )
 }
 
-# TODO: Consolidate the `range_is_flat` and `range_contains_overlaps` functions.
-#       Think about the best language to describe overlapping vs. flat vs. intersecting
-flatten_overlapping_ranges <- function(range_starts, range_ends) {
-
-  range_not_flat <- !map2_lgl(range_starts, range_ends, range_is_flat)
-  range_not_flat[is.na(range_not_flat)] <- FALSE
-
-  if (any(range_not_flat)) {
-    flattened <- map2(
-      range_starts[range_not_flat],
-      range_ends[range_not_flat],
-      range_flatten
-    )
-    range_starts[range_not_flat] <- map(flattened, `[[`, "starts")
-    range_ends[range_not_flat] <- map(flattened, `[[`, "ends")
-  }
-
-  list(starts = range_starts, ends = range_ends)
-}
-
-# `phinterval`s are equal when they represent the same collection of time-spans,
-# ignoring timezone. This is unlike `Interval` equality, which is determined by
-# duration of the time-span. https://github.com/tidyverse/lubridate/issues/1135
-
-#' @export
-vec_proxy_equal.phinterval <- function(x, ...) {
-
-  reference_time <- field(x, "reference_time")
-  range_starts <- field(x, "range_starts")
-  range_ends <- field(x, "range_ends")
-
-  starts_uid <- rep(NA_character_, length(reference_time))
-  ends_uid <- starts_uid
-
-  # TODO: This feels illegal, but should (?) uniquely ID a set of time spans
-  non_na_at <- !is.na(reference_time)
-  seconds <- as.double(reference_time)[non_na_at]
-  starts <- range_starts[non_na_at]
-  ends <- range_ends[non_na_at]
-
-  starts_uid[non_na_at] <- map2(seconds, starts, \(t, s) t + sort(s)) |> map_chr(range_to_uid)
-  ends_uid[non_na_at] <- map2(seconds, ends, \(t, e) t + sort(e)) |> map_chr(range_to_uid)
-
-  data.frame(
-    range_starts = starts_uid,
-    range_ends = ends_uid
-  )
-}
-
-range_to_uid <- function(x) paste0(sort(x), collapse = ",")
-
-#' @export
-vec_proxy_compare.phinterval <- function(x, ...) {
-
-  reference_time <- field(x, "reference_time")
-  range_starts <- field(x, "range_starts")
-  range_ends <- field(x, "range_ends")
-
-  min_start <- map2_dbl(reference_time, range_starts, \(t, s) t + min(s))
-  max_end <- map2_dbl(reference_time, range_ends, \(t, e) t + max(e))
-  duration_seconds <- map2_dbl(range_starts, range_ends, \(s, e) sum(e - s))
-
-  # `phinterval`s are ordered by start, end, and duration.
-  data.frame(
-    starts_first = min_start,
-    ends_first = -max_end,
-    shortest = -duration_seconds
-  )
-}
-
-# division ---------------------------------------------------------------------
-
-divide_phinterval_by_duration <- function(phint, dur) {
-  as.duration(phint) / dur
-}
-
-divide_phinterval_by_difftime <- function(phint, diff) {
-  as.duration(phint) / diff
-}
-
-divide_phinterval_by_period <- function(phint, per) {
-  map2_dbl(phint_to_spans(phint), per, \(spans, p) sum(spans / p))
-}
-
-trunc_divide <- function(e1, e2) trunc(e1 / e2)
-
-#' @export
-#' @method vec_arith phinterval
-vec_arith.phinterval <- function(op, x, y, ...) {
-  UseMethod("vec_arith.phinterval", y)
-}
-
-#' @export
-#' @method vec_arith.phinterval default
-vec_arith.phinterval.default <- function(op, x, y, ...) {
-  vctrs::stop_incompatible_op(op, x, y)
-}
-
-#' @export
-#' @method vec_arith.phinterval Duration
-vec_arith.phinterval.Duration <- function(op, x, y, ...) {
-  switch(
-    op,
-    `/` = divide_phinterval_by_duration(x, y),
-    `%/%` = trunc_divide(x, y),
-    stop_incompatible_op(op, x, y)
-  )
-}
-
-#' @export
-#' @method vec_arith.phinterval Period
-vec_arith.phinterval.Period <- function(op, x, y, ...) {
-  switch(
-    op,
-    `/` = divide_phinterval_by_period(x, y),
-    `%/%` = trunc_divide(x, y),
-    stop_incompatible_op(op, x, y)
-  )
-}
-
-#' @export
-#' @method vec_arith.phinterval difftime
-vec_arith.phinterval.difftime <- function(op, x, y, ...) {
-  switch(
-    op,
-    `/` = divide_phinterval_by_difftime(x, y),
-    `%/%` = trunc_divide(x, y),
-    stop_incompatible_op(op, x, y)
-  )
-}
-
-# phinterval interface ---------------------------------------------------------
-
 #' @export
 is_holey <- function(phint, na_as = NA) {
   if (lubridate::is.interval(phint)) {
@@ -652,144 +517,27 @@ phint_to_holes <- function(phint) {
     phint_to_spans()
 }
 
-# set operations ---------------------------------------------------------------
-
-# TODO Ethan: You might want an option to return NA on empty, so
-#             that you can use this in a `summarize` statement
-#             and reliably return a length-1 output. Maybe switch
-#             na and empty in `empty`
-
-# TODO: Re-test this and update the version that you're using.
-
-#' @export
-phint_squash <- function(phint, na.rm = TRUE, empty = c("na", "empty", "hole")) {
-
-  stop_wrong_class(na.rm, "logical", n = 1L)
-  empty <- rlang::arg_match(empty)
-  phint <- check_is_phinty(phint)
-  tzone <- tz(phint)
-
-  if (rlang::is_empty(phint)) {
-    return(switch(
-      empty,
-      "empty" = phinterval(tzone = tzone),
-      "na" = na_phinterval(tzone = tzone),
-      "hole" = hole_phinterval(tzone = tzone)
-    ))
-  }
-  if (lubridate::is.interval(phint)) {
-    return(int_squash(phint, na.rm = na.rm))
-  }
-
-  reference_seconds <- as.double(field(phint, "reference_time"))
-  range_starts <- field(phint, "range_starts") |> map2(reference_seconds, `+`)
-  range_ends <- field(phint, "range_ends") |> map2(reference_seconds, `+`)
-
-  na_at <- is.na(reference_seconds)
-  if (all(na_at) || (any(na_at) && !na.rm)) {
-    return(na_phinterval(tzone = tzone))
-  }
-  if (na.rm) {
-    range_starts <- range_starts[!na_at]
-    range_ends <- range_ends[!na_at]
-  }
-
-  flat_ranges <- range_flatten(list_c(range_starts), list_c(range_ends))
-  new_phinterval(
-    reference_time = origin_posixct(1L, tzone = tzone),
-    range_starts = list(flat_ranges$starts),
-    range_ends = list(flat_ranges$ends),
-    tzone = tzone
-  )
-
-}
-
-#' @export
-int_squash <- function(int, na.rm = TRUE) {
-
-  int <- lubridate::int_standardize(int)
-  int_starts <- lubridate::int_start(int)
-  int_ends <- lubridate::int_end(int)
-  tzone <- lubridate::tz(int_starts)
-
-  na_at <- is.na(int)
-  if (all(na_at) || (any(na_at) && !na.rm)) {
-    return(na_phinterval(tzone = tzone))
-  }
-  if (na.rm) {
-    int_starts <- int_starts[!na_at]
-    int_ends <- int_ends[!na_at]
-  }
-
-  flat_ranges <- range_flatten(as.double(int_starts), as.double(int_ends))
-  new_phinterval(
-    reference_time = origin_posixct(1L, tzone = tzone),
-    range_starts = list(flat_ranges$starts),
-    range_ends = list(flat_ranges$ends),
-    tzone = tzone
-  )
-}
-
-#' @export
-phint_overlaps <- function(phint1, phint2, inclusive = FALSE) {
-
-  objs <- recycle2_common(phint1, phint2)
-  phint1 <- check_is_phinty(objs$x)
-  phint2 <- check_is_phinty(objs$y)
-
-  range1 <- rangify_phinterval(phint1)
-  range2 <- rangify_phinterval(phint2)
-
-  non_na_at <- !(is.na(phint1) | is.na(phint2))
-
-  range1_starts <- range1$starts[non_na_at]
-  range1_ends <- range1$ends[non_na_at]
-  range2_starts <- range2$starts[non_na_at]
-  range2_ends <- range2$ends[non_na_at]
-
-  out <- rep(NA, length(phint1))
-  out[non_na_at] <- pmap_lgl(
-    list(
-      x_starts = range1_starts,
-      x_ends = range1_ends,
-      y_starts = range2_starts,
-      y_ends = range2_ends
-    ),
-    range_intersects,
-    inclusive = inclusive
-  )
-  out
-}
-
-#' @export
-phint_union <- function(phint1, phint2) {
-  combine_phintervals(
-    .phint1 = phint1,
-    .phint2 = phint2,
-    .f = range_union
-  )
-}
-
-#' @export
-phint_intersect <- function(phint1, phint2, inclusive = FALSE) {
-  combine_phintervals(
-    .phint1 = phint1,
-    .phint2 = phint2,
-    .f = range_intersect,
-    inclusive = inclusive
-  )
-}
-
-#' @export
-phint_diff <- function(phint1, phint2) {
-  combine_phintervals(
-    .phint1 = phint1,
-    .phint2 = phint2,
-    .f = range_setdifference
-  )
-}
-
 # helpers ----------------------------------------------------------------------
+
+# TODO: Consolidate the `range_is_flat` and `range_contains_overlaps` functions.
+#       Think about the best language to describe overlapping vs. flat vs. intersecting
+flatten_overlapping_ranges <- function(range_starts, range_ends) {
+
+  range_not_flat <- !map2_lgl(range_starts, range_ends, range_is_flat)
+  range_not_flat[is.na(range_not_flat)] <- FALSE
+
+  if (any(range_not_flat)) {
+    flattened <- map2(
+      range_starts[range_not_flat],
+      range_ends[range_not_flat],
+      range_flatten
+    )
+    range_starts[range_not_flat] <- map(flattened, `[[`, "starts")
+    range_ends[range_not_flat] <- map(flattened, `[[`, "ends")
+  }
+
+  list(starts = range_starts, ends = range_ends)
+}
 
 combine_phintervals <- function(.phint1, .phint2, .f, ...) {
 
