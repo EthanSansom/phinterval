@@ -83,24 +83,20 @@ commas <- function(x, sep = ",", sep2 = "", last = "or") {
 # Make a separate `timezones.R` script for timezone stuff. Will include `with_tz`
 # `force_tz`, and `tz` implementations for `phinterval`.
 
-interval_tzone <- function(int) lubridate::tz(lubridate::int_start(int))
-
-# TODO:
-tz.phinterval <- function(x) {
-  attr(x, "tzone")
+get_tzone <- function(x) {
+  UseMethod("get_tzone")
 }
 
-# TODO: See the implementation for `vec_ptype_full.POSIXct` in the link below.
-#       Implement this into the phinterval version and DON'T display the timezone
-#       in the vector.
-#
-# Copied from here:
-# https://github.com/r-lib/vctrs/blob/main/R/type-date-time.R
-#
-# The tz attribute for POSIXlt can have 3 components
-# (time zone name, abbreviated name, abbreviated DST name)
-tzone <- function(x) {
-  attr(x, "tzone")[[1]] %||% ""
+get_tzone.Interval <- function(x) {
+  lubridate::tz(lubridate::int_start(x))
+}
+
+get_tzone.phinterval <- function(x) {
+  attr(x, "get_tzone")
+}
+
+get_tzone.default <- function(x) {
+  lubridate::tz(x)
 }
 
 # Both `tz_is_local` and `tz_union` are borrowed directly from lubridate for
