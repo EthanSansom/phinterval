@@ -1,58 +1,9 @@
 setOldClass("phinterval")
 
-# TODO Long Term:
-# After all of the tests and documentation is in place it would be nice to get
-# some speed improvements all around.
-#
-# - simplify the process used to create a `phinterval`, since it's relatively slow
-#   even ignoring the interval squashing step
-#   - reduce the number of `new_phinterval` checks and instead introduce a validator
-#
-# - look into storing the `range_starts` and `range_ends` fields as `vctrs::list_of`
-#   - use fast `vctrs::` functions where possible
-#   - is using `standalone-purrr` causing any slowdowns? Using `vapply`
-#     directly might help in some cases
-# - find better algorithms for these phinterval set operations
-# - potentially implement some of the important set operations in C
-# - we create a lot of `non_na_at` indices, is there a way to side-step doing
-#   this in some places (everywhere?)
-# - there are a TON of unnecessary assignments. In general, it's fine to make an
-#   assignment, but make sure the object is at least used more than once, otherwise
-#   don't make it into an assignment.
-
-# TODO:
-# - Improve timezone management, make some methods for getting the timezone from
-#   POSIX, lubridate::interval, and phinterval
-# - `phint_starts`, `phint_ends`, `phint_spans` might want to return
-#   a one-column `tibble` so that use in a col "just works" - test this
-
-# TODO:
-# - make a different display method for tibbles! See https://vctrs.r-lib.org/articles/s3-vector.html#format-method
-# - see vctrs::list_of, since you're using lists of a lot https://vctrs.r-lib.org/reference/list_of.html
-# - review the `clock` package to see if they have any cool ideas for `phinterval`
-#
-# - anywhere that you compare two `phinterval`s AND recycling is not automatic
-#   (i.e. if you need to use `map`) implement base recycling rules + a custom
-#   message
-#   - see https://vctrs.r-lib.org/articles/type-size.html#appendix-recycling-in-base-r for discussion of recycling rules
-
-# TODO:
-# - since you're allowing `holes` make sure that all operations / functions
-#   are compatible with them
-
 # phinterval class -------------------------------------------------------------
-
-# TODO: Check for invalid timezones at the VERY start. Maybe just make an invalid
-#       timezone function. I think you'll have to use `timechange:::C_valid_tz`.
-#       Invalid timezones don't cause an error with empty phinterval, but they
-#       DO cause an error with a non-empty phinterval.
-#
-# See: https://github.com/tidyverse/lubridate/blob/main/R/time-zones.r
 
 #' @export
 phinterval <- function(intervals = NULL, tzone = NULL) {
-
-  # TODO: Once you have `specifyr`, update all of the class checks.
 
   if (rlang::is_empty(intervals)) {
     tzone <- tzone %||% "UTC"
@@ -108,16 +59,6 @@ phinterval <- function(intervals = NULL, tzone = NULL) {
     }
   )
 
-  # TODO: A later implementation could take the element ID / index as well,
-  # instead of a list, so we never have to convert `range_starts` and `range_ends`
-  # back from being a list.
-  #
-  # In C, we'd just do this range overlap operation WITHIN the element ID. We just
-  # provide two numeric args (range_starts/ends) and one integer (index).
-  # <index> <start> <end>
-  # 1       3        5    -> only one range at index 1, return [3, 5]
-  # 2       1        3    -> two ranges at index 2, flatten [1, 3], [3, 7]
-  # 2       3        7
   ranges <- flatten_overlapping_ranges(range_starts, range_ends)
 
   new_phinterval(

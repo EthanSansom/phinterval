@@ -4,6 +4,10 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
+// TODO: This relies on `do.call(rbind, list_of_matrices)` being called
+// beforehand in R to get the single NumericMatrix x. We could "rbind"
+// directly in C++ instead.
+
 // [[Rcpp::export]]
 NumericMatrix cpp_squash_interval_set(NumericMatrix x, bool na_rm) {
   int n { x.nrow() };
