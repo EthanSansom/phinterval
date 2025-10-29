@@ -1782,10 +1782,18 @@ test_that("NA inputs are removed when `na.rm = TRUE`, result in NA when `FALSE`"
     standardize_phinterval(phint_squash(int, na.rm = TRUE)),
     standardize_phinterval(flat_phint)
   )
+  expect_identical(
+    standardize_phinterval(phint_squash(as_phinterval(int), na.rm = TRUE)),
+    standardize_phinterval(flat_phint)
+  )
 
   ## na.rm = FALSE
   expect_identical(
     standardize_phinterval(phint_squash(int, na.rm = FALSE)),
+    na_phinterval(tzone = "UTC")
+  )
+  expect_identical(
+    standardize_phinterval(phint_squash(as_phinterval(int), na.rm = FALSE)),
     na_phinterval(tzone = "UTC")
   )
 })
