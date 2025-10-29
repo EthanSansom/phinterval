@@ -1,44 +1,29 @@
 #' @export
-phint_squash <- function(phint, na.rm = TRUE, empty = c("na", "empty", "hole")) {
+phint_squash <- function(phint, na.rm = TRUE) {
+  UseMethod("phint_squash")
+}
 
+#' @export
+phint_squash.phinterval <- function(phint, na.rm = TRUE) {
   stop_wrong_class(na.rm, "logical", n = 1L)
-  empty <- rlang::arg_match(empty)
-  phint <- check_is_phinty(phint)
-  tzone <- tz(phint)
 
-  if (rlang::is_empty(phint)) {
-    return(switch(
-      empty,
-      "empty" = phinterval(tzone = tzone),
-      "na" = na_phinterval(tzone = tzone),
-      "hole" = hole_phinterval(tzone = tzone)
-    ))
-  }
-  if (lubridate::is.interval(phint)) {
-    return(int_squash(phint, na.rm = na.rm))
-  }
-
-  reference_seconds <- as.double(field(phint, "reference_time"))
-  range_starts <- field(phint, "range_starts") |> map2(reference_seconds, `+`)
-  range_ends <- field(phint, "range_ends") |> map2(reference_seconds, `+`)
-
-  na_at <- is.na(reference_seconds)
-  if (all(na_at) || (any(na_at) && !na.rm)) {
-    return(na_phinterval(tzone = tzone))
-  }
-  if (na.rm) {
-    range_starts <- range_starts[!na_at]
-    range_ends <- range_ends[!na_at]
-  }
-
-  flat_ranges <- range_flatten(list_c(range_starts), list_c(range_ends))
+  interval_set <- do.call(rbind, vec_data(phint))
   new_phinterval(
-    reference_time = origin_posixct(1L, tzone = tzone),
-    range_starts = list(flat_ranges$starts),
-    range_ends = list(flat_ranges$ends),
-    tzone = tzone
+    interval_sets = cpp_squash_interval_set(interval_set, na_rm = na.rm),
+    tzone = attr(phint, "tzone")
   )
+}
 
+#' @export
+phint_squash.Interval <- function(phint, na.rm = TRUE) {
+  stop_wrong_class(na.rm, "logical", n = 1L)
+
+  starts <- lubridate::int_start(phint)
+  spans <- lubridate::int_length(phint)
+  new_phinterval(
+    interval_sets = cpp_squash_lubridate_interval(starts, spans, na_rm = na.rm),
+    tzone = attr(phint, "tzone")
+  )
 }
 
 #' @export
