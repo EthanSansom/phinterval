@@ -5,12 +5,18 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
+// TODO: See what's actually happening with the references here, I feel like
+//       they're not doing anything.
 // [[Rcpp::export]]
 List cpp_union_interval_sets(const List& x, const List& y) {
   int n = x.size();
   List out(n);
   for (int i { 0 }; i < n; ++i) {
-    out[i] = union_interval_set(x[i], y[i]);
+    if (x[i] == NA_INTERVAL || y[i] == NA_INTERVAL) {
+      out[i] = NA_INTERVAL;
+    } else {
+      out[i] = union_interval_set(x[i], y[i]);
+    }
   }
   return out;
 }
@@ -20,8 +26,6 @@ NumericMatrix union_interval_set(NumericMatrix x, NumericMatrix y) {
   int ny { y.nrow() };
   if (nx == 0) return y;
   if (ny == 0) return x;
-  if (is_na_interval(x)) return x;
-  if (is_na_interval(y)) return y;
 
   Endpoints endpoints;
   endpoints.reserve((nx + ny) * 2);

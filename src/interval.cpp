@@ -5,7 +5,7 @@
 using namespace Rcpp;
 
 // [[Rcpp::export]]
-NumericMatrix cpp_squash_lubridate_interval(
+RObject cpp_squash_lubridate_interval(
     const DatetimeVector& starts,
     const NumericVector& spans,
     bool na_rm
@@ -21,7 +21,7 @@ NumericMatrix cpp_squash_lubridate_interval(
     start = starts[i];
     span = spans[i];
     if (na_rm && (ISNAN(start) || ISNAN(span))) continue;
-    if (!na_rm && (ISNAN(start) || ISNAN(span))) return na_interval();
+    if (!na_rm && (ISNAN(start) || ISNAN(span))) return NA_INTERVAL;
 
     if (span < 0) {
       endpoints.push_back(Endpoint { true, start + span });
@@ -33,7 +33,7 @@ NumericMatrix cpp_squash_lubridate_interval(
   }
 
   // Case where `na_rm` and we've only encountered NA values
-  if (endpoints.empty()) return na_interval();
+  if (endpoints.empty()) return NA_INTERVAL;
 
   std::sort(endpoints.begin(), endpoints.end());
   return squash(endpoints);
@@ -54,9 +54,10 @@ List cpp_lubridate_interval_to_interval_sets(
     start = starts[i];
     span = spans[i];
     if (ISNAN(start) || ISNAN(span)) {
-      element(0, 0) = NA_REAL;
-      element(0, 1) = NA_REAL;
-    } else if (span < 0) {
+      out[i] = NA_INTERVAL;
+      continue;
+    }
+    if (span < 0) {
       element(0, 0) = start + span;
       element(0, 1) = start;
     } else {

@@ -9,7 +9,25 @@ List cpp_compliment_interval_sets(const List& x) {
   int n = x.size();
   List out(n);
   for (int i { 0 }; i < n; ++i) {
-    out[i] = compliment_interval_set(x[i]);
+    if (x[i] == NA_INTERVAL) {
+      out[i] = NA_INTERVAL;
+    } else {
+      out[i] = compliment_interval_set(x[i]);
+    }
+  }
+  return out;
+}
+
+// [[Rcpp::export]]
+List cpp_invert_interval_sets(const List& x) {
+  int n = x.size();
+  List out(n);
+  for (int i { 0 }; i < n; ++i) {
+    if (x[i] == NA_INTERVAL) {
+      out[i] = NA_INTERVAL;
+    } else {
+      out[i] = invert_interval_set(x[i]);
+    }
   }
   return out;
 }
@@ -25,7 +43,6 @@ List cpp_compliment_interval_sets(const List& x) {
 NumericMatrix compliment_interval_set(NumericMatrix x) {
   int n { x.nrow() };
   if (n == 0) return infinite_interval();
-  if (ISNA(x[0])) return x;
 
   bool left_open { x[0] == R_NegInf || x[0] == R_PosInf };
   bool right_open { x[x.size() - 1] == R_NegInf || x[x.size() - 1] == R_PosInf };
@@ -39,6 +56,21 @@ NumericMatrix compliment_interval_set(NumericMatrix x) {
   }
   if (!left_open) out[0] = R_NegInf;
   if (!right_open) out[out.size() - 1] = R_PosInf;
+
+  return out;
+}
+
+// [[Rcpp::export]]
+NumericMatrix invert_interval_set(NumericMatrix x) {
+  int n { x.nrow() };
+  if (n == 0) return infinite_interval();
+
+  int n_out { n - 1 };
+  NumericMatrix out(n_out, 2);
+  for (int i { 0 }; i < n_out; ++i) {
+    out[i] = x[n + i];
+    out[i + n_out] = x[i + 1];
+  }
 
   return out;
 }
