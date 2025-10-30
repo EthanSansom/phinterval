@@ -1,6 +1,8 @@
 # misc -------------------------------------------------------------------------
 `%notin%` <- Negate(`%in%`)
 
+`%0|%` <- function(lhs, rhs) if (rlang::is_empty(lhs)) rhs else lhs
+
 pmap_lgl <- function(.l, .f, ...) {
   as.vector(pmap(.l, .f, ...), "logical")
 }
