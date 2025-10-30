@@ -3,7 +3,7 @@
 using namespace Rcpp;
 
 NumericMatrix empty_interval() {
-  NumericMatrix matrix(1, 2);
+  NumericMatrix matrix(0, 2);
   return matrix;
 }
 
@@ -21,6 +21,6 @@ NumericMatrix infinite_interval() {
   return matrix;
 }
 
-bool is_na_interval(const NumericMatrix x) {
+bool is_na_interval(const NumericMatrix& x) {
   return ISNA(x[0]);
 }

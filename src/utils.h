@@ -8,6 +8,6 @@ NumericMatrix empty_interval();
 NumericMatrix na_interval();
 NumericMatrix infinite_interval();
 
-bool is_na_interval(NumericMatrix x);
+bool is_na_interval(const NumericMatrix& x);
 
 #endif
