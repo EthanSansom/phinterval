@@ -32,10 +32,10 @@ new_phinterval <- function(interval_sets = list(), tzone = "UTC") {
 }
 
 #' @export
-format.phinterval <- function(x, max_width = 60, ...) {
+format.phinterval <- function(x, max_width = 120, ...) {
 
   origin <- lubridate::with_tz(lubridate::origin, tzone = get_tzone(x))
-  n_spans <- map(vec_data(x), nrow)
+  n_intervals <- map(vec_data(x), nrow)
   starts <- map(vec_data(x), \(x) format(x[ , 1] + origin, usetz = FALSE))
   ends <- map(vec_data(x), \(x) format(x[ , 2] + origin, usetz = FALSE))
 
@@ -48,8 +48,8 @@ format.phinterval <- function(x, max_width = 60, ...) {
   "}")
 
   too_wide <- nchar(out) > max_width
-  out[too_wide] <- paste0("<phint[", n_spans[too_wide], "]>")
-  out[n_spans == 0] <- "<hole>"
+  out[too_wide] <- paste0("<phint[", n_intervals[too_wide], "]>")
+  out[n_intervals == 0] <- "<hole>"
   out[is.na(starts)] <- NA_character_
   out
 }
@@ -59,9 +59,6 @@ vec_ptype_abbr.phinterval <- function(x, ...) {
   "phintrvl"
 }
 
-# Thanks: https://github.com/r-lib/vctrs/blob/main/R/type-date-time.R
-# for the nice datetime ptype.
-#
 #' @export
 vec_ptype_full.phinterval <- function(x, ...) {
   tzone <- get_tzone(x)
@@ -111,72 +108,36 @@ as_phinterval.Interval <- function(x, tzone = NULL) {
   tzone <- tzone %||% get_tzone(x)
   stop_wrong_class(tzone, "character", n = 1L)
 
-  int <- lubridate::int_standardize(x)
-  na_at <- is.na(int)
-
-  reference_time <- lubridate::with_tz(lubridate::int_start(int), tzone = tzone)
-  range_starts <- as.list(rep(0, length(int)))
-  range_ends <- as.list(as.double(lubridate::int_length(int)))
-
-  reference_time[na_at] <- lubridate::NA_POSIXct_
-  range_starts[na_at] <- NA_real_
-  range_ends[na_at] <- NA_real_
-
+  starts <- lubridate::int_start(x)
+  spans <- lubridate::int_length(x)
   new_phinterval(
-    reference_time = reference_time,
-    range_starts = range_starts,
-    range_ends = range_ends,
+    interval_sets = cpp_lubridate_interval_to_interval_sets(starts, spans),
     tzone = tzone
   )
 }
 
 #' @export
-is_holey <- function(phint, na_as = NA) {
-  if (lubridate::is.interval(phint)) {
-    out <- rep(FALSE, length(phint))
-  } else {
-    phint <- check_is_phinty(phint)
-    range_starts <- field(phint, "range_starts")
-    out <- map_lgl(range_starts, \(s) length(s) > 1)
-  }
-
-  out[is.na(phint)] <- na_as
-  out
+n_spans <- function(phint) {
+  UseMethod("n_spans")
 }
 
-# This is the case where the phinterval element is an empty set of intervals.
-#
 #' @export
-is_hole <- function(phint, na_as = NA) {
-  if (lubridate::is.interval(phint)) {
-    out <- rep(FALSE, length(phint))
-  } else {
-    phint <- check_is_phinty(phint)
-    range_starts <- field(phint, "range_starts")
-    out <- map_int(range_starts, length) <= 0
-  }
-  out[is.na(phint)] <- na_as
+n_spans.Interval <- function(phint) {
+  out <- rep(1L, length(phint))
+  out[is.na(phint)] <- NA_integer_
   out
 }
 
 #' @export
-n_spans <- function(phint, nas_as = NA) {
-
-  if (lubridate::is.interval(phint)) {
-    out <- rep(1L, length(phint))
-  } else {
-    phint <- check_is_phinty(phint)
-    range_starts <- field(phint, "range_starts")
-    out <- map_int(range_starts, length)
-  }
-
-  out[is.na(phint)] <- NA
+n_spans.phinterval <- function(phint) {
+  out <- map_int(vec_data(phint), nrow)
+  out[is.na(phint)] <- NA_integer_
   out
 }
 
 #' @export
-n_holes <- function(phint, na_as = NA) {
-  n_spans(phint, na_as) - 1L
+is_hole <- function(phint) {
+  n_spans(phint) == 0L
 }
 
 #' @export
