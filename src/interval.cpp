@@ -40,11 +40,11 @@ NumericMatrix cpp_squash_lubridate_interval(
 }
 
 // [[Rcpp::export]]
-List lubridate_interval_to_interval_sets(
+List cpp_lubridate_interval_to_interval_sets(
     const DatetimeVector& starts,
     const NumericVector& spans
   ) {
-  int n = spans.size();
+  int n = starts.size();
   List out(n);
 
   NumericMatrix element(1, 2);
