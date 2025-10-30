@@ -1,5 +1,13 @@
 setOldClass("phinterval")
 
+# TODO:
+# - Fix assingment. `phint[1] <- NA` breaks things.
+#   - Implement assignment manually, see: https://github.com/r-lib/vctrs/blob/c9e8897f69dba27dbc7cf5d354da85fd35fc1360/R/type-list-of.R#L21
+#
+# TODO:
+# - The way to remedy the NA problems are just to store NA phinterval values as NULL
+#   in the list!
+
 #' @export
 phinterval <- function(intervals = NULL, tzone = NULL) {
 
@@ -31,11 +39,16 @@ new_phinterval <- function(interval_sets = list(), tzone = "UTC") {
   )
 }
 
+# TODO: Change to NULL form
+na_phinterval <- function(tzone = "UTC") {
+  new_phinterval(matrix(c(NA_real_, NA_real_), ncol = 2L), tzone = tzone)
+}
+
 #' @export
 format.phinterval <- function(x, max_width = 120, ...) {
 
   origin <- lubridate::with_tz(lubridate::origin, tzone = get_tzone(x))
-  n_intervals <- map(vec_data(x), nrow)
+  n_intervals <- map_int(vec_data(x), nrow)
   starts <- map(vec_data(x), \(x) format(x[ , 1] + origin, usetz = FALSE))
   ends <- map(vec_data(x), \(x) format(x[ , 2] + origin, usetz = FALSE))
 
@@ -73,6 +86,11 @@ vec_ptype2.phinterval.phinterval <- function(x, y, ...) {
 
 #' @export
 vec_ptype2.phinterval.Interval <- function(x, y, ...) {
+  new_phinterval(tzone = tz_union(x, y))
+}
+
+#' @export
+vec_ptype2.Interval.phinterval <- function(x, y, ...) {
   new_phinterval(tzone = tz_union(x, y))
 }
 
@@ -142,10 +160,17 @@ is_hole <- function(phint) {
 
 #' @export
 phint_start <- function(phint) {
-  phint <- check_is_phinty(phint)
-  reference_time <- field(phint, "reference_time")
-  range_starts <- field(phint, "range_starts")
-  reference_time + map_dbl(range_starts, min)
+  UseMethod("phint_start")
+}
+
+#' @export
+phint_start.Interval <- function(phint) {
+  lubridate::int_start(phint)
+}
+
+#' @export
+phint_start.phinterval <- function(phint) {
+  origin <- lubridate::with_tz(lubridate::origin, tzone = get_tzone(phint))
 }
 
 #' @export
@@ -322,16 +347,6 @@ phint_to_holes <- function(phint) {
 }
 
 # constructors -----------------------------------------------------------------
-
-#' @export
-na_phinterval <- function(n = 1L, tzone = "UTC") {
-  new_phinterval(
-    reference_time = rep(NA_POSIXct_, n),
-    range_starts = as.list(rep(NA_real_, n)),
-    range_ends = as.list(rep(NA_real_, n)),
-    tzone = tzone
-  )
-}
 
 hole_phinterval <- function(n = 1L, tzone = "UTC") {
   if (n == 0) {
