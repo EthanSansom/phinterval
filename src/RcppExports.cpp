@@ -10,6 +10,17 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// cpp_compliment_interval_sets
+List cpp_compliment_interval_sets(const List& x);
+RcppExport SEXP _phinterval_cpp_compliment_interval_sets(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const List& >::type x(xSEXP);
+    rcpp_result_gen = Rcpp::wrap(cpp_compliment_interval_sets(x));
+    return rcpp_result_gen;
+END_RCPP
+}
 // cpp_squash_lubridate_interval
 NumericMatrix cpp_squash_lubridate_interval(const DatetimeVector& starts, const NumericVector& spans, bool na_rm);
 RcppExport SEXP _phinterval_cpp_squash_lubridate_interval(SEXP startsSEXP, SEXP spansSEXP, SEXP na_rmSEXP) {
@@ -23,15 +34,15 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// lubridate_interval_to_interval_sets
-List lubridate_interval_to_interval_sets(const DatetimeVector& starts, const NumericVector& spans);
-RcppExport SEXP _phinterval_lubridate_interval_to_interval_sets(SEXP startsSEXP, SEXP spansSEXP) {
+// cpp_lubridate_interval_to_interval_sets
+List cpp_lubridate_interval_to_interval_sets(const DatetimeVector& starts, const NumericVector& spans);
+RcppExport SEXP _phinterval_cpp_lubridate_interval_to_interval_sets(SEXP startsSEXP, SEXP spansSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const DatetimeVector& >::type starts(startsSEXP);
     Rcpp::traits::input_parameter< const NumericVector& >::type spans(spansSEXP);
-    rcpp_result_gen = Rcpp::wrap(lubridate_interval_to_interval_sets(starts, spans));
+    rcpp_result_gen = Rcpp::wrap(cpp_lubridate_interval_to_interval_sets(starts, spans));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -61,8 +72,9 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_phinterval_cpp_compliment_interval_sets", (DL_FUNC) &_phinterval_cpp_compliment_interval_sets, 1},
     {"_phinterval_cpp_squash_lubridate_interval", (DL_FUNC) &_phinterval_cpp_squash_lubridate_interval, 3},
-    {"_phinterval_lubridate_interval_to_interval_sets", (DL_FUNC) &_phinterval_lubridate_interval_to_interval_sets, 2},
+    {"_phinterval_cpp_lubridate_interval_to_interval_sets", (DL_FUNC) &_phinterval_cpp_lubridate_interval_to_interval_sets, 2},
     {"_phinterval_cpp_squash_interval_set", (DL_FUNC) &_phinterval_cpp_squash_interval_set, 2},
     {"_phinterval_cpp_union_interval_sets", (DL_FUNC) &_phinterval_cpp_union_interval_sets, 2},
     {NULL, NULL, 0}
