@@ -7,9 +7,20 @@ phint_squash <- function(phint, na.rm = TRUE) {
 phint_squash.phinterval <- function(phint, na.rm = TRUE) {
   stop_wrong_class(na.rm, "logical", n = 1L)
 
+  if (!na.rm && anyNA(phint)) {
+    return(na_phinterval(tzone = get_tzone(phint)))
+  }
+
+  # <phinterval> NA values are represented as NULL elements in the underlying
+  # list vector. rbind() here removes all NULL elements and returns a matrix,
+  # except for when every element is NULL, in which case NULL is returned.
   interval_set <- do.call(rbind, vec_data(phint))
+  if (is.null(interval_set)) {
+    return(na_phinterval(tzone = get_tzone(phint)))
+  }
+
   new_phinterval(
-    interval_sets = cpp_squash_interval_set(interval_set, na_rm = na.rm),
+    interval_sets = cpp_squash_interval_set(interval_set),
     tzone = attr(phint, "tzone")
   )
 }
@@ -17,39 +28,16 @@ phint_squash.phinterval <- function(phint, na.rm = TRUE) {
 #' @export
 phint_squash.Interval <- function(phint, na.rm = TRUE) {
   stop_wrong_class(na.rm, "logical", n = 1L)
-
-  starts <- lubridate::int_start(phint)
-  spans <- lubridate::int_length(phint)
   new_phinterval(
-    interval_sets = cpp_squash_lubridate_interval(starts, spans, na_rm = na.rm),
+    interval_sets = int_squash(phint),
     tzone = attr(phint, "tzone")
   )
 }
 
-#' @export
 int_squash <- function(int, na.rm = TRUE) {
-
-  int <- lubridate::int_standardize(int)
-  int_starts <- lubridate::int_start(int)
-  int_ends <- lubridate::int_end(int)
-  tzone <- lubridate::tz(int_starts)
-
-  na_at <- is.na(int)
-  if (all(na_at) || (any(na_at) && !na.rm)) {
-    return(na_phinterval(tzone = tzone))
-  }
-  if (na.rm) {
-    int_starts <- int_starts[!na_at]
-    int_ends <- int_ends[!na_at]
-  }
-
-  flat_ranges <- range_flatten(as.double(int_starts), as.double(int_ends))
-  new_phinterval(
-    reference_time = origin_posixct(1L, tzone = tzone),
-    range_starts = list(flat_ranges$starts),
-    range_ends = list(flat_ranges$ends),
-    tzone = tzone
-  )
+  starts <- lubridate::int_start(int)
+  spans <- lubridate::int_length(int)
+  cpp_squash_lubridate_interval(starts, spans, na_rm = na.rm)
 }
 
 #' @export
