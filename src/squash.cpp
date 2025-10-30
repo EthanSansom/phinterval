@@ -4,12 +4,8 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
-// TODO: This relies on `do.call(rbind, list_of_matrices)` being called
-// beforehand in R to get the single NumericMatrix x. We could "rbind"
-// directly in C++ instead.
-
 // [[Rcpp::export]]
-NumericMatrix cpp_squash_interval_set(NumericMatrix x, bool na_rm) {
+NumericMatrix cpp_squash_interval_set(const NumericMatrix x) {
   int n { x.nrow() };
   if (n <= 1) return x;
 
@@ -17,15 +13,9 @@ NumericMatrix cpp_squash_interval_set(NumericMatrix x, bool na_rm) {
   endpoints.reserve(n * 2);
 
   for (int i { 0 }; i < n; ++i) {
-    if (na_rm && ISNA(x[i])) continue;
-    if (!na_rm && ISNA(x[i])) return na_interval();
-
     endpoints.push_back(Endpoint { true, x[i] });
     endpoints.push_back(Endpoint { false, x[i + n] });
   }
-
-  // Case where `na_rm` and we've only encountered NA values
-  if (endpoints.empty()) return na_interval();
 
   std::sort(endpoints.begin(), endpoints.end());
   return squash(endpoints);

@@ -5,7 +5,7 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
-NumericMatrix cpp_squash_interval_set(NumericMatrix x, bool na_rm);
+NumericMatrix cpp_squash_interval_set(NumericMatrix x);
 NumericMatrix squash(const Endpoints& endpoints);
 
 #endif
