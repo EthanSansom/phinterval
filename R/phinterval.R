@@ -1,13 +1,5 @@
 setOldClass("phinterval")
 
-# TODO:
-# - Fix assingment. `phint[1] <- NA` breaks things.
-#   - Implement assignment manually, see: https://github.com/r-lib/vctrs/blob/c9e8897f69dba27dbc7cf5d354da85fd35fc1360/R/type-list-of.R#L21
-#
-# TODO:
-# - The way to remedy the NA problems are just to store NA phinterval values as NULL
-#   in the list!
-
 #' @export
 phinterval <- function(intervals = NULL, tzone = NULL) {
 
@@ -19,14 +11,13 @@ phinterval <- function(intervals = NULL, tzone = NULL) {
   }
   if (lubridate::is.interval(intervals)) {
     tzone <- tzone %||% get_tzone(intervals)
-    interval_set <- phint_squash(intervals, na.rm = FALSE)
-    return(new_phinterval(interval_sets = interval_set, tzone = tzone))
+    return(new_phinterval(interval_sets = int_squash(intervals), tzone = tzone))
   }
 
   stop_not_list_of(intervals, "Interval")
   tzone <- tzone %||% get_tzone(intervals[[1]])
   new_phinterval(
-    interval_sets = map(intervals, phint_squash, na.rm = FALSE),
+    interval_sets = map(intervals, int_squash),
     tzone = tzone
   )
 }
@@ -39,31 +30,30 @@ new_phinterval <- function(interval_sets = list(), tzone = "UTC") {
   )
 }
 
-# TODO: Change to NULL form
 na_phinterval <- function(tzone = "UTC") {
-  new_phinterval(matrix(c(NA_real_, NA_real_), ncol = 2L), tzone = tzone)
+  new_phinterval(list(NULL), tzone = tzone)
 }
 
 #' @export
 format.phinterval <- function(x, max_width = 120, ...) {
 
   origin <- lubridate::with_tz(lubridate::origin, tzone = get_tzone(x))
-  n_intervals <- map_int(vec_data(x), nrow)
-  starts <- map(vec_data(x), \(x) format(x[ , 1] + origin, usetz = FALSE))
-  ends <- map(vec_data(x), \(x) format(x[ , 2] + origin, usetz = FALSE))
+  data <- vec_data(x)
 
   out <- paste0("{",
     map2_chr(
-      starts,
-      ends,
-      \(x, y) paste(x, y, sep = "--", collapse = ", ")
-    ),
+      # Both NA and <hole> values (represented as NULL and an empty matrix) will
+      # be formatted as an empty character, which is replaced with "".
+      map_chr(data, \(elm) format(elm[ , 1] + origin, usetz = FALSE) %0|% ""),
+      map_chr(data, \(elm) format(elm[ , 2] + origin, usetz = FALSE) %0|% ""),
+      \(starts, ends) paste(starts, ends, sep = "--", collapse = ", ")),
   "}")
 
-  too_wide <- nchar(out) > max_width
-  out[too_wide] <- paste0("<phint[", n_intervals[too_wide], "]>")
-  out[n_intervals == 0] <- "<hole>"
-  out[is.na(starts)] <- NA_character_
+  n_spans <- n_spans(x)
+  too_big <- nchar(out) > max_width
+  out[too_big] <- paste0("<phint[", n_spans[too_big], "]>")
+  out[n_spans %in% 0] <- "<hole>"
+  out[is.na(n_spans)] <- NA_character_
   out
 }
 
@@ -122,7 +112,6 @@ as_phinterval.default <- function(x, ...) {
 
 #' @export
 as_phinterval.Interval <- function(x, tzone = NULL) {
-
   tzone <- tzone %||% get_tzone(x)
   stop_wrong_class(tzone, "character", n = 1L)
 
@@ -148,8 +137,9 @@ n_spans.Interval <- function(phint) {
 
 #' @export
 n_spans.phinterval <- function(phint) {
-  out <- map_int(vec_data(phint), nrow)
-  out[is.na(phint)] <- NA_integer_
+  out <- rep(NA_integer_, length(phint))
+  non_na <- !is.na(phint)
+  out[non_na] <- map_int(vec_data(phint)[non_na], nrow)
   out
 }
 
@@ -171,72 +161,91 @@ phint_start.Interval <- function(phint) {
 #' @export
 phint_start.phinterval <- function(phint) {
   origin <- lubridate::with_tz(lubridate::origin, tzone = get_tzone(phint))
-}
-
-#' @export
-phint_starts <- function(phint) {
-
-  phint <- check_is_phinty(phint)
-  reference_time <- field(phint, "reference_time")
-  range_starts <- field(phint, "range_starts")
-
-  out <- as.list(na_posixct(length(phint), tzone = tz(phint)))
-  non_na_at <- !is.na(phint)
-
-  out[non_na_at] <- map2(
-    reference_time[non_na_at],
-    range_starts[non_na_at],
-    \(t, s) t + sort(s)
-  )
-  out
+  cpp_interval_sets_start(vec_data(phint)) + origin
 }
 
 #' @export
 phint_end <- function(phint) {
-  phint <- check_is_phinty(phint)
-  reference_time <- field(phint, "reference_time")
-  range_ends <- field(phint, "range_ends")
-  reference_time + map_dbl(range_ends, max)
+  UseMethod("phint_end")
+}
+
+#' @export
+phint_end.Interval <- function(phint) {
+  lubridate::int_end(phint)
+}
+
+#' @export
+phint_end.phinterval <- function(phint) {
+  origin <- lubridate::with_tz(lubridate::origin, tzone = get_tzone(phint))
+  cpp_interval_sets_end(vec_data(phint)) + origin
+}
+
+#' @export
+phint_starts <- function(phint) {
+  UseMethod("phint_starts")
+}
+
+#' @export
+phint_starts.Interval <- function(phint) {
+  as.list(lubridate::int_start(phint))
+}
+
+#' @export
+phint_starts.phinterval <- function(phint) {
+  origin <- lubridate::with_tz(lubridate::origin, tzone = get_tzone(phint))
+  map(cpp_interval_sets_starts(vec_data(phint)), `+`, origin)
 }
 
 #' @export
 phint_ends <- function(phint) {
+  UseMethod("phint_ends")
+}
 
-  phint <- check_is_phinty(phint)
-  reference_time <- field(phint, "reference_time")
-  range_ends <- field(phint, "range_ends")
+#' @export
+phint_ends.Interval <- function(phint) {
+  as.list(lubridate::int_end(phint))
+}
 
-  out <- as.list(na_posixct(length(phint), tzone = tz(phint)))
-  non_na_at <- !is.na(phint)
-
-  out[non_na_at] <- map2(
-    reference_time[non_na_at],
-    range_ends[non_na_at],
-    \(t, e) t + sort(e)
-  )
-  out
+#' @export
+phint_ends.phinterval <- function(phint) {
+  origin <- lubridate::with_tz(lubridate::origin, tzone = get_tzone(phint))
+  map(cpp_interval_sets_ends(vec_data(phint)), `+`, origin)
 }
 
 #' @export
 phint_length <- function(phint) {
+  UseMethod("phint_length")
+}
+
+#' @export
+phint_length.Interval <- function(phint) {
+  lubridate::int_length(phint)
+}
+
+#' @export
+phint_length.phinterval <- function(phint) {
   map_dbl(phint_lengths(phint), sum)
 }
 
 #' @export
 phint_lengths <- function(phint) {
+  UseMethod("phint_lengths")
+}
 
-  phint <- check_is_phinty(phint)
-  range_starts <- field(phint, "range_starts")
-  range_ends <- field(phint, "range_ends")
+#' @export
+phint_lengths.Interval <- function(phint) {
+  as.list(lubridate::int_length(phint))
+}
 
-  out <- as.list(rep(NA_real_, length(phint)))
-  non_na_at <- !is.na(phint)
-
-  out[non_na_at] <- map2(
-    range_starts[non_na_at],
-    range_ends[non_na_at],
-    \(s, e) sort(e - s)
+#' @export
+phint_lengths.phinterval <- function(phint) {
+  data <- vec_data(phint)
+  out <- map2(
+    cpp_interval_sets_ends(data),
+    cpp_interval_sets_starts(data),
+    `-`
   )
+  out[is_hole(phint)] <- 0
   out
 }
 

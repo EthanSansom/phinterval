@@ -7,13 +7,6 @@ NumericMatrix empty_interval() {
   return matrix;
 }
 
-NumericMatrix na_interval() {
-  NumericMatrix matrix(1, 2);
-  matrix(0, 0) = NA_REAL;
-  matrix(0, 1) = NA_REAL;
-  return matrix;
-}
-
 NumericMatrix infinite_interval() {
   NumericMatrix matrix(1, 2);
   matrix(0, 0) = R_NegInf;
@@ -21,6 +14,6 @@ NumericMatrix infinite_interval() {
   return matrix;
 }
 
-bool is_na_interval(const NumericMatrix& x) {
-  return ISNA(x[0]);
+bool is_empty_interval(NumericMatrix x) {
+  return x.nrow();
 }

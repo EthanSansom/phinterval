@@ -1,9 +1,6 @@
 #' @export
 vec_proxy_equal.phinterval <- function(x, ...) {
-  # We can compare the list of matrices, using NULL as a proxy for NA
-  data <- vec_data(x)
-  data[map_lgl(data, \(x) nrow(x) && is.na(x[1]))] <- list(NULL)
-  data
+  vec_data(x)
 }
 
 # TODO: I'm not sure what to do for this. Maybe just implement `<` directly?
