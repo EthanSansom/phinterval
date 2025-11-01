@@ -1,65 +1,88 @@
-setOldClass("phinterval")
-
 #' @export
-phinterval <- function(intervals = NULL, tzone = NULL) {
-
-  # TODO: Allow the `intervals` to be phintervals OR intervals
-  # TODO: Add input checking for `intervals` and `tzone`
-  if (rlang::is_empty(intervals)) {
-    tzone <- tzone %||% "UTC"
-    return(new_phinterval(tzone = tzone))
+phinterval <- function(intervals = interval(), tzone = NULL) {
+  if (!is.list(intervals)) {
+    check_is_phintish(intervals)
+    intervals <- list(intervals)
+  } else {
+    check_is_list_of_phintish(intervals)
   }
-  if (lubridate::is.interval(intervals)) {
-    tzone <- tzone %||% get_tzone(intervals)
-    return(new_phinterval(interval_sets = int_squash(intervals), tzone = tzone))
+  check_valid_tzone(tzone, allow_null = TRUE)
+
+  if (is_empty(intervals)) {
+    return(new_phinterval(tzone = tzone %||% "UTC"))
   }
 
-  stop_not_list_of(intervals, "Interval")
   tzone <- tzone %||% get_tzone(intervals[[1]])
-  new_phinterval(
-    interval_sets = map(intervals, int_squash),
-    tzone = tzone
-  )
+  if (is_phinterval(intervals[[1]])) {
+    interval_sets <- map(intervals, phint_to_interval_set)
+  } else {
+    interval_sets <- map(intervals, int_to_interval_set)
+  }
+  new_phinterval(interval_sets = interval_sets, tzone = tzone)
 }
 
 new_phinterval <- function(interval_sets = list(), tzone = "UTC") {
-  vctrs::new_vctr(
-    if (is.matrix(interval_sets)) list(interval_sets) else interval_sets,
+  new_vctr(
+    if (!is.list(interval_sets)) list(interval_sets) else interval_sets,
     tzone = tzone,
     class = "phinterval"
   )
 }
 
-na_phinterval <- function(tzone = "UTC") {
-  new_phinterval(list(NULL), tzone = tzone)
+#' @export
+obj_print_data.phinterval <- function(x, max_width = 90, ...) {
+  if (length(x) == 0) {
+    return(invisible(x))
+  }
+
+  # Truncating prior to formatting as format.phinterval is slow
+  max_print <- getOption("max.print", 9999L)
+  if (length(x) > max_print) {
+    x_t <- x[seq_len(max_print)]
+    out <- set_names(format(x_t, max_width = max_width), names(x_t))
+    print(out, quote = FALSE)
+    cat(" [ Omitted", length(x) - max_print, "entries ]\n")
+    return(invisible(x))
+  }
+
+  out <- set_names(format(x, max_width = max_width), names(x))
+  print(out, quote = FALSE)
+  invisible(x)
 }
 
+# TODO: Make `max_width` an option
 #' @export
-format.phinterval <- function(x, max_width = 120, ...) {
+format.phinterval <- function(x, max_width = 90, ...) {
+  check_number_whole(max_width, min = 1)
 
-  origin <- lubridate::with_tz(lubridate::origin, tzone = get_tzone(x))
-  data <- vec_data(x)
+  # TODO: Cap the number of spans that you're willing to format. Say 5-10.
+  #       If we allow larger we're going to spend a decent time pasting.
+  #
+  # Also, how to prevent the formatting of elements which we're not going
+  # to print, since formatting is so expensive?
 
   out <- paste0("{",
     map2_chr(
-      # Both NA and <hole> values (represented as NULL and an empty matrix) will
-      # be formatted as an empty character, which is replaced with "".
-      map_chr(data, \(elm) format(elm[ , 1] + origin, usetz = FALSE) %0|% ""),
-      map_chr(data, \(elm) format(elm[ , 2] + origin, usetz = FALSE) %0|% ""),
-      \(starts, ends) paste(starts, ends, sep = "--", collapse = ", ")),
+      map(phint_starts(x), \(starts) format(starts, usetz = FALSE)),
+      map(phint_ends(x), \(ends) format(ends, usetz = FALSE)),
+      # <hole> elements are initially formatted as character(0L)
+      \(starts, ends) paste(starts, ends, sep = "--", collapse = ", ") %0|% ""
+    ),
   "}")
 
   n_spans <- n_spans(x)
   too_big <- nchar(out) > max_width
   out[too_big] <- paste0("<phint[", n_spans[too_big], "]>")
-  out[n_spans %in% 0] <- "<hole>"
-  out[is.na(n_spans)] <- NA_character_
+  out[!n_spans] <- "<hole>"
+  out[is.na(x)] <- NA_character_
   out
 }
 
 #' @export
 vec_ptype_abbr.phinterval <- function(x, ...) {
-  "phintrvl"
+  tzone <- get_tzone(x)
+  if (tz_is_local(tzone)) tzone <- "local"
+  paste0("phint<", tzone, ">")
 }
 
 #' @export
@@ -111,21 +134,23 @@ as_phinterval.default <- function(x, ...) {
 }
 
 #' @export
-as_phinterval.Interval <- function(x, tzone = NULL) {
-  tzone <- tzone %||% get_tzone(x)
-  stop_wrong_class(tzone, "character", n = 1L)
-
+as_phinterval.Interval <- function(x) {
   starts <- lubridate::int_start(x)
   spans <- lubridate::int_length(x)
   new_phinterval(
     interval_sets = cpp_lubridate_interval_to_interval_sets(starts, spans),
-    tzone = tzone
+    tzone = get_tzone(x)
   )
 }
 
 #' @export
 n_spans <- function(phint) {
   UseMethod("n_spans")
+}
+
+#' @export
+n_spans.default <- function(phint) {
+  check_is_phintish(phint)
 }
 
 #' @export
@@ -154,6 +179,11 @@ phint_start <- function(phint) {
 }
 
 #' @export
+phint_start.default <- function(phint) {
+  check_is_phintish(phint)
+}
+
+#' @export
 phint_start.Interval <- function(phint) {
   lubridate::int_start(phint)
 }
@@ -167,6 +197,11 @@ phint_start.phinterval <- function(phint) {
 #' @export
 phint_end <- function(phint) {
   UseMethod("phint_end")
+}
+
+#' @export
+phint_end.default <- function(phint) {
+  check_is_phintish(phint)
 }
 
 #' @export
@@ -186,6 +221,11 @@ phint_starts <- function(phint) {
 }
 
 #' @export
+phint_starts.default <- function(phint) {
+  check_is_phintish(phint)
+}
+
+#' @export
 phint_starts.Interval <- function(phint) {
   as.list(lubridate::int_start(phint))
 }
@@ -199,6 +239,11 @@ phint_starts.phinterval <- function(phint) {
 #' @export
 phint_ends <- function(phint) {
   UseMethod("phint_ends")
+}
+
+#' @export
+phint_ends.default <- function(phint) {
+  check_is_phintish(phint)
 }
 
 #' @export
@@ -218,6 +263,11 @@ phint_length <- function(phint) {
 }
 
 #' @export
+phint_length.default <- function(phint) {
+  check_is_phintish(phint)
+}
+
+#' @export
 phint_length.Interval <- function(phint) {
   lubridate::int_length(phint)
 }
@@ -230,6 +280,11 @@ phint_length.phinterval <- function(phint) {
 #' @export
 phint_lengths <- function(phint) {
   UseMethod("phint_lengths")
+}
+
+#' @export
+phint_lengths.default <- function(phint) {
+  check_is_phintish(phint)
 }
 
 #' @export
@@ -250,272 +305,74 @@ phint_lengths.phinterval <- function(phint) {
 }
 
 #' @export
-phint_invert <- function(phint) {
-
-  if (lubridate::is.interval(phint)) {
-    tzone <- get_tzone(phint)
-    return(na_phinterval(n = length(phint), tzone = tzone))
-  }
-
-  phint <- check_is_phinty(phint)
-  reference_time <- field(phint, "reference_time")
-  range_starts <- field(phint, "range_starts")
-  range_ends <- field(phint, "range_ends")
-  tzone <- tz(phint)
-
-  is_holey <- !(is.na(phint) | map_lgl(range_starts, \(s) length(s) == 1))
-
-  holey_ranges <- order_ranges(range_starts[is_holey], range_ends[is_holey])
-  hole_starts <- map(holey_ranges$ends, \(e) e[-length(e)])
-  hole_ends <- map(holey_ranges$starts, \(s) s[-1L])
-
-  reference_time[!is_holey] <- na_posixct(1L, tzone = tzone)
-
-  new_starts <- as.list(rep(NA_real_, length(phint)))
-  new_ends <- new_starts
-  new_starts[is_holey] <- hole_starts
-  new_ends[is_holey] <- hole_ends
-
-  new_phinterval(
-    reference_time = reference_time,
-    range_starts = new_starts,
-    range_ends = new_ends,
-    tzone = tzone
-  )
+phint_invert <- function(phint, hole_to = c("hole", "inf", "na")) {
+  UseMethod("phint_invert")
 }
 
-order_ranges <- function(range_starts, range_ends) {
-  starts_order <- map(range_starts, order)
-  starts <- map2(range_starts, starts_order, \(s, o) s[o])
-  ends <- map2(range_ends, starts_order, \(e, o) e[o])
-  list(starts = starts, ends = ends)
-}
-
-# TODO: Where possible the approach that got us from `phint_to_spans_v1` to
-# the current iteration should be taken. In particular, work with vectors instead
-# of lists of vectors where possible (i.e. avoid `map`).
-#
-# In the current `phint_to_spans`, we avoid creating a ton of intervals in
-# the V1 `map2(int_starts, int_ends, interval, tzone = tzone)` call by creating
-# a single interval and then splitting it.
-#
-# The function below transforms a `phinterval` into a list of parallel of POSIX
-# starts and ends, with their `index` in the phinterval. Empty (hole) elements
-# are NOT included. I.e. You'd assign this back to the non-hole elements.
-flatten_phinterval <- function(phint) {
-
-  reference_time <- field(phint, "reference_time")
-  range_starts <- field(phint, "range_starts") |> map2(reference_time, `+`)
-  range_ends <- field(phint, "range_ends") |> map2(reference_time, `+`)
-
-  n_spans <- vctrs::list_sizes(range_starts)
-  list(
-    index = rep(seq_along(n_spans), times = n_spans),
-    range_starts = vctrs::list_unchop(range_starts),
-    range_ends = vctrs::list_unchop(range_ends)
-  )
-
-}
-
-# - Use `vctrs::list_unchop` instead of `list_c`
-# - Don't bother with `standardize_phinterval`
 #' @export
-phint_to_spans <- function(phint, hole_to = c("null", "na")) {
+phint_invert.default <- function(phint, hole_to = c("hole", "inf", "na")) {
+  check_is_phintish(phint)
+}
 
-  phint <- check_is_phinty(phint)
-  hole_to <- rlang::arg_match(hole_to)
-
-  reference_time <- field(phint, "reference_time")
-  int_starts <- field(phint, "range_starts") |> map2(reference_time, `+`)
-  int_ends <- field(phint, "range_ends") |> map2(reference_time, `+`)
-
-  n_spans <- lengths(int_starts)
-  spans <- interval(
-    vctrs::list_unchop(int_starts),
-    vctrs::list_unchop(int_ends),
-    tzone = tz(phint)
+#' @export
+phint_invert.Interval <- function(phint, hole_to = c("hole", "inf", "na")) {
+  arg_match(hole_to)
+  new_phinterval(
+    interval_sets = rep(matrix(numeric(), ncol = 2L), length(phint)),
+    tzone = get_tzone(phint)
   )
+}
 
-  # There will be no elements of `split(spans, ...)` generated for empty
-  # phintervals (holes), so we can just ignore them. The holes will be an empty
-  # (NULL) list element in `out` which makes sense.
-  out <- vector("list", length(phint))
-  out[n_spans > 0] <- split(spans, rep(seq_along(n_spans), times = n_spans))
-  if (hole_to  == "na") {
-    out[n_spans <= 0] <- list(na_interval(1L))
+#' @export
+phint_invert.phinterval <- function(phint, hole_to = c("hole", "inf", "na")) {
+  hole_to <- arg_match(hole_to)
+
+  # By default a <hole> is left as a <hole>
+  interval_sets <- cpp_invert_interval_sets(vec_data(phint))
+  if (hole_to == "inf") {
+    interval_sets[is_hole(phint)] <- matrix(c(-Inf, Inf), ncol = 2L)
+  } else if (hole_to == "na") {
+    interval_sets[is_hole(phint)] <- NULL
+  }
+  new_phinterval(interval_sets = interval_sets, tzone = get_tzone(phint))
+}
+
+#' @export
+phint_to_spans <- function(phint, hole_to = c("empty", "na", "null")) {
+  hole_to <- arg_match(hole_to)
+  out <- map2(
+    phint_starts(phint),
+    phint_ends(phint),
+    lubridate::interval
+  )
+  if (hole_to == "null") {
+    out[is_hole(out)] <- NULL
+  } else if (hole_to == "na") {
+    out[is_hole(out)] <- lubridate::interval(NA, NA, tzone = get_tzone(phint))
   }
   out
 }
 
 #' @export
-phint_to_holes <- function(phint) {
-  phint |>
-    check_is_phinty() |>
-    phint_invert() |>
-    phint_to_spans()
-}
-
-# constructors -----------------------------------------------------------------
-
-hole_phinterval <- function(n = 1L, tzone = "UTC") {
-  if (n == 0) {
-    return(
-      new_phinterval(
-        reference_time = empty_posixct(tzone = tzone),
-        range_starts = list(),
-        range_ends = list(),
-        tzone = tzone
-      )
-    )
-  }
-  range <- lapply(seq(n), \(x) numeric())
+phint_sift <- function(phint) {
+  check_is_phintish(phint)
   new_phinterval(
-    reference_time = origin_posixct(n = n, tzone = tzone),
-    range_starts = range,
-    range_ends = range,
-    tzone = tzone
+    cpp_interval_sets_remove_instants(vec_data(as_phinterval(phint))),
+    tzone = get_tzone(phint)
   )
 }
 
 #' @export
-empty_posixct <- function(tzone = "UTC") {
-  as.POSIXct(logical(), tz = tzone)
+as_duration <- function(x) {
+  UseMethod("as_duration")
 }
 
 #' @export
-na_posixct <- function(n = 1L, tzone = "UTC") {
-  as.POSIXct(rep(NA, n), tz = tzone)
+as_duration.default <- function(x) {
+  lubridate::as.duration(x)
 }
 
 #' @export
-na_interval <- function(n = 1L, tzone = "UTC") {
-  na_times <- na_posixct(n = n, tzone = tzone)
-  lubridate::interval(start = na_times, end = na_times)
-}
-
-#' @export
-origin_posixct <- function(n = 1L, tzone = "UTC") {
-  as.POSIXct(rep(0L, n), origin = lubridate::origin, tz = tzone)
-}
-
-
-# helpers ----------------------------------------------------------------------
-
-# TODO: Consolidate the `range_is_flat` and `range_contains_overlaps` functions.
-#       Think about the best language to describe overlapping vs. flat vs. intersecting
-flatten_overlapping_ranges <- function(range_starts, range_ends) {
-
-  range_not_flat <- !map2_lgl(range_starts, range_ends, range_is_flat)
-  range_not_flat[is.na(range_not_flat)] <- FALSE
-
-  if (any(range_not_flat)) {
-    flattened <- map2(
-      range_starts[range_not_flat],
-      range_ends[range_not_flat],
-      range_flatten
-    )
-    range_starts[range_not_flat] <- map(flattened, `[[`, "starts")
-    range_ends[range_not_flat] <- map(flattened, `[[`, "ends")
-  }
-
-  list(starts = range_starts, ends = range_ends)
-}
-
-combine_phintervals <- function(.phint1, .phint2, .f, ...) {
-
-  objs <- recycle2_common(.phint1, .phint2)
-  phint1 <- check_is_phinty(objs$x)
-  phint2 <- check_is_phinty(objs$y)
-
-  range1 <- rangify_phinterval(phint1)
-  range2 <- rangify_phinterval(phint2)
-
-  non_na_at <- !(is.na(phint1) | is.na(phint2))
-
-  range1_starts <- range1$starts[non_na_at]
-  range1_ends <- range1$ends[non_na_at]
-  range2_starts <- range2$starts[non_na_at]
-  range2_ends <- range2$ends[non_na_at]
-
-  out_range <- pmap(
-    list(
-      x_starts = range1_starts,
-      x_ends = range1_ends,
-      y_starts = range2_starts,
-      y_ends = range2_ends
-    ),
-    .f = .f,
-    ...
-  )
-
-  out_length <- length(phint1)
-
-  tzone <- tz_union(phint1, phint2)
-  reference_time <- origin_posixct(out_length, tzone = tzone)
-  range_starts <- as.list(rep(NA_real_, out_length))
-  range_ends <- range_starts
-
-  range_starts[non_na_at] <- map(out_range, `[[`, "starts")
-  range_ends[non_na_at] <- map(out_range, `[[`, "ends")
-
-  new_phinterval(
-    reference_time = reference_time,
-    range_starts = range_starts,
-    range_ends = range_ends,
-    tzone = tzone
-  )
-}
-
-rangify_phinterval <- function(phint) {
-
-  reference_seconds <- as.double(field(phint, "reference_time"))
-  range_starts <- field(phint, "range_starts")
-  range_ends <- field(phint, "range_ends")
-
-  list(
-    starts = map2(reference_seconds, range_starts, `+`),
-    ends = map2(reference_seconds, range_ends, `+`)
-  )
-}
-
-standardize_phinterval <- function(phint) {
-
-  reference_time <- field(phint, "reference_time")
-  range_starts <- field(phint, "range_starts")
-  range_ends <- field(phint, "range_ends")
-  tzone <- tz(phint)
-
-  # Temporarily assign holes a range of [0, 0] so they can pass through
-  # the `order` and `min` operations without problems.
-  holes <- is_hole(phint, na_as = FALSE)
-  range_starts[holes] <- list(0)
-  range_ends[holes] <- list(0)
-
-  starts_order <- map(range_starts, order)
-  starts_min <- map_dbl(range_starts, min)
-
-  new_time <- reference_time + starts_min
-  new_starts <- pmap(
-    list(range_starts, starts_order, starts_min),
-    \(range_starts, starts_order, starts_min) {
-      range_starts[starts_order] - starts_min
-    }
-  )
-  new_ends <- pmap(
-    list(range_ends, starts_order, starts_min),
-    \(range_ends, starts_order, starts_min) {
-      range_ends[starts_order] - starts_min
-    }
-  )
-
-  # Reset the holes to be empty
-  new_starts[holes] <- list(numeric())
-  new_ends[holes] <- list(numeric())
-
-  new_phinterval(
-    reference_time = new_time,
-    range_starts = new_starts,
-    range_ends = new_ends,
-    tzone = tzone
-  )
+as_duration.phinterval <- function(x) {
+  lubridate::as.duration(phint_length(x))
 }
