@@ -7,6 +7,8 @@
 
 [![Codecov test
 coverage](https://codecov.io/gh/EthanSansom/phinterval/graph/badge.svg)](https://app.codecov.io/gh/EthanSansom/phinterval)
+[![Lifecycle:
+experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 <!-- badges: end -->
 
 {phinterval} is a package for representing and manipulating time spans
