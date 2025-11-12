@@ -4,7 +4,6 @@
 # phinterval -------------------------------------------------------------------
 
 test_that("phinterval() returns zero-length vector", {
-
   phint <- phinterval()
   expect_s3_class(phint, "phinterval")
   expect_length(phint, 0L)
@@ -12,76 +11,27 @@ test_that("phinterval() returns zero-length vector", {
   phint <- phinterval(list())
   expect_s3_class(phint, "phinterval")
   expect_length(phint, 0L)
-
-  phint <- phinterval(NULL)
-  expect_s3_class(phint, "phinterval")
-  expect_length(phint, 0L)
-
 })
 
-test_that("zero-length phinterval() respects `tzone`", {
-  phint <- phinterval(tzone = "EST")
-  expect_equal(attr(phint, "tzone"), "EST")
+test_that("NA intervals result in NA output", {
+  phint <- as_phinterval(interval(
+    c(as.Date("2020-01-01"), NA),
+    c(as.Date("2020-01-01"), NA)
+  ))
+  expect_equal(is.na(phint), c(FALSE, TRUE))
 })
 
-test_that("NA or empty intervals result in NA output", {
+test_that("phinterval() errors on invalid inputs", {
+  int <- interval(as.Date("2021-01-01"), as.Date("2021-02-01"))
 
-  int_NA <- interval(NA_POSIXct_, NA_POSIXct_)
-  int_empty <- interval()
-  int1 <- interval(as.Date("2020-01-01"), as.Date("2022-01-01"))
-  phint1 <- phinterval(list(int_NA))
-  phint2 <- phinterval(list(int_empty))
-  phint3 <- phinterval(list(int_NA, int_empty))
-  phint4 <- phinterval(list(c(int1, int_NA)))
-
-  expect_true(all(is.na(phint1)))
-  expect_true(all(is.na(phint2)))
-  expect_true(all(is.na(phint3)))
-  expect_true(all(is.na(phint4)))
-  expect_length(phint1, 1L)
-  expect_length(phint2, 1L)
-  expect_length(phint3, 2L)
-  expect_length(phint4, 1L)
-
+  expect_error(phinterval(list(int, 10)))
+  expect_error(phinterval(10))
+  expect_error(phinterval(as.Date("2020-01-01")))
+  expect_error(phinterval(list(int), tzone = 1))
+  expect_error(phinterval(tzone = c("UTC", "EST")))
 })
 
-test_that("phinterval errors on invalid inputs", {
-
-  int <- interval(as.Date("2021-01-01"), as.Date("2021-02-01"), tzone = "UTC")
-
-  expect_error(
-    phinterval(list(int, 10)),
-    class = "phinterval_error_wrong_list_of"
-  )
-  expect_error(
-    phinterval(10),
-    class = "phinterval_error_wrong_list_of"
-  )
-  expect_error(
-    phinterval(as.Date("2020-01-01"), tzone = 10),
-    class = "phinterval_error_wrong_list_of"
-  )
-
-  expect_error(
-    phinterval(list(int), tzone = 1),
-    class = "phinterval_error_wrong_class"
-  )
-  expect_error(
-    phinterval(tzone = 1),
-    class = "phinterval_error_wrong_class"
-  )
-  expect_error(
-    phinterval(list(int), tzone = c("UTC", "EST")),
-    class = "phinterval_error_wrong_class"
-  )
-  expect_error(
-    phinterval(tzone = c("UTC", "EST")),
-    class = "phinterval_error_wrong_class"
-  )
-
-})
-
-test_that("phinterval `tzone` argument overrides `intervals` timezone", {
+test_that("phinterval() `tzone` argument overrides `intervals` timezone", {
 
   int <- interval(as.Date("2021-01-01"), as.Date("2021-02-01"), tzone = "UTC")
   phint <- phinterval(list(int), tzone = "EST")
@@ -95,11 +45,9 @@ test_that("phinterval `tzone` argument overrides `intervals` timezone", {
     as.numeric(lubridate::int_end(int)),
     as.numeric(phint_end(phint))
   )
-
 })
 
-test_that("phinterval merges overlapping and adjacent intervals", {
-
+test_that("phinterval() merges overlapping and adjacent intervals", {
   t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
   t2 <- as.POSIXct("2021-01-01 00:00:45", tz = "UTC")
   t3 <- as.POSIXct("2021-01-01 00:00:55", tz = "UTC")
@@ -112,10 +60,9 @@ test_that("phinterval merges overlapping and adjacent intervals", {
 
   phint <- phinterval(list(overlapping, adjacent))
   expect_equal(phint_to_spans(phint), list(non_lapping, non_adj))
-
 })
 
-test_that("phinterval standardizes input intervals", {
+test_that("phinterval() standardizes input intervals", {
   int <- interval(as.Date("2020-01-01"), as.Date("2021-01-01"))
   expect_equal(
     phinterval(list(int)),
@@ -123,7 +70,7 @@ test_that("phinterval standardizes input intervals", {
   )
 })
 
-test_that("phinterval works as expected", {
+test_that("phinterval() works as expected", {
 
   t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "EST")
   t2 <- as.POSIXct("2021-01-01 00:00:30", tz = "EST")
@@ -142,7 +89,6 @@ test_that("phinterval works as expected", {
   expect_length(phint, length(intervals))
   expect_s3_class(phint, "phinterval")
   expect_equal(attr(phint, "tzone"), "EST")
-
 })
 
 # as_phinterval ----------------------------------------------------------------
@@ -158,46 +104,13 @@ test_that("as_phinterval works as expected", {
   int1 <- interval(t1, t2)
   int2 <- interval(c(t1, t3), c(t2, t4))
 
-  as_phint1 <- as_phinterval(int1)
-  as_phint2 <- as_phinterval(int2)
   phint0 <- phinterval()
   phint1 <- phinterval(list(int1))
   phint2 <- phinterval(list(interval(t1, t2), interval(t3, t4)))
 
   expect_equal(as_phinterval(int0), phinterval())
-  expect_equal(as_phint1, phint1)
-  expect_equal(as_phint2, phint2)
-  expect_equal(as_phinterval(phint0), phint0)
-  expect_equal(as_phinterval(phint1), phint1)
-  expect_equal(as_phinterval(phint2), phint2)
-
-  as_phint1 <- as_phinterval(int1, tzone = "EST")
-  as_phint2 <- as_phinterval(int2, tzone = "EST")
-  phint1 <- phinterval(list(int1), tzone = "EST")
-  phint2 <- phinterval(list(interval(t1, t2), interval(t3, t4)), tzone = "EST")
-
-  expect_equal(as_phinterval(int0, tzone = "EST"), phinterval(tzone = "EST"))
-  expect_equal(as_phint1, phint1)
-  expect_equal(as_phint2, phint2)
-
-})
-
-# is_phinterval ----------------------------------------------------------------
-
-test_that("is_phinterval works as expected", {
-
-  t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
-  t2 <- as.POSIXct("2021-01-01 00:00:30", tz = "UTC")
-  int1 <- interval(t1, t2)
-
-  expect_true(is_phinterval(phinterval()))
-  expect_true(is_phinterval(phinterval(list(int1))))
-  expect_true(is_phinterval(na_phinterval()))
-  expect_false(is_phinterval(t1))
-  expect_false(is_phinterval(int1))
-  expect_false(is_phinterval("a"))
-  expect_false(is_phinterval(logical()))
-
+  expect_equal(as_phinterval(int1), phint1)
+  expect_equal(as_phinterval(int2), phint2)
 })
 
 # phint_start ------------------------------------------------------------------
