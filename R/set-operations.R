@@ -1,8 +1,3 @@
-# todos ------------------------------------------------------------------------
-
-# TODO:
-# - Recycling for pairwise operations!
-
 # squash -----------------------------------------------------------------------
 
 #' @export
@@ -62,11 +57,12 @@ phint_overlaps <- function(phint1, phint2) {
   check_is_phintish(phint1)
   check_is_phintish(phint2)
   check_recycleable(phint1, phint2)
+  phints <- vctrs::vec_recycle_common(phint1, phint2)
 
   new_phinterval(
     cpp_interval_sets_overlaps(
-      vec_data(as_phinterval(phint1)),
-      vec_data(as_phinterval(phint2))
+      vec_data(as_phinterval(phints[[1]])),
+      vec_data(as_phinterval(phints[[2]]))
     ),
     tzone = tz_union(phint1, phint2)
   )
@@ -79,11 +75,12 @@ phint_union <- function(phint1, phint2) {
   check_is_phintish(phint1)
   check_is_phintish(phint2)
   check_recycleable(phint1, phint2)
+  phints <- vctrs::vec_recycle_common(phint1, phint2)
 
   new_phinterval(
     cpp_union_interval_sets(
-      vec_data(as_phinterval(phint1)),
-      vec_data(as_phinterval(phint2))
+      vec_data(as_phinterval(phints[[1]])),
+      vec_data(as_phinterval(phints[[2]]))
     ),
     tzone = tz_union(phint1, phint2)
   )
@@ -108,11 +105,12 @@ phint_intersect <- function(phint1, phint2) {
   check_is_phintish(phint1)
   check_is_phintish(phint2)
   check_recycleable(phint1, phint2)
+  phints <- vctrs::vec_recycle_common(phint1, phint2)
 
   new_phinterval(
     cpp_intersect_interval_sets(
-      vec_data(as_phinterval(phint1)),
-      vec_data(as_phinterval(phint2))
+      vec_data(as_phinterval(phints[[1]])),
+      vec_data(as_phinterval(phints[[2]]))
     ),
     tzone = tz_union(phint1, phint2)
   )
@@ -125,9 +123,11 @@ phint_setdiff <- function(phint1, phint2) {
   check_is_phintish(phint1)
   check_is_phintish(phint2)
   check_recycleable(phint1, phint2)
+  phints <- vctrs::vec_recycle_common(phint1, phint2)
 
-  interval_sets1 <- vec_data(as_phinterval(phint1))
-  interval_sets2 <- vec_data(as_phinterval(phint2))
+  # A \ B is equivalent to the intersection of A and B^c
+  interval_sets1 <- vec_data(as_phinterval(phints[[1]]))
+  interval_sets2 <- vec_data(as_phinterval(phints[[2]]))
   interval_sets <- cpp_intersect_interval_sets(
     interval_sets1,
     cpp_complement_interval_sets(interval_sets2)
