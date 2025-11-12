@@ -35,7 +35,7 @@ int interval_set_within(NumericMatrix x, NumericMatrix y) {
     endpoints.push_back(BinaryEndpoint { false, false, y[i + ny] });
   }
 
-  std::sort(endpoints.begin(), endpoints.end(), lt_within);
+  std::sort(endpoints.begin(), endpoints.end());
   return within(endpoints);
 }
 
