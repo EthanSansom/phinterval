@@ -51,8 +51,15 @@ double interval_set_start(const Nullable<NumericMatrix> x_) {
 
 NumericVector interval_set_starts(const Nullable<NumericMatrix> x_) {
   if (x_.isNull()) return NumericVector(1, NA_REAL);
+
   NumericMatrix x (x_);
-  return (x == NA_INTERVAL || !x.nrow()) ? NumericVector(1, NA_REAL) : x.column(0);
+  if (x == NA_INTERVAL) {
+    return NumericVector(1, NA_REAL);
+  } else if (x.nrow() == 0) {
+    return NumericVector(0);
+  } else {
+    return x.column(0);
+  }
 }
 
 double interval_set_end(const Nullable<NumericMatrix> x_) {
@@ -63,6 +70,13 @@ double interval_set_end(const Nullable<NumericMatrix> x_) {
 
 NumericVector interval_set_ends(const Nullable<NumericMatrix> x_) {
   if (x_.isNull()) return NumericVector(1, NA_REAL);
+
   NumericMatrix x (x_);
-  return (x == NA_INTERVAL || !x.nrow()) ? NumericVector(1, NA_REAL) : x.column(1);
+  if (x == NA_INTERVAL) {
+    return NumericVector(1, NA_REAL);
+  } else if (x.nrow() == 0) {
+    return NumericVector(0);
+  } else {
+    return x.column(1);
+  }
 }
