@@ -4,3 +4,5 @@
 ^under_construction$
 ^paper$
 ^README\.Rmd$
+^codecov\.yml$
+^\.github$

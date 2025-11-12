@@ -4,6 +4,9 @@
 # phinterval
 
 <!-- badges: start -->
+
+[![Codecov test
+coverage](https://codecov.io/gh/EthanSansom/phinterval/graph/badge.svg)](https://app.codecov.io/gh/EthanSansom/phinterval)
 <!-- badges: end -->
 
 {phinterval} is a package for representing and manipulating time spans
