@@ -1,5 +1,5 @@
 #' @export
-phinterval <- function(intervals = interval(), tzone = NULL) {
+phinterval <- function(intervals = list(), tzone = NULL) {
   if (!is.list(intervals)) {
     check_is_phintish(intervals)
     intervals <- list(intervals)
@@ -50,16 +50,9 @@ obj_print_data.phinterval <- function(x, max_width = 90, ...) {
   invisible(x)
 }
 
-# TODO: Make `max_width` an option
 #' @export
 format.phinterval <- function(x, max_width = 90, ...) {
   check_number_whole(max_width, min = 1)
-
-  # TODO: Cap the number of spans that you're willing to format. Say 5-10.
-  #       If we allow larger we're going to spend a decent time pasting.
-  #
-  # Also, how to prevent the formatting of elements which we're not going
-  # to print, since formatting is so expensive?
 
   out <- paste0("{",
     map2_chr(
@@ -135,10 +128,11 @@ as_phinterval.default <- function(x, ...) {
 
 #' @export
 as_phinterval.Interval <- function(x) {
-  starts <- lubridate::int_start(x)
-  spans <- lubridate::int_length(x)
   new_phinterval(
-    interval_sets = cpp_lubridate_interval_to_interval_sets(starts, spans),
+    interval_sets = cpp_lubridate_interval_to_interval_sets(
+      starts = lubridate::int_start(x),
+      spans = lubridate::int_length(x)
+    ),
     tzone = get_tzone(x)
   )
 }
@@ -318,7 +312,7 @@ phint_invert.default <- function(phint, hole_to = c("hole", "inf", "na")) {
 phint_invert.Interval <- function(phint, hole_to = c("hole", "inf", "na")) {
   arg_match(hole_to)
   new_phinterval(
-    interval_sets = rep(matrix(numeric(), ncol = 2L), length(phint)),
+    interval_sets = rep(list(matrix(numeric(), ncol = 2L)), length(phint)),
     tzone = get_tzone(phint)
   )
 }
@@ -326,30 +320,24 @@ phint_invert.Interval <- function(phint, hole_to = c("hole", "inf", "na")) {
 #' @export
 phint_invert.phinterval <- function(phint, hole_to = c("hole", "inf", "na")) {
   hole_to <- arg_match(hole_to)
-
-  # By default a <hole> is left as a <hole>
   interval_sets <- cpp_invert_interval_sets(vec_data(phint))
-  if (hole_to == "inf") {
-    interval_sets[is_hole(phint)] <- matrix(c(-Inf, Inf), ncol = 2L)
-  } else if (hole_to == "na") {
-    interval_sets[is_hole(phint)] <- NULL
-  }
+  switch(
+    hole_to,
+    inf = interval_sets[is_hole(phint)] <- list(matrix(c(-Inf, Inf), ncol = 2L)),
+    na = interval_sets[is_hole(phint)] <- list(NULL)
+  )
   new_phinterval(interval_sets = interval_sets, tzone = get_tzone(phint))
 }
 
 #' @export
 phint_to_spans <- function(phint, hole_to = c("empty", "na", "null")) {
   hole_to <- arg_match(hole_to)
-  out <- map2(
-    phint_starts(phint),
-    phint_ends(phint),
-    lubridate::interval
+  out <- map2(phint_starts(phint), phint_ends(phint), interval)
+  switch(
+    hole_to,
+    null = out[is_hole(phint)] <- list(NULL),
+    na = out[is_hole(phint)] <- list(interval(NA, NA, tzone = get_tzone(phint)))
   )
-  if (hole_to == "null") {
-    out[is_hole(out)] <- NULL
-  } else if (hole_to == "na") {
-    out[is_hole(out)] <- lubridate::interval(NA, NA, tzone = get_tzone(phint))
-  }
   out
 }
 
