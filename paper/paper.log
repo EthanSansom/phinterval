@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999996 (TeX Live 2024) (preloaded format=xelatex 2025.3.6)  12 NOV 2025 14:17
+This is XeTeX, Version 3.141592653-2.6-0.999996 (TeX Live 2024) (preloaded format=xelatex 2025.3.6)  12 NOV 2025 16:09
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -993,7 +993,7 @@ Package hyperref Warning: Suppressing link with empty target on input line 302.
 Package hyperref Warning: Suppressing link with empty target on input line 302.
 
 LaTeX Font Info:    Font shape `TU/lmtt/bx/n' in size <10> not available
-(Font)              Font shape `TU/lmtt/b/n' tried instead on input line 362.
+(Font)              Font shape `TU/lmtt/b/n' tried instead on input line 363.
 
 
 File: /Library/Frameworks/R.framework/Versions/4.2-arm64/Resources/library/rticles/rmarkdown/templates/joss/resources/JOSS-logo.png Graphic file (type bmp)
@@ -1006,11 +1006,11 @@ Package fancyhdr Warning: \headheight is too small (62.59596pt):
 (fancyhdr)                \addtolength{\topmargin}{-0.95425pt}.
 
 LaTeX Font Info:    Font shape `TU/lmss/m/it' in size <8> not available
-(Font)              Font shape `TU/lmss/m/sl' tried instead on input line 370.
+(Font)              Font shape `TU/lmss/m/sl' tried instead on input line 371.
 [1
 
 ]
-Underfull \hbox (badness 1112) in paragraph at lines 424--427
+Underfull \hbox (badness 1112) in paragraph at lines 425--428
 []\TU/lmr/m/n/10 While experienced \TU/lmtt/m/n/10 lubridate \TU/lmr/m/n/10 users can anticipate and work around these cases,
  []
 
@@ -1039,7 +1039,7 @@ Package logreq Info: Writing requests to 'paper.run.xml'.
 Here is how much of TeX's memory you used:
  36935 strings out of 475785
  757998 string characters out of 5771509
- 1632453 words of memory out of 5000000
+ 1633453 words of memory out of 5000000
  59346 multiletter control sequences out of 15000+600000
  565701 words of font info for 83 fonts, out of 8000000 for 9000
  36 hyphenation exceptions out of 8191
