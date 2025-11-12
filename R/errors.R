@@ -58,6 +58,27 @@ check_is_list_of_phintish <- function(x, arg = caller_arg(x), call = caller_env(
   return(invisible(NULL))
 }
 
+check_recycleable <- function(
+    x,
+    y,
+    x_arg = caller_arg(x),
+    y_arg = caller_arg(y),
+    call = caller_env()
+  ) {
+  x_len <- length(x)
+  y_len <- length(y)
+  if (x_len == y_len || x_len == 1 || y_len == 1) {
+    return(invisible(NULL))
+  }
+  abort(
+    sprintf(
+      "Can't recycle `%s` (length %i) and `%s` (length %i) to a common length.",
+      x_arg, x_len, y_arg, y_len
+    ),
+    call = call
+  )
+}
+
 str_encode <- function(x, width = 30, ...) {
   if (nchar(x) > width) {
     x <- substr(x, 1, width - 3)
