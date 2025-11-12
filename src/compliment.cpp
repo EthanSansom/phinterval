@@ -1,4 +1,5 @@
 #include "compliment.h"
+#include "instants.h"
 #include "endpoint.h"
 #include "utils.h"
 #include <Rcpp.h>
@@ -41,18 +42,24 @@ List cpp_invert_interval_sets(const List& x) {
 // [c, d]    [b,    c]    [c,    d]    [d, Inf]    [c,  Inf]
 //           [d,  Inf]
 NumericMatrix compliment_interval_set(NumericMatrix x) {
-  int n { x.nrow() };
+  // Instants create abutting intervals, which we don't allow. Removing instants
+  // creates the desired compliment.
+  //
+  // Bad:  [a, a] -> [-Inf, a], [a, Inf]
+  // Good: [] -> [-Inf, Inf]
+  NumericMatrix xs { interval_set_remove_instants(x) };
+  int n { xs.nrow() };
   if (n == 0) return infinite_interval();
 
-  bool left_open { x[0] == R_NegInf || x[0] == R_PosInf };
-  bool right_open { x[x.size() - 1] == R_NegInf || x[x.size() - 1] == R_PosInf };
+  bool left_open { xs[0] == R_NegInf || xs[0] == R_PosInf };
+  bool right_open { xs[xs.size() - 1] == R_NegInf || xs[xs.size() - 1] == R_PosInf };
   int n_out { n + 1 - left_open - right_open };
 
   // These conditions were found by trial and error
   NumericMatrix out(n_out, 2);
   for (int i { 0 }; i < n; ++i) {
-    if (!(right_open && i >= n - 1)) out[i + 1 - left_open] = x[i + n];
-    if (!(left_open && i <= 0))      out[n_out + i - left_open] = x[i];
+    if (!(right_open && i >= n - 1)) out[i + 1 - left_open] = xs[i + n];
+    if (!(left_open && i <= 0))      out[n_out + i - left_open] = xs[i];
   }
   if (!left_open) out[0] = R_NegInf;
   if (!right_open) out[out.size() - 1] = R_PosInf;
@@ -63,7 +70,7 @@ NumericMatrix compliment_interval_set(NumericMatrix x) {
 // [[Rcpp::export]]
 NumericMatrix invert_interval_set(NumericMatrix x) {
   int n { x.nrow() };
-  if (n == 0) return infinite_interval();
+  if (n == 0) return x;
 
   int n_out { n - 1 };
   NumericMatrix out(n_out, 2);
