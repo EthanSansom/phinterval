@@ -1,3 +1,5 @@
+# class ------------------------------------------------------------------------
+
 #' @export
 phinterval <- function(intervals = list(), tzone = NULL) {
   if (!is.list(intervals)) {
@@ -117,6 +119,11 @@ is_phinterval <- function(x) {
 }
 
 #' @export
+is_phintish <- function(x) {
+  is_phinterval(x) || lubridate::is.interval(x)
+}
+
+#' @export
 as_phinterval <- function(x, ...) {
   UseMethod("as_phinterval")
 }
@@ -136,6 +143,8 @@ as_phinterval.Interval <- function(x) {
     tzone = get_tzone(x)
   )
 }
+
+# accessors --------------------------------------------------------------------
 
 #' @export
 n_spans <- function(phint) {
@@ -297,6 +306,8 @@ phint_lengths.phinterval <- function(phint) {
   out[is_hole(phint)] <- 0
   out
 }
+
+# miscellaneous ----------------------------------------------------------------
 
 #' @export
 phint_invert <- function(phint, hole_to = c("hole", "inf", "na")) {
