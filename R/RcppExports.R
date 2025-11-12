@@ -17,8 +17,8 @@ cpp_interval_sets_ends <- function(x) {
     .Call(`_phinterval_cpp_interval_sets_ends`, x)
 }
 
-cpp_compliment_interval_sets <- function(x) {
-    .Call(`_phinterval_cpp_compliment_interval_sets`, x)
+cpp_complement_interval_sets <- function(x) {
+    .Call(`_phinterval_cpp_complement_interval_sets`, x)
 }
 
 cpp_invert_interval_sets <- function(x) {

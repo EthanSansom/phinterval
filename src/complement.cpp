@@ -1,4 +1,4 @@
-#include "compliment.h"
+#include "complement.h"
 #include "instants.h"
 #include "endpoint.h"
 #include "utils.h"
@@ -6,14 +6,14 @@
 using namespace Rcpp;
 
 // [[Rcpp::export]]
-List cpp_compliment_interval_sets(const List& x) {
+List cpp_complement_interval_sets(const List& x) {
   int n = x.size();
   List out(n);
   for (int i { 0 }; i < n; ++i) {
     if (x[i] == NA_INTERVAL) {
       out[i] = NA_INTERVAL;
     } else {
-      out[i] = compliment_interval_set(x[i]);
+      out[i] = complement_interval_set(x[i]);
     }
   }
   return out;
@@ -33,7 +33,7 @@ List cpp_invert_interval_sets(const List& x) {
   return out;
 }
 
-// We can take the compliment by populating the output matrix with endpoints of
+// We can take the complement by populating the output matrix with endpoints of
 // `x` shifted such that starts become ends and vice-versa. Some care must be
 // taken to handle infinite endpoints.
 //
@@ -41,9 +41,9 @@ List cpp_invert_interval_sets(const List& x) {
 // [a, b] -> [-Inf, a]    [-Inf, b] -> [b, c]      [-Inf, b] -> [b, c]
 // [c, d]    [b,    c]    [c,    d]    [d, Inf]    [c,  Inf]
 //           [d,  Inf]
-NumericMatrix compliment_interval_set(NumericMatrix x) {
+NumericMatrix complement_interval_set(NumericMatrix x) {
   // Instants create abutting intervals, which we don't allow. Removing instants
-  // creates the desired compliment.
+  // creates the desired complement.
   //
   // Bad:  [a, a] -> [-Inf, a], [a, Inf]
   // Good: [] -> [-Inf, Inf]

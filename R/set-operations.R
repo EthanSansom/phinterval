@@ -89,14 +89,14 @@ phint_union <- function(phint1, phint2) {
   )
 }
 
-# compliment -------------------------------------------------------------------
+# complement -------------------------------------------------------------------
 
 #' @export
-phint_compliment <- function(phint) {
+phint_complement <- function(phint) {
   check_is_phintish(phint)
 
   new_phinterval(
-    cpp_compliment_interval_sets(vec_data(as_phinterval(phint))),
+    cpp_complement_interval_sets(vec_data(as_phinterval(phint))),
     tzone = get_tzone(phint)
   )
 }
@@ -130,7 +130,7 @@ phint_setdiff <- function(phint1, phint2) {
   interval_sets2 <- vec_data(as_phinterval(phint2))
   interval_sets <- cpp_intersect_interval_sets(
     interval_sets1,
-    cpp_compliment_interval_sets(interval_sets2)
+    cpp_complement_interval_sets(interval_sets2)
   )
 
   # A second pass is required to resolve edge-cases where instants aren't

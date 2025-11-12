@@ -54,14 +54,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// cpp_compliment_interval_sets
-List cpp_compliment_interval_sets(const List& x);
-RcppExport SEXP _phinterval_cpp_compliment_interval_sets(SEXP xSEXP) {
+// cpp_complement_interval_sets
+List cpp_complement_interval_sets(const List& x);
+RcppExport SEXP _phinterval_cpp_complement_interval_sets(SEXP xSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const List& >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(cpp_compliment_interval_sets(x));
+    rcpp_result_gen = Rcpp::wrap(cpp_complement_interval_sets(x));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -248,7 +248,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_phinterval_cpp_interval_sets_starts", (DL_FUNC) &_phinterval_cpp_interval_sets_starts, 1},
     {"_phinterval_cpp_interval_sets_end", (DL_FUNC) &_phinterval_cpp_interval_sets_end, 1},
     {"_phinterval_cpp_interval_sets_ends", (DL_FUNC) &_phinterval_cpp_interval_sets_ends, 1},
-    {"_phinterval_cpp_compliment_interval_sets", (DL_FUNC) &_phinterval_cpp_compliment_interval_sets, 1},
+    {"_phinterval_cpp_complement_interval_sets", (DL_FUNC) &_phinterval_cpp_complement_interval_sets, 1},
     {"_phinterval_cpp_invert_interval_sets", (DL_FUNC) &_phinterval_cpp_invert_interval_sets, 1},
     {"_phinterval_invert_interval_set", (DL_FUNC) &_phinterval_invert_interval_set, 1},
     {"_phinterval_cpp_interval_sets_remove_instants", (DL_FUNC) &_phinterval_cpp_interval_sets_remove_instants, 1},
