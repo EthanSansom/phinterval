@@ -11,10 +11,10 @@ check_valid_tzone <- function(
 
   # Hack to ensure that recognized time zones match those in lubridate
   tryCatch(
-    lubridate::force_tz(lubridate::origin, tzone = tzone),
+    lubridate::force_tz(lubridate::POSIXct(), tzone = x),
     error = function(e) {
       abort(
-        sprintf("`%s = %s` is an unrecognized timezone.", arg, str_encode(x, quote = "\"")),
+        sprintf("`%s = %s` is an unrecognized timezone.", arg, str_encode(x)),
         call = call,
         arg = arg
       )
@@ -44,7 +44,7 @@ check_is_list_of_phintish <- function(x, arg = caller_arg(x), call = caller_env(
       call = call
     )
   }
-  not_phintish <- !map_lgl(x, \(elm) lubridate::is.interval(elm) || is_phinterval(elm))
+  not_phintish <- !map_lgl(x, is_phintish)
   if (any(not_phintish)) {
     idx <- which.max(not_phintish)
     arg <- paste0(arg, "[[", idx, "]]")
@@ -79,10 +79,10 @@ check_recycleable <- function(
   )
 }
 
-str_encode <- function(x, width = 30, ...) {
+str_encode <- function(x, width = 30, quote = "\"", ...) {
   if (nchar(x) > width) {
     x <- substr(x, 1, width - 3)
     x <- paste0(x, "...")
   }
-  encodeString(x, ...)
+  encodeString(x, quote = quote, ...)
 }
