@@ -2,8 +2,9 @@
 "_PACKAGE"
 
 ## usethis namespace: start
-#' @import vctrs
 #' @import rlang
+#' @import vctrs
+#' @importFrom lubridate interval
 #' @importFrom Rcpp sourceCpp
 #' @useDynLib phinterval, .registration = TRUE
 ## usethis namespace: end

@@ -29,6 +29,14 @@ invert_interval_set <- function(x) {
     .Call(`_phinterval_invert_interval_set`, x)
 }
 
+cpp_interval_sets_remove_instants <- function(x) {
+    .Call(`_phinterval_cpp_interval_sets_remove_instants`, x)
+}
+
+cpp_intersect_interval_sets <- function(x, y) {
+    .Call(`_phinterval_cpp_intersect_interval_sets`, x, y)
+}
+
 cpp_squash_lubridate_interval <- function(starts, spans, na_rm) {
     .Call(`_phinterval_cpp_squash_lubridate_interval`, starts, spans, na_rm)
 }
@@ -37,11 +45,39 @@ cpp_lubridate_interval_to_interval_sets <- function(starts, spans) {
     .Call(`_phinterval_cpp_lubridate_interval_to_interval_sets`, starts, spans)
 }
 
+cpp_interval_sets_overlaps <- function(x, y) {
+    .Call(`_phinterval_cpp_interval_sets_overlaps`, x, y)
+}
+
+cpp_interval_sets_lt <- function(x, y) {
+    .Call(`_phinterval_cpp_interval_sets_lt`, x, y)
+}
+
+cpp_interval_sets_leq <- function(x, y) {
+    .Call(`_phinterval_cpp_interval_sets_leq`, x, y)
+}
+
+cpp_interval_sets_geq <- function(x, y) {
+    .Call(`_phinterval_cpp_interval_sets_geq`, x, y)
+}
+
 cpp_squash_interval_set <- function(x) {
     .Call(`_phinterval_cpp_squash_interval_set`, x)
 }
 
 cpp_union_interval_sets <- function(x, y) {
     .Call(`_phinterval_cpp_union_interval_sets`, x, y)
+}
+
+cpp_union_interval_sets_2 <- function(x, y) {
+    .Call(`_phinterval_cpp_union_interval_sets_2`, x, y)
+}
+
+cpp_interval_sets_within <- function(x, y) {
+    .Call(`_phinterval_cpp_interval_sets_within`, x, y)
+}
+
+cpp_interval_sets_contains <- function(x, t) {
+    .Call(`_phinterval_cpp_interval_sets_contains`, x, t)
 }
 
