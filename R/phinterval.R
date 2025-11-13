@@ -16,9 +16,9 @@ phinterval <- function(intervals = list(), tzone = NULL) {
 
   tzone <- tzone %||% get_tzone(intervals[[1]])
   if (is_phinterval(intervals[[1]])) {
-    interval_sets <- map(intervals, phint_to_interval_set)
+    interval_sets <- map(intervals, phint_to_interval_set, empty_to = "hole")
   } else {
-    interval_sets <- map(intervals, int_to_interval_set)
+    interval_sets <- map(intervals, int_to_interval_set, empty_to = "hole")
   }
   new_phinterval(interval_sets = interval_sets, tzone = tzone)
 }
