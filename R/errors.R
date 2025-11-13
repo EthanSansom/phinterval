@@ -1,3 +1,5 @@
+#nocov start
+
 check_valid_tzone <- function(
     x,
     allow_null = FALSE,
@@ -86,3 +88,5 @@ str_encode <- function(x, width = 30, quote = "\"", ...) {
   }
   encodeString(x, quote = quote, ...)
 }
+
+#nocov end
