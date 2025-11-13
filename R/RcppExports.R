@@ -29,6 +29,10 @@ invert_interval_set <- function(x) {
     .Call(`_phinterval_invert_interval_set`, x)
 }
 
+cpp_setdiff_interval_sets <- function(x, y) {
+    .Call(`_phinterval_cpp_setdiff_interval_sets`, x, y)
+}
+
 cpp_interval_sets_remove_instants <- function(x) {
     .Call(`_phinterval_cpp_interval_sets_remove_instants`, x)
 }

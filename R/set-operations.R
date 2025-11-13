@@ -125,18 +125,11 @@ phint_setdiff <- function(phint1, phint2) {
   check_recycleable(phint1, phint2)
   phints <- vctrs::vec_recycle_common(phint1, phint2)
 
-  # A \ B is equivalent to the intersection of A and B^c
-  interval_sets1 <- vec_data(as_phinterval(phints[[1]]))
-  interval_sets2 <- vec_data(as_phinterval(phints[[2]]))
-  interval_sets <- cpp_intersect_interval_sets(
-    interval_sets1,
-    cpp_complement_interval_sets(interval_sets2)
+  new_phinterval(
+    cpp_setdiff_interval_sets(
+      vec_data(as_phinterval(phints[[1]])),
+      vec_data(as_phinterval(phints[[2]]))
+    ),
+    tzone = tz_union(phint1, phint2)
   )
-
-  # A second pass is required to resolve edge-cases where instants aren't
-  # considered to be within intervals that they abut.
-  is_within <- cpp_interval_sets_within(interval_sets2, interval_sets1)
-  interval_sets[is_within] <- list(matrix(numeric(), ncol = 2L))
-
-  new_phinterval(interval_sets, tzone = tz_union(phint1, phint2))
 }

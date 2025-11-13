@@ -87,6 +87,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// cpp_setdiff_interval_sets
+List cpp_setdiff_interval_sets(const List& x, const List& y);
+RcppExport SEXP _phinterval_cpp_setdiff_interval_sets(SEXP xSEXP, SEXP ySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const List& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const List& >::type y(ySEXP);
+    rcpp_result_gen = Rcpp::wrap(cpp_setdiff_interval_sets(x, y));
+    return rcpp_result_gen;
+END_RCPP
+}
 // cpp_interval_sets_remove_instants
 List cpp_interval_sets_remove_instants(const List& x);
 RcppExport SEXP _phinterval_cpp_interval_sets_remove_instants(SEXP xSEXP) {
@@ -251,6 +263,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_phinterval_cpp_complement_interval_sets", (DL_FUNC) &_phinterval_cpp_complement_interval_sets, 1},
     {"_phinterval_cpp_invert_interval_sets", (DL_FUNC) &_phinterval_cpp_invert_interval_sets, 1},
     {"_phinterval_invert_interval_set", (DL_FUNC) &_phinterval_invert_interval_set, 1},
+    {"_phinterval_cpp_setdiff_interval_sets", (DL_FUNC) &_phinterval_cpp_setdiff_interval_sets, 2},
     {"_phinterval_cpp_interval_sets_remove_instants", (DL_FUNC) &_phinterval_cpp_interval_sets_remove_instants, 1},
     {"_phinterval_cpp_intersect_interval_sets", (DL_FUNC) &_phinterval_cpp_intersect_interval_sets, 2},
     {"_phinterval_cpp_squash_lubridate_interval", (DL_FUNC) &_phinterval_cpp_squash_lubridate_interval, 3},
