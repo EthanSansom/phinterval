@@ -32,9 +32,9 @@ int interval_set_within(NumericMatrix x, NumericMatrix y) {
   }
   for (int i { 0 }; i < ny; ++i) {
     // We don't consider anything to be within an instant (even itself)
-    // if (y[i] == y[i + ny]) {
-    //  continue;
-    // }
+    if (y[i] == y[i + ny]) {
+     continue;
+    }
     endpoints.push_back(BinaryEndpoint { true, false, y[i] });
     endpoints.push_back(BinaryEndpoint { false, false, y[i + ny] });
   }
