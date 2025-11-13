@@ -1,17 +1,22 @@
+#nocov start
+
 # time zones -------------------------------------------------------------------
 
 get_tzone <- function(x) {
   UseMethod("get_tzone")
 }
 
+#' @export
 get_tzone.Interval <- function(x) {
   lubridate::tz(lubridate::int_start(x))
 }
 
+#' @export
 get_tzone.phinterval <- function(x) {
   attr(x, "tzone")
 }
 
+#' @export
 get_tzone.default <- function(x) {
   lubridate::tz(x)
 }
@@ -34,3 +39,5 @@ tz_union <- function(x, y) {
 # miscellaneous ----------------------------------------------------------------
 
 `%0|%` <- function(lhs, rhs) if (is_empty(lhs)) rhs else lhs
+
+#nocov end
