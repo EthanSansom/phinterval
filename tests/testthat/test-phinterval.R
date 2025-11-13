@@ -122,7 +122,7 @@ test_that("phint_start() zero-length input results in zero-length output", {
 })
 
 test_that("phint_start() NA input results in NA output", {
-  int1 <- interval(NA_POSIXct_, NA_POSIXct_)
+  int1 <- interval(NA, NA)
   int2 <- rep(int1, 3)
   phint <- phinterval(list(int1, int2), tzone = "PST")
   start <- phint_start(phint)
@@ -181,7 +181,7 @@ test_that("phint_starts() zero-length input results in zero-length list", {
 })
 
 test_that("phint_starts() NA input results in NA output", {
-  int1 <- interval(NA_POSIXct_, NA_POSIXct_)
+  int1 <- interval(NA, NA)
   int2 <- rep(int1, 3)
   phint <- phinterval(list(int1, int2), tzone = "PST")
   starts <- phint_starts(phint)
@@ -371,6 +371,7 @@ test_that("phint_intersect() works as expected", {
   int35 <- interval(t3, t5)
   int36 <- interval(t3, t6)
 
+  int11 <- interval(t1, t1)
   int22 <- interval(t2, t2)
 
   phint12 <- phinterval(int12)
@@ -445,14 +446,6 @@ test_that("phint_intersect() works as expected", {
   expect_phint_equal(phint_intersect(int36, int25), phint35)
 
   expect_phint_equal(
-    phint_intersect(phint_squash(c(int12, int34, int45, int56)), int25),
-    phint_squash(c(int34, int45))
-  )
-  expect_phint_equal(
-    phint_intersect(int25, phint_squash(c(int12, int34, int45, int56))),
-    phint_squash(c(int34, int45))
-  )
-  expect_phint_equal(
     phint_intersect(phint16, phint_squash(c(int12, int34, int56))),
     phint_squash(c(int12, int34, int56))
   )
@@ -471,6 +464,16 @@ test_that("phint_intersect() works as expected", {
   expect_phint_equal(phint_intersect(int22, int12), int22)
   expect_phint_equal(phint_intersect(int13, int22), int22)
   expect_phint_equal(phint_intersect(int22, int13), int22)
+
+  # Intersection with abutting
+  # NOTE: Intersection is endpoint inclusive, so abutting intervals have
+  #       instantaneous intersections.
+  expect_phint_equal(phint_intersect(int23, int12), int22)
+  expect_phint_equal(phint_intersect(int12, int23), int22)
+  expect_phint_equal(
+    phint_intersect(int12, phint_complement(int12)),
+    phint_squash(c(int11, int22))
+  )
 })
 
 # phint_complement -------------------------------------------------------------
