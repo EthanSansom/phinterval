@@ -15,7 +15,7 @@ phint_squash.phinterval <- function(phint, na.rm = TRUE) {
   check_bool(na.rm)
   new_phinterval(
     interval_sets = phint_to_interval_set(phint, na.rm = na.rm),
-    tzone = attr(phint, "tzone")
+    tzone = get_tzone(phint)
   )
 }
 
@@ -24,7 +24,7 @@ phint_squash.Interval <- function(phint, na.rm = TRUE) {
   check_bool(na.rm)
   new_phinterval(
     interval_sets = int_to_interval_set(phint, na.rm = na.rm),
-    tzone = attr(phint, "tzone")
+    tzone = get_tzone(phint)
   )
 }
 
@@ -50,51 +50,33 @@ int_to_interval_set <- function(int, na.rm = TRUE) {
   )
 }
 
+# complement -------------------------------------------------------------------
+
+#' @export
+phint_complement <- function(phint) {
+  check_is_phintish(phint)
+  new_phinterval(
+    cpp_complement_interval_sets(phint_data(phint)),
+    tzone = get_tzone(phint)
+  )
+}
+
 # overlaps ---------------------------------------------------------------------
 
 #' @export
 phint_overlaps <- function(phint1, phint2) {
-  check_is_phintish(phint1)
-  check_is_phintish(phint2)
-  check_recycleable(phint1, phint2)
-  phints <- vctrs::vec_recycle_common(phint1, phint2)
-
-  new_phinterval(
-    cpp_interval_sets_overlaps(
-      vec_data(as_phinterval(phints[[1]])),
-      vec_data(as_phinterval(phints[[2]]))
-    ),
-    tzone = tz_union(phint1, phint2)
-  )
+  phints <- validate_phints(phint1, phint2)
+  cpp_interval_sets_overlaps(phint_data(phints[[1]]), phint_data(phints[[2]]))
 }
 
 # union ------------------------------------------------------------------------
 
 #' @export
 phint_union <- function(phint1, phint2) {
-  check_is_phintish(phint1)
-  check_is_phintish(phint2)
-  check_recycleable(phint1, phint2)
-  phints <- vctrs::vec_recycle_common(phint1, phint2)
-
+  phints <- validate_phints(phint1, phint2)
   new_phinterval(
-    cpp_union_interval_sets(
-      vec_data(as_phinterval(phints[[1]])),
-      vec_data(as_phinterval(phints[[2]]))
-    ),
+    cpp_union_interval_sets(phint_data(phints[[1]]), phint_data(phints[[2]])),
     tzone = tz_union(phint1, phint2)
-  )
-}
-
-# complement -------------------------------------------------------------------
-
-#' @export
-phint_complement <- function(phint) {
-  check_is_phintish(phint)
-
-  new_phinterval(
-    cpp_complement_interval_sets(vec_data(as_phinterval(phint))),
-    tzone = get_tzone(phint)
   )
 }
 
@@ -102,16 +84,9 @@ phint_complement <- function(phint) {
 
 #' @export
 phint_intersect <- function(phint1, phint2) {
-  check_is_phintish(phint1)
-  check_is_phintish(phint2)
-  check_recycleable(phint1, phint2)
-  phints <- vctrs::vec_recycle_common(phint1, phint2)
-
+  phints <- validate_phints(phint1, phint2)
   new_phinterval(
-    cpp_intersect_interval_sets(
-      vec_data(as_phinterval(phints[[1]])),
-      vec_data(as_phinterval(phints[[2]]))
-    ),
+    cpp_intersect_interval_sets(phint_data(phints[[1]]), phint_data(phints[[2]])),
     tzone = tz_union(phint1, phint2)
   )
 }
@@ -120,16 +95,20 @@ phint_intersect <- function(phint1, phint2) {
 
 #' @export
 phint_setdiff <- function(phint1, phint2) {
-  check_is_phintish(phint1)
-  check_is_phintish(phint2)
-  check_recycleable(phint1, phint2)
-  phints <- vctrs::vec_recycle_common(phint1, phint2)
-
+  phints <- validate_phints(phint1, phint2)
   new_phinterval(
-    cpp_setdiff_interval_sets(
-      vec_data(as_phinterval(phints[[1]])),
-      vec_data(as_phinterval(phints[[2]]))
-    ),
+    cpp_setdiff_interval_sets(phint_data(phints[[1]]), phint_data(phints[[2]])),
     tzone = tz_union(phint1, phint2)
   )
 }
+
+# utils ------------------------------------------------------------------------
+
+validate_phints <- function(phint1, phint2, call = caller_env()) {
+  check_is_phintish(phint1, call = call)
+  check_is_phintish(phint2, call = call)
+  check_recycleable(phint1, phint2, call = call)
+  vctrs::vec_recycle_common(phint1, phint2)
+}
+
+phint_data <- function(phint) vec_data(as_phinterval(phint))
