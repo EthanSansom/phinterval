@@ -31,6 +31,10 @@ int interval_set_within(NumericMatrix x, NumericMatrix y) {
     endpoints.push_back(BinaryEndpoint { false, true, x[i + nx] });
   }
   for (int i { 0 }; i < ny; ++i) {
+    // We don't consider anything to be within an instant (even itself)
+    // if (y[i] == y[i + ny]) {
+    //  continue;
+    // }
     endpoints.push_back(BinaryEndpoint { true, false, y[i] });
     endpoints.push_back(BinaryEndpoint { false, false, y[i + ny] });
   }
@@ -40,16 +44,15 @@ int interval_set_within(NumericMatrix x, NumericMatrix y) {
 }
 
 bool within(const BinaryEndpoints& endpoints) {
-  bool in_x_interval { false };
+  bool within_y { false };
   for (const BinaryEndpoint& endpoint : endpoints) {
     if (endpoint.in_x) {
-      // Encountering a start from `x` indicates that we've entered an `x`
-      // interval and an end indicates that we've exited an `x` interval.
-      in_x_interval = endpoint.is_start;
+      // We've encountered an endpoint of `x` while not within `y`
+      if (!within_y) return false;
     } else {
-      // Encountering any endpoint from `y` while we're not within an `x`
-      // interval indicates that `y` is not within `x`.
-      if (!in_x_interval) return false;
+      // Encountering a start from `y` indicates we've entered a `y` interval
+      // and an end that we've exited.
+      within_y = endpoint.is_start;
     }
   }
   return true;
@@ -61,7 +64,7 @@ LogicalVector cpp_interval_sets_contains(const List& x, NumericVector t) {
   LogicalVector out(n);
   for (int i { 0 }; i < n; ++i) {
     if (x[i] == NA_INTERVAL || ISNAN(t[i])) {
-      return NA_LOGICAL;
+      out[i] = NA_LOGICAL;
     } else {
       out[i] = interval_set_contains(x[i], t[i]);
     }
@@ -71,27 +74,12 @@ LogicalVector cpp_interval_sets_contains(const List& x, NumericVector t) {
 
 int interval_set_contains(NumericMatrix x, double t) {
   int n { x.nrow() };
-  if (n == 0) return false;
 
-  // Anticipating that most interval sets will contain < 3 intervals, so
-  // solving these cases immediately.
-  switch(n) {
-  case 1: return (x[1] <= t && t <= x[2]);
-  case 2: return (x[1] <= t && t <= x[2]) || (x[3] <= t && t <= x[4]);
+  // `x` is an empty interval of `t` is outside of the maximum start/end of `x`
+  if (n == 0 || t < x[0] || t > x[n * 2 - 1]) return false;
+
+  for (int i { 0 }; i < n; ++i) {
+    if (x[i] <= t && t <= x[i + n]) return true;
   }
-
-  // Binary search for the nearest interval start less than or equal to `t`
-  int l { 0 };
-  int r { n };
-  int m { l + ((r - l) / 2) };
-  while(l < r) {
-    if (x[m] < t) {
-      l = m + 1;
-    } else {
-      r = m;
-    }
-    m = l + ((r - l) / 2);
-  }
-
-  return x[m] <= t && t <= x[m + n];
+  return false;
 }

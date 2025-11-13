@@ -18,6 +18,5 @@ using BinaryEndpoints = std::vector<BinaryEndpoint>;
 
 bool operator< (const Endpoint &a, const Endpoint &b);
 bool operator< (const BinaryEndpoint &a, const BinaryEndpoint &b);
-bool lt_setdiff (const BinaryEndpoint &a, const BinaryEndpoint &b);
 
 #endif

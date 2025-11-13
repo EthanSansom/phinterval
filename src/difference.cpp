@@ -40,7 +40,7 @@ NumericMatrix setdiff_interval_set(NumericMatrix x, NumericMatrix y) {
     endpoints.push_back(BinaryEndpoint { false, false, y[i + ny] });
   }
 
-  std::sort(endpoints.begin(), endpoints.end(), lt_setdiff);
+  std::sort(endpoints.begin(), endpoints.end());
   return setdiff(endpoints);
 }
 
@@ -48,8 +48,6 @@ NumericMatrix setdiff(const BinaryEndpoints& endpoints) {
   std::vector<double> starts, ends;
   starts.reserve(endpoints.size() / 2);
   ends.reserve(endpoints.size() / 2);
-
-  int count { 0 }; // TODO: Remove
 
   bool within_x { false };
   bool within_y { false };
