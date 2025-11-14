@@ -159,42 +159,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// cpp_interval_sets_lt
-LogicalVector cpp_interval_sets_lt(const List& x, const List& y);
-RcppExport SEXP _phinterval_cpp_interval_sets_lt(SEXP xSEXP, SEXP ySEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const List& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const List& >::type y(ySEXP);
-    rcpp_result_gen = Rcpp::wrap(cpp_interval_sets_lt(x, y));
-    return rcpp_result_gen;
-END_RCPP
-}
-// cpp_interval_sets_leq
-LogicalVector cpp_interval_sets_leq(const List& x, const List& y);
-RcppExport SEXP _phinterval_cpp_interval_sets_leq(SEXP xSEXP, SEXP ySEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const List& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const List& >::type y(ySEXP);
-    rcpp_result_gen = Rcpp::wrap(cpp_interval_sets_leq(x, y));
-    return rcpp_result_gen;
-END_RCPP
-}
-// cpp_interval_sets_geq
-LogicalVector cpp_interval_sets_geq(const List& x, const List& y);
-RcppExport SEXP _phinterval_cpp_interval_sets_geq(SEXP xSEXP, SEXP ySEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const List& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const List& >::type y(ySEXP);
-    rcpp_result_gen = Rcpp::wrap(cpp_interval_sets_geq(x, y));
-    return rcpp_result_gen;
-END_RCPP
-}
 // cpp_squash_interval_set
 NumericMatrix cpp_squash_interval_set(const NumericMatrix x);
 RcppExport SEXP _phinterval_cpp_squash_interval_set(SEXP xSEXP) {
@@ -215,18 +179,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const List& >::type x(xSEXP);
     Rcpp::traits::input_parameter< const List& >::type y(ySEXP);
     rcpp_result_gen = Rcpp::wrap(cpp_union_interval_sets(x, y));
-    return rcpp_result_gen;
-END_RCPP
-}
-// cpp_union_interval_sets_2
-List cpp_union_interval_sets_2(const List& x, const List& y);
-RcppExport SEXP _phinterval_cpp_union_interval_sets_2(SEXP xSEXP, SEXP ySEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const List& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const List& >::type y(ySEXP);
-    rcpp_result_gen = Rcpp::wrap(cpp_union_interval_sets_2(x, y));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -269,12 +221,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_phinterval_cpp_squash_lubridate_interval", (DL_FUNC) &_phinterval_cpp_squash_lubridate_interval, 3},
     {"_phinterval_cpp_lubridate_interval_to_interval_sets", (DL_FUNC) &_phinterval_cpp_lubridate_interval_to_interval_sets, 2},
     {"_phinterval_cpp_interval_sets_overlaps", (DL_FUNC) &_phinterval_cpp_interval_sets_overlaps, 2},
-    {"_phinterval_cpp_interval_sets_lt", (DL_FUNC) &_phinterval_cpp_interval_sets_lt, 2},
-    {"_phinterval_cpp_interval_sets_leq", (DL_FUNC) &_phinterval_cpp_interval_sets_leq, 2},
-    {"_phinterval_cpp_interval_sets_geq", (DL_FUNC) &_phinterval_cpp_interval_sets_geq, 2},
     {"_phinterval_cpp_squash_interval_set", (DL_FUNC) &_phinterval_cpp_squash_interval_set, 1},
     {"_phinterval_cpp_union_interval_sets", (DL_FUNC) &_phinterval_cpp_union_interval_sets, 2},
-    {"_phinterval_cpp_union_interval_sets_2", (DL_FUNC) &_phinterval_cpp_union_interval_sets_2, 2},
     {"_phinterval_cpp_interval_sets_within", (DL_FUNC) &_phinterval_cpp_interval_sets_within, 2},
     {"_phinterval_cpp_interval_sets_contains", (DL_FUNC) &_phinterval_cpp_interval_sets_contains, 2},
     {NULL, NULL, 0}

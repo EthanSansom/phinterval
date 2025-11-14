@@ -83,7 +83,7 @@ NumericMatrix setdiff(const BinaryEndpoints& endpoints) {
 
   int n = starts.size();
   if (n != ends.size()) {
-    stop("Internal error: number of starts does not match number of ends.");
+    stop("Internal error: number of starts does not match number of ends."); //nocov
   }
   NumericMatrix out(n, 2);
   std::copy(starts.begin(), starts.end(), out.begin());

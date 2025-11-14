@@ -53,28 +53,12 @@ cpp_interval_sets_overlaps <- function(x, y) {
     .Call(`_phinterval_cpp_interval_sets_overlaps`, x, y)
 }
 
-cpp_interval_sets_lt <- function(x, y) {
-    .Call(`_phinterval_cpp_interval_sets_lt`, x, y)
-}
-
-cpp_interval_sets_leq <- function(x, y) {
-    .Call(`_phinterval_cpp_interval_sets_leq`, x, y)
-}
-
-cpp_interval_sets_geq <- function(x, y) {
-    .Call(`_phinterval_cpp_interval_sets_geq`, x, y)
-}
-
 cpp_squash_interval_set <- function(x) {
     .Call(`_phinterval_cpp_squash_interval_set`, x)
 }
 
 cpp_union_interval_sets <- function(x, y) {
     .Call(`_phinterval_cpp_union_interval_sets`, x, y)
-}
-
-cpp_union_interval_sets_2 <- function(x, y) {
-    .Call(`_phinterval_cpp_union_interval_sets_2`, x, y)
 }
 
 cpp_interval_sets_within <- function(x, y) {

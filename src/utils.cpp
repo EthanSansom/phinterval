@@ -13,7 +13,3 @@ NumericMatrix infinite_interval() {
   matrix(0, 1) = R_PosInf;
   return matrix;
 }
-
-bool is_empty_interval(NumericMatrix x) {
-  return x.nrow();
-}

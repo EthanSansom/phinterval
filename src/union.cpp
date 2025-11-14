@@ -5,11 +5,6 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
-// TODO:
-// - See what's actually happening with the references here, I feel like they're
-//   not doing anything. Check whether we also need to pass NumericMatrix x/y
-//   by reference for the scalar functions.
-
 // [[Rcpp::export]]
 List cpp_union_interval_sets(const List& x, const List& y) {
   int n = x.size();
@@ -22,11 +17,6 @@ List cpp_union_interval_sets(const List& x, const List& y) {
     }
   }
   return out;
-}
-
-// [[Rcpp::export]]
-List cpp_union_interval_sets_2(const List& x, const List& y) {
-  return pairwise_interval_set_op(x, y, union_interval_set);
 }
 
 NumericMatrix union_interval_set(NumericMatrix x, NumericMatrix y) {
