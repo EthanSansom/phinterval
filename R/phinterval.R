@@ -1,5 +1,7 @@
 # class ------------------------------------------------------------------------
 
+methods::setOldClass(c("phinterval", "list", "vctrs_vctr"))
+
 #' @export
 phinterval <- function(intervals = list(), tzone = NULL) {
   if (!is_bare_list(intervals)) {
@@ -74,15 +76,20 @@ format.phinterval <- function(x, max_width = 90, ...) {
 #' @export
 vec_ptype_abbr.phinterval <- function(x, ...) {
   tzone <- get_tzone(x)
-  if (tz_is_local(tzone)) tzone <- "local"
+  if (tz_is_local(tzone)) tzone <- "local" #nocov
   paste0("phint<", tzone, ">")
 }
 
 #' @export
 vec_ptype_full.phinterval <- function(x, ...) {
   tzone <- get_tzone(x)
-  if (tz_is_local(tzone)) tzone <- "local"
+  if (tz_is_local(tzone)) tzone <- "local" #nocov
   paste0("phinterval<", tzone, ">")
+}
+
+#' @export
+vec_proxy_equal.phinterval <- function(x, ...) {
+  vec_data(x)
 }
 
 #' @export
@@ -134,6 +141,25 @@ as_phinterval.Interval <- function(x, ...) {
       spans = lubridate::int_length(x)
     ),
     tzone = get_tzone(x)
+  )
+}
+
+# arithmetic -------------------------------------------------------------------
+
+#' @export
+#' @method vec_arith phinterval
+vec_arith.phinterval <- function(op, x, y, ...) {
+  UseMethod("vec_arith.phinterval", y)
+}
+
+#' @export
+#' @method vec_arith.phinterval Duration
+vec_arith.phinterval.Duration <- function(op, x, y, ...) {
+  switch(
+    op,
+    "/" = as_duration(x) / y,
+    "%/%" = trunc(as_duration(x) / y),
+    stop_incompatible_op(op, x, y)
   )
 }
 

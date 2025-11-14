@@ -162,6 +162,25 @@ test_that("phintervals are formatted as expected", {
   expect_error(format(phinterval(), max_width = 10.5))
 })
 
+# arithmetic -------------------------------------------------------------------
+
+test_that("<phinterval> / <Duration> works as expected.", {
+  three_days <- phinterval(interval(as.Date("2021-01-01"), as.Date("2021-01-04")))
+  ten_seconds <- phinterval(interval(lubridate::origin, lubridate::origin + 10))
+
+  expect_equal(three_days / duration(days = 1), 3)
+  expect_equal(ten_seconds / duration(seconds = 1), 10)
+  expect_equal(
+    phint_squash(c(three_days, ten_seconds)) / duration(seconds = 1),
+    (86400 * 3) + 10
+  )
+
+  expect_equal(three_days %/% duration(days = 2), 1)
+  expect_equal(ten_seconds %/% duration(seconds = 3), 3)
+
+  expect_error(ten_seconds + duration(seconds = 3))
+})
+
 # as_phinterval ----------------------------------------------------------------
 
 test_that("as_phinterval() works as expected", {
@@ -730,11 +749,8 @@ test_that("phint_union() recycles inputs", {
 })
 
 test_that("phint_union() empty input results in empty output", {
-  out <- phint_union(phinterval(), phinterval())
-
-  expect_s3_class(out, "phinterval")
-  expect_length(out, 0L)
-  expect_identical(phint_to_spans(out), list())
+  expect_phint_equal(phint_union(phinterval(), phinterval()), phinterval())
+  expect_phint_equal(phint_union(interval(), interval()), phinterval())
 })
 
 test_that("phint_union() NA input results in NA output", {
@@ -808,6 +824,16 @@ test_that("phint_union() works as expected", {
 
 # phint_setdiff ----------------------------------------------------------------
 
+test_that("phint_setdiff() empty input results in empty output", {
+  expect_phint_equal(phint_setdiff(interval(), interval()), interval())
+})
+
+test_that("phint_setdiff() NA input results in NA output", {
+  int <- interval(as.Date("2021-01-01", as.Date("2021-02-01")))
+  expect_phint_equal(phint_setdiff(interval(NA, NA), int), interval(NA, NA))
+  expect_phint_equal(phint_setdiff(int, interval(NA, NA)), interval(NA, NA))
+})
+
 test_that("phint_setdiff() works as expected", {
   t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
   t2 <- as.POSIXct("2021-01-01 00:00:45", tz = "UTC")
@@ -877,6 +903,16 @@ test_that("phint_setdiff() works as expected", {
 })
 
 # phint_intersect --------------------------------------------------------------
+
+test_that("phint_intersect() empty input results in empty output", {
+  expect_phint_equal(phint_intersect(interval(), interval()), interval())
+})
+
+test_that("phint_intersect() NA input results in NA output", {
+  int <- interval(as.Date("2021-01-01", as.Date("2021-02-01")))
+  expect_phint_equal(phint_intersect(interval(NA, NA), int), interval(NA, NA))
+  expect_phint_equal(phint_intersect(int, interval(NA, NA)), interval(NA, NA))
+})
 
 test_that("phint_intersect() works as expected", {
   t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
