@@ -10,7 +10,7 @@
 ---
 
     Code
-      print(phinterval(interval(o, o + 86400)))
+      print(phinterval(interval(origin, origin + 86400)))
     Output
       <phinterval<UTC>[1]>
       [1] {1970-01-01--1970-01-02}
@@ -26,7 +26,7 @@
 ---
 
     Code
-      print(phinterval(interval(o, o + 86400, tzone = "EST")))
+      print(phinterval(interval(origin, origin + 86400, tzone = "EST")))
     Output
       <phinterval<EST>[1]>
       [1] {1969-12-31 19:00:00--1970-01-01 19:00:00}
@@ -34,7 +34,7 @@
 ---
 
     Code
-      print(phinterval(interval(o, o + 86400, tzone = "")))
+      print(phinterval(interval(origin, origin + 86400, tzone = "")))
     Output
       <phinterval<local>[1]>
       [1] {1969-12-31 19:00:00--1970-01-01 19:00:00}
