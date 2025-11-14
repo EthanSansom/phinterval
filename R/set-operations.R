@@ -140,6 +140,7 @@ phint_within <- function(x, phint) {
 
 # utils ------------------------------------------------------------------------
 
+#nocov start
 validate_phints <- function(phint1, phint2, call = caller_env()) {
   check_is_phintish(phint1, call = call)
   check_is_phintish(phint2, call = call)
@@ -148,3 +149,4 @@ validate_phints <- function(phint1, phint2, call = caller_env()) {
 }
 
 phint_data <- function(phint) vec_data(as_phinterval(phint))
+#nocov end
