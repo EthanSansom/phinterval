@@ -33,6 +33,7 @@ new_phinterval <- function(interval_sets = list(), tzone = "UTC") {
 
 #' @export
 obj_print_data.phinterval <- function(x, max_width = 90, ...) {
+  check_number_whole(max_width, min = 1)
   if (length(x) == 0) {
     return(invisible(x))
   }
@@ -94,11 +95,6 @@ vec_ptype2.phinterval.phinterval <- function(x, y, ...) {
 
 #' @export
 vec_ptype2.phinterval.Interval <- function(x, y, ...) {
-  new_phinterval(tzone = tz_union(x, y))
-}
-
-#' @export
-vec_ptype2.Interval.phinterval <- function(x, y, ...) {
   new_phinterval(tzone = tz_union(x, y))
 }
 
@@ -188,7 +184,9 @@ phint_start.default <- function(phint) {
 
 #' @export
 phint_start.Interval <- function(phint) {
-  lubridate::int_start(phint)
+  out <- lubridate::int_start(lubridate::int_standardize(phint))
+  out[is.na(phint)] <- NA
+  out
 }
 
 #' @export
@@ -209,7 +207,9 @@ phint_end.default <- function(phint) {
 
 #' @export
 phint_end.Interval <- function(phint) {
-  lubridate::int_end(phint)
+  out <- lubridate::int_end(lubridate::int_standardize(phint))
+  out[is.na(phint)] <- NA
+  out
 }
 
 #' @export
@@ -230,7 +230,7 @@ phint_starts.default <- function(phint) {
 
 #' @export
 phint_starts.Interval <- function(phint) {
-  as.list(lubridate::int_start(phint))
+  as.list(phint_start(phint))
 }
 
 #' @export
@@ -251,7 +251,7 @@ phint_ends.default <- function(phint) {
 
 #' @export
 phint_ends.Interval <- function(phint) {
-  as.list(lubridate::int_end(phint))
+  as.list(phint_end(phint))
 }
 
 #' @export
