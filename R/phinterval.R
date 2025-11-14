@@ -2,25 +2,22 @@
 
 #' @export
 phinterval <- function(intervals = list(), tzone = NULL) {
-  if (!is.list(intervals)) {
+  if (!is_bare_list(intervals)) {
     check_is_phintish(intervals)
-    intervals <- list(intervals)
+    intervals <- list(as_phinterval(intervals))
   } else {
     check_is_list_of_phintish(intervals)
+    intervals <- map(intervals, as_phinterval)
   }
   check_valid_tzone(tzone, allow_null = TRUE)
 
   if (is_empty(intervals)) {
     return(new_phinterval(tzone = tzone %||% "UTC"))
   }
-
-  tzone <- tzone %||% get_tzone(intervals[[1]])
-  if (is_phinterval(intervals[[1]])) {
-    interval_sets <- map(intervals, phint_to_interval_set, empty_to = "hole")
-  } else {
-    interval_sets <- map(intervals, int_to_interval_set, empty_to = "hole")
-  }
-  new_phinterval(interval_sets = interval_sets, tzone = tzone)
+  new_phinterval(
+    interval_sets = map(intervals, phint_to_interval_set, empty_to = "hole"),
+    tzone = tzone %||% get_tzone(intervals[[1]])
+  )
 }
 
 new_phinterval <- function(interval_sets = list(), tzone = "UTC") {
@@ -130,7 +127,7 @@ as_phinterval.default <- function(x, ...) {
 }
 
 #' @export
-as_phinterval.Interval <- function(x) {
+as_phinterval.Interval <- function(x, ...) {
   new_phinterval(
     interval_sets = cpp_lubridate_interval_to_interval_sets(
       starts = lubridate::int_start(x),
@@ -322,10 +319,9 @@ phint_invert.default <- function(phint, hole_to = c("hole", "inf", "na")) {
 #' @export
 phint_invert.Interval <- function(phint, hole_to = c("hole", "inf", "na")) {
   arg_match(hole_to)
-  new_phinterval(
-    interval_sets = rep(list(matrix(numeric(), ncol = 2L)), length(phint)),
-    tzone = get_tzone(phint)
-  )
+  interval_sets <- rep(list(the$empty_interval_set), length(phint))
+  interval_sets[is.na(phint)] <- list(the$na_interval_set)
+  new_phinterval(interval_sets, tzone = get_tzone(phint))
 }
 
 #' @export
@@ -334,8 +330,8 @@ phint_invert.phinterval <- function(phint, hole_to = c("hole", "inf", "na")) {
   interval_sets <- cpp_invert_interval_sets(vec_data(phint))
   switch(
     hole_to,
-    inf = interval_sets[is_hole(phint)] <- list(matrix(c(-Inf, Inf), ncol = 2L)),
-    na = interval_sets[is_hole(phint)] <- list(NULL)
+    inf = interval_sets[is_hole(phint)] <- list(the$inf_interval_set),
+    na = interval_sets[is_hole(phint)] <- list(the$na_interval_set)
   )
   new_phinterval(interval_sets = interval_sets, tzone = get_tzone(phint))
 }
