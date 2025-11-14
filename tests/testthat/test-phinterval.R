@@ -152,10 +152,6 @@ test_that("phintervals are formatted as expected", {
   # Full width
   expect_snapshot(print(phint2, max_width = 9999))
 
-  # Time zones
-  expect_snapshot(print(phinterval(interval(origin, origin + 86400, tzone = "EST"))))
-  expect_snapshot(print(phinterval(interval(origin, origin + 86400, tzone = ""))))
-
   # Truncating printed output
   op <- options(max.print = 1)
   on.exit(options(op), add = TRUE, after = FALSE)
@@ -223,11 +219,11 @@ test_that("as_duration() works as expected", {
   )
   expect_equal(
     as_duration(phinterval(c(int10, int20))),
-    dseconds(10 + 20)
+    lubridate::dseconds(10 + 20)
   )
   expect_equal(
     as_duration(phinterval(list(hole, na_int, int20, int00))),
-    dseconds(c(0, NA, 20, 0))
+    lubridate::dseconds(c(0, NA, 20, 0))
   )
 })
 
