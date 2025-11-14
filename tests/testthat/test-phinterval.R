@@ -829,7 +829,7 @@ test_that("phint_setdiff() empty input results in empty output", {
 })
 
 test_that("phint_setdiff() NA input results in NA output", {
-  int <- interval(as.Date("2021-01-01", as.Date("2021-02-01")))
+  int <- interval(as.Date("2021-01-01"), as.Date("2021-02-01"))
   expect_phint_equal(phint_setdiff(interval(NA, NA), int), interval(NA, NA))
   expect_phint_equal(phint_setdiff(int, interval(NA, NA)), interval(NA, NA))
 })
@@ -909,7 +909,7 @@ test_that("phint_intersect() empty input results in empty output", {
 })
 
 test_that("phint_intersect() NA input results in NA output", {
-  int <- interval(as.Date("2021-01-01", as.Date("2021-02-01")))
+  int <- interval(as.Date("2021-01-01"), as.Date("2021-02-01"))
   expect_phint_equal(phint_intersect(interval(NA, NA), int), interval(NA, NA))
   expect_phint_equal(phint_intersect(int, interval(NA, NA)), interval(NA, NA))
 })
