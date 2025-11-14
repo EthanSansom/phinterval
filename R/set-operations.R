@@ -76,7 +76,7 @@ phint_squash.Interval <- function(phint, na.rm = TRUE, empty_to = c("na", "hole"
 
 phint_to_interval_set <- function(phint, na.rm = TRUE, empty_to = "") {
   if (!na.rm && anyNA(phint)) {
-    return(NULL)
+    return(the$na_interval_set)
   }
   if (is_empty(phint)) {
     return(empty_result(empty_to))
@@ -86,7 +86,7 @@ phint_to_interval_set <- function(phint, na.rm = TRUE, empty_to = "") {
   # except for when every element is NULL, in which case NULL is returned.
   interval_set <- do.call(rbind, vec_data(phint))
   if (is.null(interval_set)) {
-    return(NULL)
+    return(the$na_interval_set)
   }
   cpp_squash_interval_set(interval_set)
 }
@@ -105,9 +105,9 @@ int_to_interval_set <- function(int, na.rm = TRUE, empty_to = "") {
 empty_result <- function(empty_to) {
   switch(
     empty_to,
-    na = NULL,
+    na = the$na_interval_set,
     empty = list(),
-    hole = matrix(numeric(), ncol = 2L),
+    hole = the$empty_interval_set,
     rlang::abort("Unexpected `empty_to`.", .internal = TRUE)
   )
 }
