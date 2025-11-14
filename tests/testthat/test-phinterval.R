@@ -35,7 +35,7 @@ test_that("phinterval() tzone argument overrides intervals timezone", {
   int <- interval(as.Date("2021-01-01"), as.Date("2021-02-01"), tzone = "UTC")
   phint <- phinterval(list(int), tzone = "EST")
 
-  expect_equal(attr(phint, "tzone"), "EST")
+  expect_equal(get_tzone(phint), "EST")
   expect_equal(
     as.numeric(lubridate::int_start(int)),
     as.numeric(phint_start(phint))
@@ -120,12 +120,45 @@ test_that("phinterval() works as expected", {
   int4 <- interval(t2, t2, tzone = "EST")
 
   intervals <- list(int1, int2, int3, int4)
-  phint <- phinterval(intervals)
 
-  expect_equal(phint_to_spans(phint), intervals)
-  expect_length(phint, length(intervals))
-  expect_s3_class(phint, "phinterval")
-  expect_equal(attr(phint, "tzone"), "EST")
+  phint1 <- phinterval(intervals)
+  phint2 <- phinterval(map(intervals, as_phinterval))
+
+  expect_equal(phint_to_spans(phint1), intervals)
+  expect_length(phint1, length(intervals))
+  expect_s3_class(phint1, "phinterval")
+  expect_equal(get_tzone(phint1), "EST")
+  expect_equal(phint1, phint2)
+})
+
+# print ------------------------------------------------------------------------
+
+test_that("phintervals are formatted as expected", {
+  o <- lubridate::origin
+  phint1 <- phinterval(interval(o, o + 10))
+  phint2 <- phinterval(interval(o + seq(0, 20, 10), o + 5 + seq(0, 20, 10)))
+  na_phint <- phinterval(interval(NA, NA))
+  hole <- phinterval(interval())
+
+  # Generic printing
+  expect_snapshot(print(c(phint1, phint2, na_phint, hole)))
+  expect_snapshot(print(phinterval(interval(o, o + 86400))))
+
+  # Full width
+  expect_snapshot(print(phint2, max_width = 9999))
+
+  # Time zones
+  expect_snapshot(print(phinterval(interval(o, o + 86400, tzone = "EST"))))
+  expect_snapshot(print(phinterval(interval(o, o + 86400, tzone = ""))))
+
+  # Truncating printed output
+  op <- options(max.print = 1)
+  on.exit(options(op), add = TRUE, after = FALSE)
+  expect_snapshot(print(c(phint1, phint2, na_phint, hole)))
+
+  # Invalid max_width options
+  expect_error(format(phinterval(), max_width = "A"))
+  expect_error(format(phinterval(), max_width = 10.5))
 })
 
 # as_phinterval ----------------------------------------------------------------
@@ -190,18 +223,21 @@ test_that("phint_start() NA input results in NA output", {
 })
 
 test_that("phint_start() starts are correct", {
-  t1 <- as.POSIXct("2021-01-01 00:00:00")
-  t2 <- as.POSIXct("2021-01-01 00:10:00")
-  t3 <- as.POSIXct("2021-01-01 00:10:30")
-  t4 <- as.POSIXct("2021-01-01 00:10:50")
+  t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
+  t2 <- as.POSIXct("2021-01-01 00:10:00", tz = "UTC")
+  t3 <- as.POSIXct("2021-01-01 00:10:30", tz = "UTC")
+  t4 <- as.POSIXct("2021-01-01 00:10:50", tz = "UTC")
 
   int1 <- interval(c(t3, t1), c(t4, t2))
   int2 <- interval(t2, t4)
-  phint <- phinterval(list(int1, int2), tzone = "EST")
+  phint <- phinterval(list(int1, int2))
   start <- phint_start(phint)
 
-  expect_equal(as.numeric(start), as.numeric(c(t1, t2)))
-  expect_equal(get_tzone(start), "EST")
+  expect_equal(phint_start(phint), c(t1, t2))
+  expect_equal(phint_start(int1), c(t3, t1))
+  expect_equal(get_tzone(start), "UTC")
+
+  expect_error(phint_start(as.Date("2020-01-05")))
 })
 
 # phint_starts -----------------------------------------------------------------
@@ -227,17 +263,18 @@ test_that("phint_starts() NA input results in NA output", {
 })
 
 test_that("phint_starts() starts are correct", {
-  t1 <- as.POSIXct("2021-01-01 00:00:00", tzone = "EST")
-  t2 <- as.POSIXct("2021-01-01 00:10:00", tzone = "EST")
-  t3 <- as.POSIXct("2021-01-01 00:10:30", tzone = "EST")
-  t4 <- as.POSIXct("2021-01-01 00:10:50", tzone = "EST")
+  t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "EST")
+  t2 <- as.POSIXct("2021-01-01 00:10:00", tz = "EST")
+  t3 <- as.POSIXct("2021-01-01 00:10:30", tz = "EST")
+  t4 <- as.POSIXct("2021-01-01 00:10:50", tz = "EST")
 
-  int <- interval(c(t3, t1), c(t4, t2), tzone = "EST")
+  int <- interval(c(t3, t1), c(t4, t2))
   phint <- phint_squash(int)
-  starts <- phint_starts(phint)
 
-  expect_true(all(map_lgl(starts, \(s) get_tzone(s) == "EST")))
-  expect_equal(map(starts, as.numeric), list(as.numeric(c(t1, t3))))
+  expect_equal(phint_starts(phint), list(c(t1, t3)))
+  expect_equal(phint_starts(int), list(t3, t1))
+
+  expect_error(phint_starts(as.Date("2020-01-05")))
 })
 
 # phint_end --------------------------------------------------------------------
@@ -264,10 +301,10 @@ test_that("phint_end() NA input results in NA output", {
 })
 
 test_that("phint_end() ends are correct", {
-  t1 <- as.POSIXct("2021-01-01 00:00:00")
-  t2 <- as.POSIXct("2021-01-01 00:10:00")
-  t3 <- as.POSIXct("2021-01-01 00:10:30")
-  t4 <- as.POSIXct("2021-01-01 00:10:50")
+  t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
+  t2 <- as.POSIXct("2021-01-01 00:10:00", tz = "UTC")
+  t3 <- as.POSIXct("2021-01-01 00:10:30", tz = "UTC")
+  t4 <- as.POSIXct("2021-01-01 00:10:50", tz = "UTC")
 
   int1 <- interval(c(t3, t1), c(t4, t2))
   int2 <- interval(t2, t4)
@@ -276,16 +313,14 @@ test_that("phint_end() ends are correct", {
 
   expect_equal(as.numeric(end), as.numeric(c(t4, t4)))
   expect_equal(get_tzone(end), "EST")
+
+  expect_error(phint_end(as.Date("2020-01-05")))
 })
 
 # phint_ends -------------------------------------------------------------------
 
 test_that("phint_ends() empty input results in empty list", {
-  phint <- phinterval()
-  ends <- phint_ends(phint)
-
-  expect_identical(ends, list())
-  expect_length(ends, 0L)
+  expect_identical(phint_ends(phinterval()), list())
 })
 
 test_that("phint_ends() NA input results in NA output", {
@@ -301,18 +336,114 @@ test_that("phint_ends() NA input results in NA output", {
 })
 
 test_that("phint_ends() ends are correct", {
-  t1 <- as.POSIXct("2021-01-01 00:00:00", tzone = "EST")
-  t2 <- as.POSIXct("2021-01-01 00:10:00", tzone = "EST")
-  t3 <- as.POSIXct("2021-01-01 00:10:30", tzone = "EST")
-  t4 <- as.POSIXct("2021-01-01 00:10:50", tzone = "EST")
+  t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "EST")
+  t2 <- as.POSIXct("2023-01-01 00:00:00", tz = "EST")
+  t3 <- as.POSIXct("2024-11-15 00:00:15", tz = "EST")
+  t4 <- as.POSIXct("2025-01-01 00:10:50", tz = "EST")
 
-  int <- interval(c(t3, t1), c(t4, t2), tzone = "EST")
+  int <- interval(c(t3, t1), c(t4, t2))
   phint <- phint_squash(int)
-  ends <- phint_ends(phint)
 
-  expect_true(all(map_lgl(ends, \(e) get_tzone(e) == "EST")))
-  expect_equal(map(ends, as.numeric), list(as.numeric(c(t2, t4))))
+  expect_equal(phint_ends(phint), list(c(t2, t4)))
+  expect_equal(phint_ends(int), list(t4, t2))
+
+  expect_error(phint_ends(as.Date("2020-01-05")))
 })
+
+# phint_length -----------------------------------------------------------------
+
+test_that("phint_length() empty input results in empty output", {
+  expect_identical(phint_length(interval()), numeric())
+  expect_identical(phint_length(phinterval()), numeric())
+})
+
+test_that("phint_length() NA input results in NA output", {
+  expect_identical(phint_length(interval(NA, NA)), NA_real_)
+  expect_identical(phint_length(phinterval(interval(NA, NA))), NA_real_)
+})
+
+test_that("phint_length() works as expected", {
+  o <- lubridate::origin
+  int00 <- interval(o, o)
+  int10 <- interval(o, o + 10)
+  na_int <- interval(NA, NA)
+
+  hole <- phinterval(list(interval()))
+
+  expect_identical(phint_length(c(int00, int10, na_int)), c(0, 10, NA))
+  expect_identical(phint_length(as_phinterval(c(int00, int10, na_int))), c(0, 10, NA))
+  expect_identical(phint_length(hole), 0)
+
+  expect_error(phint_length("A"))
+})
+
+# phint_lengths -----------------------------------------------------------------
+
+test_that("phint_lengths() empty input results in empty list", {
+  expect_identical(phint_lengths(interval()), list())
+  expect_identical(phint_lengths(phinterval()), list())
+})
+
+test_that("phint_lengths() NA input results in NA output", {
+  expect_identical(phint_lengths(interval(NA, NA)), list(NA_real_))
+  expect_identical(phint_lengths(phinterval(interval(NA, NA))), list(NA_real_))
+})
+
+test_that("phint_lengths() works as expected", {
+  o <- lubridate::origin
+  int00 <- interval(o, o)
+  int10 <- interval(o + 5, o + 15)
+  int20 <- interval(o + 20, o + 40)
+  na_int <- interval(NA, NA)
+
+  hole <- phinterval(list(interval()))
+
+  expect_identical(phint_lengths(c(int00, int10, na_int)), list(0, 10, NA_real_))
+  expect_identical(phint_lengths(phint_squash(c(int00, int10, int20))), list(c(0, 10, 20)))
+  expect_identical(phint_lengths(hole), list(0))
+
+  expect_error(phint_lengths("A"))
+})
+
+# is_hole ----------------------------------------------------------------------
+
+test_that("is_hole() works as expected", {
+  hole <- phinterval(interval())
+  phint <- phinterval(interval(as.Date("2021-01-01"), as.Date("2021-01-02")))
+  na_phint <- phinterval(interval(NA, NA))
+
+  expect_equal(is_hole(c(hole, phint, na_phint)), c(TRUE, FALSE, NA))
+  expect_equal(is_hole(phinterval()), logical())
+  expect_error(is_hole(as.Date("2021-01-01")))
+})
+
+# n_spans ----------------------------------------------------------------------
+
+test_that("n_spans() works as expected", {
+  int1 <- interval(as.Date("2021-01-01"), as.Date("2021-01-02"))
+  int2 <- interval(as.Date("2021-01-05"), as.Date("2021-01-20"))
+
+  hole <- phinterval(interval())
+  phint1 <- phinterval(int1)
+  phint2 <- phinterval(c(int1, int2))
+  na_phint <- phinterval(interval(NA, NA))
+
+  expect_equal(n_spans(c(hole, phint1, phint2, na_phint)), c(0L, 1L, 2L, NA))
+  expect_equal(n_spans(c(int1, int2, interval(NA, NA))), c(1L, 1L, NA))
+
+  expect_identical(n_spans(phinterval()), integer())
+  expect_identical(n_spans(interval()), integer())
+
+  expect_error(n_spans(as.Date("2021-01-01")))
+})
+
+# phint_to_spans ---------------------------------------------------------------
+
+# TODO
+
+# phint_invert -----------------------------------------------------------------
+
+# TODO: Base on phint_complement
 
 # phint_squash -----------------------------------------------------------------
 
@@ -337,10 +468,13 @@ test_that("phint_squash() respects na.rm argument", {
   na_int <- interval(NA, NA)
   int1 <- interval(as.Date("2021-01-01"), as.Date("2021-01-02"))
   int2 <- interval(as.Date("2021-01-04"), as.Date("2021-01-05"))
+  na_phint <- phinterval(na_int)
   phint <- phinterval(c(int1, int2))
 
   expect_phint_equal(phint_squash(na_int, na.rm = TRUE), na_int)
   expect_phint_equal(phint_squash(na_int, na.rm = FALSE), na_int)
+  expect_phint_equal(phint_squash(na_phint, na.rm = TRUE), na_phint)
+  expect_phint_equal(phint_squash(na_phint, na.rm = FALSE), na_phint)
 
   expect_phint_equal(phint_squash(c(int1, int2, na_int), na.rm = TRUE), phint)
   expect_phint_equal(phint_squash(c(int1, int2, na_int), na.rm = FALSE), na_int)
@@ -885,7 +1019,6 @@ test_that("phint_within(<datetime>, <phinterval>) works as expected", {
 
 test_that("phint_within(<datetime>, <phinterval>) works with large phintervals", {
   o <- lubridate::origin
-
   phint <- phint_squash(interval(o + seq(0, 100, 10), o + 5 + seq(0, 100, 10)))
 
   time_in <- o + 2
@@ -899,19 +1032,3 @@ test_that("phint_within(<datetime>, <phinterval>) works with large phintervals",
   expect_false(phint_within(time_out, phint))
   expect_true(phint_within(o, phint))
 })
-
-# is_hole ----------------------------------------------------------------------
-
-# TODO
-
-# n_spans ----------------------------------------------------------------------
-
-# TODO
-
-# phint_to_spans ---------------------------------------------------------------
-
-# TODO
-
-# phint_lengths ----------------------------------------------------------------
-
-# TODO
