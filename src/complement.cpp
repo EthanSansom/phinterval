@@ -67,7 +67,6 @@ NumericMatrix complement_interval_set(NumericMatrix x) {
   return out;
 }
 
-// [[Rcpp::export]]
 NumericMatrix invert_interval_set(NumericMatrix x) {
   int n { x.nrow() };
   if (n == 0) return x;
