@@ -2,6 +2,7 @@
 #include "utils.h"
 #include "endpoint.h"
 #include <Rcpp.h>
+#include <algorithm>
 using namespace Rcpp;
 
 // [[Rcpp::export]]
@@ -19,38 +20,23 @@ LogicalVector cpp_interval_sets_overlaps(const List& x, const List& y) {
 }
 
 int interval_set_overlaps(NumericMatrix x, NumericMatrix y) {
-  int nx { x.nrow() };
-  int ny { y.nrow() };
+  int nx = x.nrow();
+  int ny = y.nrow();
   if (nx == 0 || ny == 0) return false;
-  if (ISNA(x[0]) || ISNA(y[0])) return NA_LOGICAL;
 
-  Endpoints endpoints;
-  endpoints.reserve((nx + ny) * 2);
+  int i { 0 }, j { 0 };
+  while (i < nx && j < ny) {
+    double start = std::max(x(i, 0), y(j, 0));
+    double end = std::min(x(i, 1), y(j, 1));
 
-  for (int i { 0 }; i < nx; ++i) {
-    endpoints.push_back(Endpoint { true, x[i] });
-    endpoints.push_back(Endpoint { false, x[i + nx] });
-  }
-  for (int i { 0 }; i < ny; ++i) {
-    endpoints.push_back(Endpoint { true, y[i] });
-    endpoints.push_back(Endpoint { false, y[i + ny] });
-  }
+    if (start <= end) return true;
 
-  std::sort(endpoints.begin(), endpoints.end());
-  return overlaps(endpoints);
-}
-
-bool overlaps(const Endpoints& endpoints) {
-  int score { 0 };
-  for (const Endpoint& endpoint : endpoints) {
-    if (endpoint.is_start) {
-      ++score;
+    if (x(i, 1) < y(j, 1)) {
+      i++;
     } else {
-      --score;
-    }
-    if (score > 1) {
-      return true;
+      j++;
     }
   }
+
   return false;
 }

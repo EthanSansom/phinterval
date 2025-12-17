@@ -23,38 +23,20 @@ int interval_set_within(NumericMatrix x, NumericMatrix y) {
   int ny { y.nrow() };
   if (nx == 0 || ny == 0) return false;
 
-  BinaryEndpoints endpoints;
-  endpoints.reserve((nx + ny) * 2);
+  int j = 0;
+  for (int i = 0; i < nx; ++i) {
+    double x_start = x(i, 0);
+    double x_end   = x(i, 1);
 
-  for (int i { 0 }; i < nx; ++i) {
-    endpoints.push_back(BinaryEndpoint { true, true, x[i] });
-    endpoints.push_back(BinaryEndpoint { false, true, x[i + nx] });
-  }
-  for (int i { 0 }; i < ny; ++i) {
-    // We don't consider anything to be within an instant (even itself)
-    if (y[i] == y[i + ny]) {
-     continue;
-    }
-    endpoints.push_back(BinaryEndpoint { true, false, y[i] });
-    endpoints.push_back(BinaryEndpoint { false, false, y[i + ny] });
+    while (j < ny && y(j, 1) < x_start) ++j;
+
+    if (j == ny) return false;
+
+    double y_start = y(j, 0);
+    double y_end = y(j, 1);
+    if (x_start < y_start || x_end > y_end) return false;
   }
 
-  std::sort(endpoints.begin(), endpoints.end());
-  return within(endpoints);
-}
-
-bool within(const BinaryEndpoints& endpoints) {
-  bool within_y { false };
-  for (const BinaryEndpoint& endpoint : endpoints) {
-    if (endpoint.in_x) {
-      // We've encountered an endpoint of `x` while not within `y`
-      if (!within_y) return false;
-    } else {
-      // Encountering a start from `y` indicates we've entered a `y` interval
-      // and an end that we've exited.
-      within_y = endpoint.is_start;
-    }
-  }
   return true;
 }
 
@@ -74,12 +56,10 @@ LogicalVector cpp_interval_sets_contains(const List& x, NumericVector t) {
 
 int interval_set_contains(NumericMatrix x, double t) {
   int n { x.nrow() };
+  if (n == 0 || t > x(n - 1, 1)) return false;
 
-  // `x` is an empty interval of `t` is outside of the maximum start/end of `x`
-  if (n == 0 || t < x[0] || t > x[n * 2 - 1]) return false;
+  int i { 0 };
+  while (t > x(i, 1)) ++i;
 
-  for (int i { 0 }; i < n; ++i) {
-    if (x[i] <= t && t <= x[i + n]) return true;
-  }
-  return false;
+  return x(i, 0) <= t;
 }
