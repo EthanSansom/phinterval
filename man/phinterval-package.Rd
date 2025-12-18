@@ -2,7 +2,6 @@
 % Please edit documentation in R/phinterval-package.R
 \docType{package}
 \name{phinterval-package}
-\alias{phinterval}
 \alias{phinterval-package}
 \title{phinterval: What the Package Does (One Line, Title Case)}
 \description{
@@ -17,7 +16,7 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: First Last \email{first.last@example.com} (\href{https://orcid.org/YOUR-ORCID-ID}{ORCID})
+\strong{Maintainer}: Ethan Sansom \email{ethan.sansom29@gmail.com} (\href{https://orcid.org/0009-0000-1573-0186}{ORCID})
 
 }
 \keyword{internal}
