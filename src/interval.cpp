@@ -48,8 +48,7 @@ List cpp_lubridate_interval_to_interval_sets(
   List out(n);
 
   NumericMatrix element(1, 2);
-  double start;
-  double span;
+  double start, span;
   for (int i { 0 }; i < n; ++i) {
     start = starts[i];
     span = spans[i];

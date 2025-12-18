@@ -7,30 +7,12 @@ using namespace Rcpp;
 
 // [[Rcpp::export]]
 List cpp_complement_interval_sets(const List& x) {
-  int n = x.size();
-  List out(n);
-  for (int i { 0 }; i < n; ++i) {
-    if (x[i] == NA_INTERVAL) {
-      out[i] = NA_INTERVAL;
-    } else {
-      out[i] = complement_interval_set(x[i]);
-    }
-  }
-  return out;
+  return unary_interval_set_op(x, complement_interval_set);
 }
 
 // [[Rcpp::export]]
 List cpp_invert_interval_sets(const List& x) {
-  int n = x.size();
-  List out(n);
-  for (int i { 0 }; i < n; ++i) {
-    if (x[i] == NA_INTERVAL) {
-      out[i] = NA_INTERVAL;
-    } else {
-      out[i] = invert_interval_set(x[i]);
-    }
-  }
-  return out;
+  return unary_interval_set_op(x, invert_interval_set);
 }
 
 // We can take the complement by populating the output matrix with endpoints of

@@ -8,16 +8,7 @@ using namespace Rcpp;
 
 // [[Rcpp::export]]
 List cpp_setdiff_interval_sets(const List& x, const List& y) {
-  int n = x.size();
-  List out(n);
-  for (int i { 0 }; i < n; ++i) {
-    if (x[i] == NA_INTERVAL || y[i] == NA_INTERVAL) {
-      out[i] = NA_INTERVAL;
-    } else {
-      out[i] = setdiff_interval_set(x[i], y[i]);
-    }
-  }
-  return out;
+  return binary_interval_set_op(x, y, setdiff_interval_set);
 }
 
 NumericMatrix setdiff_interval_set(NumericMatrix x, NumericMatrix y) {
@@ -25,8 +16,7 @@ NumericMatrix setdiff_interval_set(NumericMatrix x, NumericMatrix y) {
   int ny = y.nrow();
   if (nx == 0 || ny == 0) return x;
 
-  std::vector<double> starts;
-  std::vector<double> ends;
+  std::vector<double> starts, ends;
   starts.reserve(nx);
   ends.reserve(nx);
 
@@ -67,12 +57,5 @@ NumericMatrix setdiff_interval_set(NumericMatrix x, NumericMatrix y) {
     }
   }
 
-  int n = starts.size();
-  NumericMatrix out(n, 2);
-  for (int i { 0 }; i < n; ++i) {
-    out(i, 0) = starts[i];
-    out(i, 1) = ends[i];
-  }
-
-  return out;
+  return new_matrix(starts, ends);
 }

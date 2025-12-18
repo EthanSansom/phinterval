@@ -5,16 +5,7 @@ using namespace Rcpp;
 
 // [[Rcpp::export]]
 List cpp_interval_sets_remove_instants(const List& x) {
-  int n = x.size();
-  List out(n);
-  for (int i { 0 }; i < n; ++i) {
-    if (x[i] == NA_INTERVAL) {
-      out[i] = NA_INTERVAL;
-    } else {
-      out[i] = interval_set_remove_instants(x[i]);
-    }
-  }
-  return out;
+  return unary_interval_set_op(x, interval_set_remove_instants);
 }
 
 NumericMatrix interval_set_remove_instants(NumericMatrix x) {

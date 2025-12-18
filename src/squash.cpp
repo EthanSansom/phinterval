@@ -45,10 +45,5 @@ NumericMatrix squash(const Endpoints& endpoints) {
     }
   }
 
-  int n = starts.size();
-  NumericMatrix out(n, 2);
-  std::copy(starts.begin(), starts.end(), out.begin());
-  std::copy(ends.begin(), ends.end(), out.begin() + n);
-
-  return out;
+  return new_matrix(starts, ends);
 }

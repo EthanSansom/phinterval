@@ -7,16 +7,7 @@ using namespace Rcpp;
 
 // [[Rcpp::export]]
 List cpp_union_interval_sets(const List& x, const List& y) {
-  int n = x.size();
-  List out(n);
-  for (int i { 0 }; i < n; ++i) {
-    if (x[i] == NA_INTERVAL || y[i] == NA_INTERVAL) {
-      out[i] = NA_INTERVAL;
-    } else {
-      out[i] = union_interval_set(x[i], y[i]);
-    }
-  }
-  return out;
+  return binary_interval_set_op(x, y, union_interval_set);
 }
 
 NumericMatrix union_interval_set(NumericMatrix x, NumericMatrix y) {
