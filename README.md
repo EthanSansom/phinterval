@@ -15,7 +15,8 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 that may contain gaps. It implements the `<phinterval>` (think
 “potentially-holey-interval”) vector class, designed as an extension of
 the [{lubridate}](https://lubridate.tidyverse.org/) `<Interval>`, to
-represent contiguous, disjoint, empty, and unknown spans of time.
+represent spans of time that are contiguous, disjoint, empty, or
+unknown.
 
 Functionality for manipulating these spans includes:
 
@@ -53,10 +54,10 @@ phint
 #> [2] {2000-01-01--2000-01-02, 2000-01-04--2000-01-09}
 ```
 
-Graphically, elements of `phint` look like:
+Graphically, the elements of `phint` are represented as:
 
 <picture>
-<source media="(prefers-color-scheme: dark)" srcset="man/figures/README-/phinterval.svg">
+<source media="(prefers-color-scheme: dark)" srcset="man/figures/README-/phinterval-dark.svg">
 <img src="man/figures/README-/phinterval-light.svg" width="100%" />
 </picture>
 
@@ -71,11 +72,11 @@ phint_squash(ints)
 #> [1] {2000-01-01--2000-01-02, 2000-01-03--2000-01-09}
 ```
 
-The squashed intervals contain the set of time spans within in *any* of
-the input intervals, without duplication.
+The squashed intervals contain the set of time spans within *any* of the
+input intervals, without duplication.
 
 <picture>
-<source media="(prefers-color-scheme: dark)" srcset="man/figures/README-/phint_squash.svg">
+<source media="(prefers-color-scheme: dark)" srcset="man/figures/README-/phint_squash-dark.svg">
 <img src="man/figures/README-/phint_squash-light.svg" width="100%" />
 </picture>
 
@@ -99,9 +100,9 @@ The {phinterval} package treats `<Interval>` vectors as a subclass of
 | `<phinterval> / <Duration>`       | `<interval> / <Duration>`  |
 
 {phinterval} set operations work as expected with arbitrary time spans,
-allowing some operations which are not possible in {lubridate}. For
-example, the intersection of two non-overlapping intervals is an empty
-time span, called a `<hole>`.
+enabling operations that are not supported by {lubridate}. For example,
+the intersection of two non-overlapping intervals is an empty time span,
+called a `<hole>`.
 
 ``` r
 lubridate::intersect(jan_1_to_2, jan_4_to_9)
@@ -121,8 +122,8 @@ phint_setdiff(jan_1_to_2, jan_1_to_2)
 #> [1] <hole>
 ```
 
-Set-differences may “punch a hole” through a time span, creating a
-discontinuous interval.
+Performing a set-difference may “punch a hole” in a time span, creating
+a discontinuous interval.
 
 ``` r
 try(lubridate::setdiff(jan_1_to_9, jan_3_to_5))
@@ -165,3 +166,13 @@ You can install the development version of {phinterval} from
 # install.packages("pak")
 pak::pak("EthanSansom/phinterval")
 ```
+
+## Inspiration
+
+This package is based on the
+[{lubridate}](https://lubridate.tidyverse.org/) package’s `<Interval>`
+class for representing contiguous time spans. The data structure of the
+`<phinterval>` class (a list of matrices) and the C++ implementation of
+`phint_squash()` was inspired by the
+[{intervals}](https://CRAN.R-project.org/package=intervals) package by
+Richard Bourgon and Edzer Pebesma.

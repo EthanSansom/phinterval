@@ -21,7 +21,7 @@ knitr::opts_chunk$set(
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 <!-- badges: end -->
 
-{phinterval} is a package for representing and manipulating time spans that may contain gaps. It implements the `<phinterval>` (think "potentially-holey-interval") vector class, designed as an extension of the [{lubridate}](https://lubridate.tidyverse.org/) `<Interval>`, to represent contiguous, disjoint, empty, and unknown spans of time.
+{phinterval} is a package for representing and manipulating time spans that may contain gaps. It implements the `<phinterval>` (think "potentially-holey-interval") vector class, designed as an extension of the [{lubridate}](https://lubridate.tidyverse.org/) `<Interval>`, to represent spans of time that are contiguous, disjoint, empty, or unknown.
 
 Functionality for manipulating these spans includes:
 
@@ -53,10 +53,10 @@ phint <- phinterval(
 phint
 ```
 
-Graphically, elements of `phint` look like:
+Graphically, the elements of `phint` are represented as:
 
 <picture>
-<source media="(prefers-color-scheme: dark)" srcset="man/figures/README-/phinterval.svg">
+<source media="(prefers-color-scheme: dark)" srcset="man/figures/README-/phinterval-dark.svg">
 <img src="man/figures/README-/phinterval-light.svg" width="100%" /> </picture>
 
 In most cases a `<phinterval>` vector will appear as the result of 
@@ -68,11 +68,11 @@ ints <- c(jan_1_to_2, jan_3_to_5, jan_4_to_9)
 phint_squash(ints)
 ```
 
-The squashed intervals contain the set of time spans within in *any* of the
+The squashed intervals contain the set of time spans within *any* of the
 input intervals, without duplication.
 
 <picture>
-<source media="(prefers-color-scheme: dark)" srcset="man/figures/README-/phint_squash.svg">
+<source media="(prefers-color-scheme: dark)" srcset="man/figures/README-/phint_squash-dark.svg">
 <img src="man/figures/README-/phint_squash-light.svg" width="100%" /> </picture>
 
 ## phinterval <-> lubridate
@@ -94,8 +94,7 @@ The {phinterval} package treats `<Interval>` vectors as a subclass of
 | `phint_within(x, phint)`          | `a %within% b`             |
 | `<phinterval> / <Duration>`       | `<interval> / <Duration>`  |
 
-{phinterval} set operations work as expected with arbitrary time spans, allowing
-some operations which are not possible in {lubridate}. For example, the 
+{phinterval} set operations work as expected with arbitrary time spans, enabling operations that are not supported by {lubridate}. For example, the 
 intersection of two non-overlapping intervals is an empty time span, called a `<hole>`.
 
 ```{r}
@@ -110,7 +109,7 @@ lubridate::setdiff(jan_1_to_2, jan_1_to_2)
 phint_setdiff(jan_1_to_2, jan_1_to_2)
 ```
 
-Set-differences may "punch a hole" through a time span, creating a discontinuous
+Performing a set-difference may "punch a hole" in a time span, creating a discontinuous
 interval.
 
 ```{r}
@@ -143,3 +142,11 @@ You can install the development version of {phinterval} from [GitHub](https://gi
 # install.packages("pak")
 pak::pak("EthanSansom/phinterval")
 ```
+
+## Inspiration
+
+This package is based on the [{lubridate}](https://lubridate.tidyverse.org/)
+package's `<Interval>` class for representing contiguous time spans. The data 
+structure of the `<phinterval>` class (a list of matrices) and the C++ 
+implementation of `phint_squash()` was inspired by the [{intervals}](https://CRAN.R-project.org/package=intervals) package by
+Richard Bourgon and Edzer Pebesma.
