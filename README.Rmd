@@ -56,7 +56,7 @@ phint
 Graphically, elements of `phint` look like:
 
 <picture>
-<source media="(prefers-color-scheme: dark)" srcset="man/figures/README-/phinterval-dark.svg">
+<source media="(prefers-color-scheme: dark)" srcset="man/figures/README-/phinterval.svg">
 <img src="man/figures/README-/phinterval-light.svg" width="100%" /> </picture>
 
 In most cases a `<phinterval>` vector will appear as the result of 
@@ -69,7 +69,7 @@ phint_squash(ints)
 ```
 
 <picture>
-<source media="(prefers-color-scheme: dark)" srcset="man/figures/README-/phint_squash-dark.svg">
+<source media="(prefers-color-scheme: dark)" srcset="man/figures/README-/phint_squash.svg">
 <img src="man/figures/README-/phint_squash-light.svg" width="100%" /> </picture>
 
 ## phinterval <-> lubridate
@@ -93,7 +93,7 @@ The {phinterval} package treats `<Interval>` vectors as a subclass of
 
 {phinterval} set operations work as expected with arbitrary time spans, allowing
 some operations which are not possible in {lubridate}. For example, the 
-intersection of two non-overlapping times is an empty time span, called a `<hole>`.
+intersection of two non-overlapping intervals is an empty time span, called a `<hole>`.
 
 ```{r}
 lubridate::intersect(jan_1_to_2, jan_4_to_9)
