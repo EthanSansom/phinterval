@@ -71,6 +71,9 @@ phint_squash(ints)
 #> [1] {2000-01-01--2000-01-02, 2000-01-03--2000-01-09}
 ```
 
+The squashed intervals contain the set of time spans within in *any* of
+the input intervals, without duplication.
+
 <picture>
 <source media="(prefers-color-scheme: dark)" srcset="man/figures/README-/phint_squash.svg">
 <img src="man/figures/README-/phint_squash-light.svg" width="100%" />
