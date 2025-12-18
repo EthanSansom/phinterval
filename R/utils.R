@@ -8,7 +8,7 @@ get_tzone <- function(x) {
 
 #' @export
 get_tzone.Interval <- function(x) {
-  lubridate::tz(lubridate::int_start(x))
+  attr(x, "tzone")
 }
 
 #' @export

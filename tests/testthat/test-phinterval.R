@@ -517,7 +517,6 @@ test_that("phint_to_spans() errors on invalid inputs", {
   expect_error(phint_to_spans(interval(NA, NA), hole_to = "span"))
 })
 
-# TODO
 test_that("phint_to_spans() works as expected", {
   t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
   t2 <- as.POSIXct("2021-01-01 00:00:45", tz = "UTC")

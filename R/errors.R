@@ -38,7 +38,7 @@ check_is_phintish <- function(x, arg = caller_arg(x), call = caller_env()) {
 }
 
 check_is_list_of_phintish <- function(x, arg = caller_arg(x), call = caller_env()) {
-  if (!is.list(x)) {
+  if (!is_bare_list(x)) {
     stop_input_type(
       x,
       "a list of <Interval> or <phinterval> vectors",
