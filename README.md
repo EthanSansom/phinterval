@@ -55,7 +55,10 @@ phint
 
 Graphically, elements of `phint` look like:
 
-<!-- TODO: Insert a graph --->
+<picture>
+<source media="(prefers-color-scheme: dark)" srcset="man/figures/README-/phinterval-dark.svg">
+<img src="man/figures/README-/phinterval-light.svg" width="100%" />
+</picture>
 
 In most cases a `<phinterval>` vector will appear as the result of
 manipulating `<Interval>` vectors. For example, `phint_squash()`
@@ -68,11 +71,9 @@ phint_squash(ints)
 #> [1] {2000-01-01--2000-01-02, 2000-01-03--2000-01-09}
 ```
 
-<!-- TODO: Insert a graph --->
-
 <picture>
 <source media="(prefers-color-scheme: dark)" srcset="man/figures/README-/phint_squash-dark.svg">
-<img src="man/figures/README-/phint_squash-dark.svg" width="100%" />
+<img src="man/figures/README-/phint_squash-light.svg" width="100%" />
 </picture>
 
 ## phinterval \<-\> lubridate
@@ -140,7 +141,7 @@ phint_union(jan_1_to_2, jan_4_to_9)
 #> [1] {2000-01-01--2000-01-02, 2000-01-04--2000-01-09}
 ```
 
-As with the {lubridate} equivalents, all {phinterval} set-operations are
+As with the {lubridate} equivalents, all {phinterval} set operations are
 vectorized.
 
 ``` r
