@@ -1,5 +1,5 @@
 ---
-title: 'phinterval: An R package for representing and manipulating timespans with gaps'
+title: 'phinterval: An R package for representing and manipulating time spans with gaps'
 tags:
   - R
   - dates
@@ -12,10 +12,10 @@ authors:
 affiliations:
   - name: "Department of Statistical Sciences, University of Toronto"
     index: 1
-date: "2025-11-12"
+date: "2025-12-18"
 bibliography: paper.bib
 output:
-  #rticles::joss_article:
+  # rticles::joss_article:
   #  keep_tex: false
   md_document:
      preserve_yaml: TRUE
@@ -26,92 +26,156 @@ journal: JOSS
 # Summary
 
 `phinterval` is an R (R Core Team 2022) package for representing and
-manipulating time spans that may contain gaps. It implements the
-*phinterval* vector class, designed as an extension of the `lubridate`
-(Grolemund and Wickham 2011) package’s *Interval* class, to represent
-continuous, disjoint, empty, and unknown spans of time.
+manipulating time spans that may include gaps. It implements the
+*phinterval* vector class, designed as a generalization of the
+`lubridate` (Grolemund and Wickham 2011) package’s *Interval* class.
 
-Functionality for manipulating these spans includes:
+While existing interval classes represent contiguous spans of time
+defined by a start and an end point, each element of a *phinterval* is a
+union of zero or more disjoint intervals. This allows empty time spans
+(e.g., the intersection of two non-overlapping events) and disjoint time
+spans (e.g., a student’s periods of enrollment in school separated by
+breaks) to be treated as first-class objects and manipulated using
+well-defined set operations.
 
--   Performing set operations: union, intersection, difference, and
+Functionality for working with these time spans includes:
+
+-   Set Operations: Vectorized union, intersection, difference, and
     complement.
--   Merging overlapping or adjacent intervals into non-overlapping sets
-    of time spans.
--   Testing whether time spans, dates, or times fall within one another
-    or overlap.
+-   Merging of overlapping and adjacent intervals into minimal
+    non-overlapping sets.
+-   Tests for whether time spans, dates, or times fall within one
+    another or overlap.
+
+The package is designed to work seamlessly with `lubridate`: all
+`phinterval` functions accept either *Interval* or *phinterval* vectors
+as input, enabling analysts to safely drop `phinterval` functions into
+their existing workflows.
 
 # Statement of Need
 
-Because of the complexities of accurately representing dates and times,
-including adjustments for time zones, daylight saving transitions, and
-leap years or seconds, manipulating time spans is a common source of
-frustration and error-prone code for analysts (Grolemund and Wickham
-2011; Tiwari et al. 2025). Several R packages, notably `lubridate` and
-`ivs` (Vaughan 2023), provide intuitive interfaces for representing and
-manipulating time spans that handle these complexities internally,
-reducing the cognitive load required of users and the likelihood of
-mistakes.
+Accurately representing and manipulating dates and times is challenging
+due to complexities such as time zone adjustments, daylight saving
+transitions, and leap years or seconds. As a result, temporal data
+analysis is a common source of frustration and error-prone or
+difficult-to-maintain code (Grolemund and Wickham 2011; Tiwari et al.
+2025). Several R packages provide intuitive interfaces that that handle
+these complexities automatically. In particular, `lubridate`, which is
+widely used for date-time manipulation in R, and `ivs` (Vaughan 2023)
+simplify the representation and manipulation of time spans, reducing
+users’ cognitive load and the likelihood of mistakes.
 
-To the author’s knowledge, however, no existing package supports empty
-or discontinuous time spans. Users encountering these spans - for
-example, the intersection of two non-overlapping intervals - receive an
-error (as in `ivs`) or unintuitive results (as in `lubridate`), forcing
-workarounds or potentially leading to uncaught mistakes. The
-`phinterval` package addresses this gap by providing explicit
-representations of disjoint and empty time spans, enabling operations
-such as union, intersection, and set difference to be performed
-accurately on arbitrary intervals. Its interface closely mirrors that of
-`lubridate`, and all `phinterval` functions accept `lubridate`
-*Interval* vectors as inputs, allowing analysts to safely integrate
-`phinterval` into their existing workflows and work with a broader range
-of temporal data.
+To the author’s knowledge, however, no existing package provides a
+first-class representation of empty or disjoint time spans. Users
+encountering these spans, for example, the intersection of two
+non-overlapping intervals, receive an error (as in `ivs`) or unintuitive
+results (as in `lubridate`), forcing workarounds and potentially leading
+to uncaught mistakes.
+
+The `phinterval` package addresses this gap by providing explicit
+representations of disjoint and empty time spans and defining set
+operations whose results are always valid *phinterval* objects. By
+closely mirroring the `lubridate` interface and accepting *Interval*
+vectors as input, `phinterval` minimizes adoption costs while enabling
+safe and intuitive manipulation of arbitrary time spans. The package is
+intended for analysts and researchers working with temporal data in
+settings such as event studies and observational data analysis.
 
 # Examples
 
-To demonstrate the utility of the *phinterval* class, consider a
-modified example from the `lubridate` package vignettes. Suppose two
-colleagues are each taking a 5 day vacation: one to Greece in early
-January and the other to Brazil in mid-February.
+The following examples demonstrate how `phinterval` functions can be
+used as drop-in replacements for `lubridate` operations, providing
+correct results for empty or disjoint intervals that would otherwise
+produce errors or ambiguous output.
 
-    greece <- interval(ymd("2020-01-01"), ymd("2020-01-06"))
-    brazil <- interval(ymd("2020-02-11"), ymd("2020-02-16"))
+```r
+library(phinterval)
 
-If we compute the union of these intervals using the `union()` method
-from `lubridate`:
+jan_1_to_9 <- interval(as.Date("2000-01-01"), as.Date("2000-01-09"))
+jan_2_to_3 <- interval(as.Date("2000-01-02"), as.Date("2000-01-03"))
+jan_5_to_9 <- interval(as.Date("2000-01-05"), as.Date("2000-01-09"))
+```
 
-    union(greece, brazil)
+In `lubridate`, the intersection of non-overlapping intervals returns an
+object with missing endpoints, resulting in ambiguity between genuinely
+empty time spans and missing data. `phinterval` explicitly represents
+empty time spans as a `<hole>`.
 
-    ## [1] 2020-01-01 UTC--2020-02-16 UTC
+```r
+lubridate::intersect(jan_2_to_3, jan_5_to_9)
+# [1] NA--NA
 
-The resulting interval includes the intervening time between the
-disjoint vacations. The `phinterval` package provides a drop-in
-replacement, `phint_union()`, which accepts the same arguments but
-returns a *phinterval* vector.
+phint_intersect(jan_2_to_3, jan_5_to_9)
+# <phinterval<UTC>[1]>
+# [1] <hole>
+```
 
-    phint_union(greece, brazil)
+Standard interval classes cannot represent gaps within a single
+observation, but `phinterval` handles these naturally.
 
-    ## <phinterval<UTC>[1]>
-    ## [1] {2020-01-01--2020-01-06, 2020-02-11--2020-02-16}
+```r
+try(lubridate::setdiff(jan_1_to_9, jan_2_to_3))
+# Error in setdiff.Interval(jan_1_to_9, jan_2_to_3) : 
+#   Cases 1 result in discontinuous intervals.
 
-The result is a disjoint time span, preserving the gap between the two
-vacations.
+phint_setdiff(jan_1_to_9, jan_2_to_3)
+# <phinterval<UTC>[1]>
+# [1] {2000-01-01--2000-01-02, 2000-01-03--2000-01-09}
+```
 
-In simple calculations, this distinction can easily lead to unexpected
-results. For example, to calculate the number of days that either
-employee is out of the office, one might take the union of their
-vacation spans and then calculate the duration in days:
+In addition to standard set operations, `phinterval` provides
+specialized functions for working with intervals with gaps. For example,
+`phint_squash()` flattens a vector of intervals into a minimal set of
+non-overlapping time spans, while `phint_invert()` returns the gaps
+between disjoint intervals.
 
-    as_duration(union(greece, brazil)) / ddays()
+These functions are useful for summarizing longitudinal event data, such
+as periods of employment and intervening unemployment:
 
-    ## [1] 46
+```r
+jobs <- dplyr::tribble(
+  ~name,   ~job_title,             ~start,        ~end,
+  "Greg",  "Mascot",               "2018-01-01",  "2018-06-03",
+  "Greg",  "Chief of Staff",       "2019-03-01",  "2020-11-28",
+  "Tom",   "Chairman",             "2019-05-01",  "2020-11-10",
+  "Tom",   "CEO",                  "2020-11-10",  "2020-12-31",
+  "Shiv",  "Political Consultant", "2017-01-01",  "2019-04-01"
+)
 
-    as_duration(phint_union(greece, brazil)) / ddays()
+employment <- jobs |>
+  dplyr::mutate(span = interval(start, end)) |>
+  dplyr::group_by(name) |>
+  dplyr::summarize(employment = phint_squash(span))
 
-    ## [1] 10
+employment
+# # A tibble: 3 × 2
+#   name                                        employment
+#   <chr>                                     <phint<UTC>>
+# 1 Greg  {2018-01-01--2018-06-03, 2019-03-01--2020-11-28}
+# 2 Shiv                          {2017-01-01--2019-04-01}
+# 3 Tom                           {2019-05-01--2020-12-31}
+```
 
-While experienced `lubridate` users can anticipate and work around these
-cases, `phinterval` provides an intuitive alternative which can easily
-be substituted into existing analyses.
+All `phinterval` functions are vectorized, making them well suited for
+data analysis.
+
+```r
+employment |>
+  dplyr::mutate(
+    # How long were workers employed?
+    n_emp_days = employment / lubridate::ddays(1),
+
+    # Where were the gaps in workers' employment?
+    unemployment = phint_invert(employment)
+  ) |>
+  dplyr::select(name, n_emp_days, unemployment)
+# # A tibble: 3 × 3
+#   name  n_emp_days             unemployment
+#   <chr>      <dbl>             <phint<UTC>>
+# 1 Greg         791 {2018-06-03--2019-03-01}
+# 2 Shiv         820                   <hole>
+# 3 Tom          610                   <hole>
+```
 
 # References
 
