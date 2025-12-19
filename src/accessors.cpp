@@ -8,6 +8,9 @@ NumericVector cpp_interval_sets_start(const List& x) {
   int n = x.size();
   NumericVector out(n);
   for (int i { 0 }; i < n; ++i) {
+    if (i % INTERRUPT_N == 0) {
+      checkUserInterrupt();
+    }
     if (x[i] == NA_INTERVAL) {
       out[i] = NA_REAL;
     } else {
@@ -22,6 +25,9 @@ List cpp_interval_sets_starts(const List& x) {
   int n = x.size();
   List out(n);
   for (int i { 0 }; i < n; ++i) {
+    if (i % INTERRUPT_N == 0) {
+      checkUserInterrupt();
+    }
     if (x[i] == NA_INTERVAL) {
       out[i] = NA_REAL;
     } else {
@@ -36,12 +42,13 @@ NumericVector cpp_interval_sets_end(const List& x) {
   int n = x.size();
   NumericVector out(n);
   for (int i { 0 }; i < n; ++i) {
-    for (int i { 0 }; i < n; ++i) {
-      if (x[i] == NA_INTERVAL) {
-        out[i] = NA_REAL;
-      } else {
-        out[i] = interval_set_end(x[i]);
-      }
+    if (i % INTERRUPT_N == 0) {
+      checkUserInterrupt();
+    }
+    if (x[i] == NA_INTERVAL) {
+      out[i] = NA_REAL;
+    } else {
+      out[i] = interval_set_end(x[i]);
     }
   }
   return out;
@@ -52,6 +59,9 @@ List cpp_interval_sets_ends(const List& x) {
   int n = x.size();
   List out(n);
   for (int i { 0 }; i < n; ++i) {
+    if (i % INTERRUPT_N == 0) {
+      checkUserInterrupt();
+    }
     if (x[i] == NA_INTERVAL) {
       out[i] = NA_REAL;
     } else {

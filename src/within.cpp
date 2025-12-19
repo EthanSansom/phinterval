@@ -9,6 +9,9 @@ LogicalVector cpp_interval_sets_within(const List& x, const List& y) {
   int n = x.size();
   LogicalVector out(n);
   for (int i { 0 }; i < n; ++i) {
+    if (i % INTERRUPT_N == 0) {
+      checkUserInterrupt();
+    }
     if (x[i] == NA_INTERVAL || y[i] == NA_INTERVAL) {
       out[i] = NA_LOGICAL;
     } else {
@@ -45,6 +48,9 @@ LogicalVector cpp_interval_sets_contains(const List& x, NumericVector t) {
   int n = x.size();
   LogicalVector out(n);
   for (int i { 0 }; i < n; ++i) {
+    if (i % INTERRUPT_N == 0) {
+      checkUserInterrupt();
+    }
     if (x[i] == NA_INTERVAL || ISNAN(t[i])) {
       out[i] = NA_LOGICAL;
     } else {
