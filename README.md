@@ -27,6 +27,16 @@ Functionality for manipulating these spans includes:
 - Testing whether time spans, dates, or times fall within one another or
   overlap.
 
+## Installation
+
+You can install the development version of {phinterval} from
+[GitHub](https://github.com/) with:
+
+``` r
+# install.packages("pak")
+pak::pak("EthanSansom/phinterval")
+```
+
 ## Usage
 
 Each element of a `<phinterval>` vector is a set of non-overlapping and
@@ -61,7 +71,7 @@ Graphically, the elements of `phint` are represented as:
 <img src="man/figures/README-/phinterval-light.svg" width="100%" />
 </picture>
 
-In most cases a `<phinterval>` vector will appear as the result of
+In most cases, a `<phinterval>` vector will appear as the result of
 manipulating `<Interval>` vectors. For example, `phint_squash()`
 flattens a vector of time spans into a scalar `<phinterval>`.
 
@@ -157,16 +167,6 @@ phint_intersect(
 #> [1] {2000-01-01--2000-01-02} {2000-01-04--2000-01-05} <hole>
 ```
 
-## Installation
-
-You can install the development version of {phinterval} from
-[GitHub](https://github.com/) with:
-
-``` r
-# install.packages("pak")
-pak::pak("EthanSansom/phinterval")
-```
-
 ## Inspiration
 
 This package is based on the
@@ -175,4 +175,6 @@ class for representing contiguous time spans. The data structure of the
 `<phinterval>` class (a list of matrices) and the C++ implementation of
 `phint_squash()` was inspired by the
 [{intervals}](https://CRAN.R-project.org/package=intervals) package by
-Richard Bourgon and Edzer Pebesma.
+Richard Bourgon and Edzer Pebesma. The figures used in this README and
+elsewhere were inspired by the documentation of Davis Vaughan’s
+[{ivs}](https://davisvaughan.github.io/ivs/) package.
