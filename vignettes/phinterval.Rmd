@@ -1,0 +1,93 @@
+---
+title: "Introduction to phinterval"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{phinterval}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  warning = FALSE,
+  message = FALSE
+)
+```
+
+```{r setup}
+library(phinterval)
+library(lubridate, warn.conflicts = FALSE)
+library(dplyr, warn.conflicts = FALSE)
+library(tidyr, warn.conflicts = FALSE)
+```
+
+## Introduction
+
+The {phinterval} package is designed as an extension of the {lubridate} package 
+
+```{r}
+work_day <- interval(ymd_h("2024-01-01 09"), ymd_h("2024-01-01 17"))
+lunch_break <- interval(ymd_h("2024-01-01 12"), ymd_h("2024-01-01 13"))
+
+# Create a phinterval representing the time actually spent working
+actual_work <- phint_setdiff(work_day, lunch_break)
+actual_work
+```
+
+Rather than re-factor the code to 
+
+## Set Operations
+
+
+
+## phinterval and dplyr
+
+```{r}
+jobs <- tribble(
+  ~name,   ~job_title,             ~start,        ~end,
+  "Greg",  "Mascot",               "2018-01-01",  "2018-06-03",
+  "Greg",  "Executive Assistant",  "2018-06-10",  "2020-04-01",
+  "Greg",  "Chief of Staff",       "2020-03-01",  "2020-11-28",
+  "Tom",   "Chairman",             "2019-05-01",  "2020-11-10",
+  "Tom",   "CEO",                  "2020-11-10",  "2020-12-31",
+  "Shiv",  "Political Consultant", "2017-01-01",  "2019-04-01"
+)
+jobs <- jobs |> mutate(span = interval(start, end))
+```
+
+
+```{r employment}
+employment <- jobs |>
+  group_by(name) |>
+  summarize(
+    n_jobs = n(),
+    employed = phint_squash(span),
+    unemployed = phint_invert(employed)
+  ) |>
+  ungroup()
+
+employment
+```
+
+
+```{r}
+employment |> 
+  mutate(
+    days_employed = employed / ddays(1L),
+    days_unemployed = unemployed / ddays(1L)
+  ) |>
+  select(name, days_employed, days_unemployed)
+```
+
+
+```{r}
+employment |> 
+  mutate(
+    work_with_shiv = phint_intersect(employed, employed[name == "Shiv"]),
+    work_without_shiv = phint_setdiff(employed, employed[name == "Shiv"])
+  ) |>
+  select(name, work_with_shiv, work_without_shiv)
+```
+

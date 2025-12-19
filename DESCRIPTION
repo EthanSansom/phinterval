@@ -22,7 +22,12 @@ Imports:
     rlang,
     vctrs
 Suggests: 
-    testthat (>= 3.0.0)
+    dplyr,
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0),
+    tidyr
 Config/testthat/edition: 3
 LinkingTo: 
     Rcpp
+VignetteBuilder: knitr
