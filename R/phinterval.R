@@ -105,10 +105,10 @@ format.phinterval <- function(x, max_width = 90, ...) {
 
   out <- paste0("{",
     map2_chr(
-      map(phint_starts(x), \(starts) format(starts, usetz = FALSE)),
-      map(phint_ends(x), \(ends) format(ends, usetz = FALSE)),
+      map(phint_starts(x), function(starts) format(starts, usetz = FALSE)),
+      map(phint_ends(x), function(ends) format(ends, usetz = FALSE)),
       # <hole> elements are initially formatted as character(0L)
-      \(starts, ends) paste(starts, ends, sep = "--", collapse = ", ") %0|% ""
+      function(starts, ends) paste(starts, ends, sep = "--", collapse = ", ") %0|% ""
     ),
   "}")
 
