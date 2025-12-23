@@ -78,13 +78,13 @@ new_phinterval <- function(interval_sets = list(), tzone = "UTC") {
 }
 
 #' @export
-obj_print_data.phinterval <- function(x, max_width = 90, ...) {
+obj_print_data.phinterval <- function(x, max_width = getOption("phinterval.print_max_width"), ...) {
   check_number_whole(max_width, min = 1)
   if (length(x) == 0) {
     return(invisible(x))
   }
 
-  # Truncating prior to formatting as format.phinterval is slow
+  # Truncating prior to formatting as format.phinterval() is slow
   max_print <- getOption("max.print", 9999L)
   if (length(x) > max_print) {
     x_t <- x[seq_len(max_print)]
@@ -100,8 +100,16 @@ obj_print_data.phinterval <- function(x, max_width = 90, ...) {
 }
 
 #' @export
-format.phinterval <- function(x, max_width = 90, ...) {
+format.phinterval <- function(x, max_width = getOption("phinterval.print_max_width"), ...) {
   check_number_whole(max_width, min = 1)
+
+  if (max_width == 1) {
+    n_spans <- n_spans(x)
+    out <- paste0("<phint[", n_spans, "]>")
+    out[!n_spans] <- "<hole>"
+    out[is.na(n_spans)] <- NA_character_
+    return(out)
+  }
 
   out <- paste0("{",
     map2_chr(
@@ -617,7 +625,7 @@ phint_lengths.phinterval <- function(phint) {
 #' # Contiguous intervals are inverted to holes,
 #' # disjoint intervals to spans
 #' phint_invert(monday)
-#' phint_invert(phint_squash(c(monday, friday, sunday))
+#' phint_invert(phint_squash(c(monday, friday, sunday)))
 #'
 #' tues_to_thurs <- interval(as.Date("2025-11-11"), as.Date("2025-11-14"))
 #' phint_invert(phint_union(monday, friday)) == tues_to_thurs
@@ -701,7 +709,7 @@ phint_invert.phinterval <- function(phint, hole_to = c("hole", "inf", "na")) {
 #' hole <- phint_intersect(monday, friday)
 #' phint_to_spans(hole, hole_to = "empty")
 #' phint_to_spans(hole, hole_to = "na")
-#' phint_to_spans(hole, hole_to = "NULL")
+#' phint_to_spans(hole, hole_to = "null")
 #'
 #' @export
 phint_to_spans <- function(phint, hole_to = c("empty", "na", "null")) {
