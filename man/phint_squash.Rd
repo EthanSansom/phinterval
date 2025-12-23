@@ -37,7 +37,7 @@ single set of non-overlapping, non-adjacent time spans, returned as a
 scalar \verb{<phinterval>} by default.
 
 This is useful in conjunction with aggregation functions, e.g.
-\code{\link[dplyr:summarise]{dplyr::summarize()}}).
+\code{\link[dplyr:summarise]{dplyr::summarize()}}.
 }
 \examples{
 jan_1_to_5   <- interval(as.Date("2000-01-01"), as.Date("2000-01-05"))

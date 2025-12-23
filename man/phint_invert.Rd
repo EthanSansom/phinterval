@@ -49,7 +49,7 @@ sunday <- interval(as.Date("2025-11-16"), as.Date("2025-11-17"))
 # Contiguous intervals are inverted to holes,
 # disjoint intervals to spans
 phint_invert(monday)
-phint_invert(phint_squash(c(monday, friday, sunday))
+phint_invert(phint_squash(c(monday, friday, sunday)))
 
 tues_to_thurs <- interval(as.Date("2025-11-11"), as.Date("2025-11-14"))
 phint_invert(phint_union(monday, friday)) == tues_to_thurs

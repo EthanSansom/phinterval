@@ -102,7 +102,7 @@ phint_setdiff <- function(phint1, phint2) {
 #' scalar `<phinterval>` by default.
 #'
 #' This is useful in conjunction with aggregation functions, e.g.
-#' [dplyr::summarize()]).
+#' [dplyr::summarize()].
 #'
 #' @inheritParams params
 #'
@@ -279,7 +279,7 @@ phint_overlaps <- function(phint1, phint2) {
 #'   c(jan_1_to_5, jan_1_to_5, NA)
 #' )
 #'
-#' phint_within(as.Date("2000-01-06", "2000-01-20"), jan_3_to_9)
+#' phint_within(as.Date(c("2000-01-06", "2000-01-20")), jan_3_to_9)
 #'
 #' # Intervals are within themselves
 #' phint_within(jan_1_to_5, jan_1_to_5)

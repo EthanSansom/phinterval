@@ -39,6 +39,6 @@ phint_to_spans(sunday)
 hole <- phint_intersect(monday, friday)
 phint_to_spans(hole, hole_to = "empty")
 phint_to_spans(hole, hole_to = "na")
-phint_to_spans(hole, hole_to = "NULL")
+phint_to_spans(hole, hole_to = "null")
 
 }
