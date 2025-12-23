@@ -17,7 +17,7 @@ License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
-URL: https://github.com/EthanSansom/phinterval
+URL: https://github.com/EthanSansom/phinterval, https://ethansansom.github.io/phinterval/
 BugReports: https://github.com/EthanSansom/phinterval/issues
 Imports: 
     lubridate,

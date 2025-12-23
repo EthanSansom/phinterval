@@ -5,12 +5,15 @@
 \alias{phinterval-package}
 \title{phinterval: Set Operations for Time Intervals}
 \description{
+\if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
+
 Implements the phinterval vector class for representing time spans that may contain gaps (disjoint intervals) or be empty. This class generalizes the 'lubridate' package's interval class to support vectorized set operations (intersection, union, difference, complement) that always return a valid time span, even when gaps or empty sets are created.
 }
 \seealso{
 Useful links:
 \itemize{
   \item \url{https://github.com/EthanSansom/phinterval}
+  \item \url{https://ethansansom.github.io/phinterval/}
   \item Report bugs at \url{https://github.com/EthanSansom/phinterval/issues}
 }
 
