@@ -15,11 +15,11 @@ affiliations:
 date: "2025-12-18"
 bibliography: paper.bib
 output:
-  # rticles::joss_article:
-  #  keep_tex: false
-  md_document:
-     preserve_yaml: TRUE
-     variant: "markdown_strict"
+  rticles::joss_article:
+    keep_tex: false
+  # md_document:
+  #   preserve_yaml: TRUE
+  #   variant: "markdown_strict"
 journal: JOSS
 ---
 
@@ -50,23 +50,28 @@ analysts to safely drop `phinterval` functions into their existing workflows.
 
 Accurately representing and manipulating dates and times is challenging due to
 complexities such as time zone adjustments, daylight saving transitions, and leap 
-years or seconds. As a result, temporal data analysis is a common source of 
-frustration and error-prone or difficult-to-maintain code [@lubridate; @itsabouttime]. 
-Several R packages provide intuitive interfaces that that handle these complexities 
+years. As a result, temporal data analysis is a common source of frustration 
+and error-prone or difficult-to-maintain code [@lubridate; @itsabouttime]. 
+Several R packages provide intuitive interfaces that handle these complexities 
 automatically. In particular, `lubridate`, which is widely used for date-time 
 manipulation in R, and `ivs` [@ivs] simplify the representation and manipulation 
 of time spans, reducing users' cognitive load and the likelihood of mistakes.
 
-To the author's knowledge, however, no existing package provides a first-class
-representation of empty or disjoint time spans. Users encountering these spans,
-for example, the intersection of two non-overlapping intervals, receive an error 
-(as in `ivs`) or unintuitive results (as in `lubridate`), forcing workarounds and
-potentially leading to uncaught mistakes. 
+However, these packages typically assume that a time span is a single, 
+contiguous block of time. This assumption breaks down when operations produce 
+disjoint or empty spans, such as the intersection of two non-overlapping events, 
+in which `ivs` raises an error, while `lubridate` returns missing values. While
+support for disjoint spans exists in the `intervals` package [@intervals], it 
+is limited to numeric endpoints and is implemented as a scalar class, requiring 
+users working with tabular or vectorized data to manually manage lists of scalar 
+interval objects. As a result, analysts lack a vectorized, native date-time 
+representation for disjoint spans and must instead rely on ad hoc workarounds 
+that do not integrate cleanly with tabular workflows.
 
-The `phinterval` package addresses this gap by providing explicit representations 
-of disjoint and empty time spans and defining set operations whose results are 
-always valid *phinterval* objects. By closely mirroring the `lubridate` interface 
-and accepting *Interval* vectors as input, `phinterval` minimizes adoption costs 
+The `phinterval` package addresses this gap by providing a vectorized
+representation of disjoint and empty time spans, along with set operations whose 
+results are always valid *phinterval* objects. By closely mirroring the `lubridate`
+interface and accepting *Interval* vectors as input, `phinterval` reduces adoption costs 
 while enabling safe and intuitive manipulation of arbitrary time spans. The package 
 is intended for analysts and researchers working with temporal data in settings
 such as event studies and observational data analysis.
@@ -78,14 +83,25 @@ drop-in replacements for `lubridate` operations, providing correct results for
 empty or disjoint intervals that would otherwise produce errors or ambiguous 
 output.
 
-```{r, include = FALSE}
-# TODO: Temporary fix, remove this later
-if (!rlang::is_installed("phinterval")) {
-  devtools::install_github("EthanSansom/phinterval")
-}
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  out.width = "100%",
+  # Results are manually inserted using "```r code```" to improve formatting
+  eval = FALSE,
+  include = FALSE
+)
 ```
 
-```{r dependencies, warning = FALSE, message = FALSE}
+```{r dependencies}
+library(phinterval)
+
+jan_1_to_9 <- interval(as.Date("2000-01-01"), as.Date("2000-01-09"))
+jan_2_to_3 <- interval(as.Date("2000-01-02"), as.Date("2000-01-03"))
+jan_5_to_9 <- interval(as.Date("2000-01-05"), as.Date("2000-01-09"))
+```
+
+```r
 library(phinterval)
 
 jan_1_to_9 <- interval(as.Date("2000-01-01"), as.Date("2000-01-09"))
@@ -103,12 +119,31 @@ lubridate::intersect(jan_2_to_3, jan_5_to_9)
 phint_intersect(jan_2_to_3, jan_5_to_9)
 ```
 
+```r
+lubridate::intersect(jan_2_to_3, jan_5_to_9)
+# [1] NA--NA
+
+phint_intersect(jan_2_to_3, jan_5_to_9)
+# <phinterval<UTC>[1]>
+# [1] <hole>
+```
+
 Standard interval classes cannot represent gaps within a single observation, 
 but `phinterval` handles these naturally.
 
 ```{r setdiff}
 try(lubridate::setdiff(jan_1_to_9, jan_2_to_3))
 phint_setdiff(jan_1_to_9, jan_2_to_3)
+```
+
+```r
+try(lubridate::setdiff(jan_1_to_9, jan_2_to_3))
+# Error in setdiff.Interval(jan_1_to_9, jan_2_to_3) : 
+#   Cases 1 result in discontinuous intervals.
+
+phint_setdiff(jan_1_to_9, jan_2_to_3)
+# <phinterval<UTC>[1]>
+# [1] {2000-01-01--2000-01-02, 2000-01-03--2000-01-09}
 ```
 
 In addition to standard set operations, `phinterval` provides specialized functions 
@@ -119,7 +154,7 @@ vector of intervals into a minimal set of non-overlapping time spans, while
 These functions are useful for summarizing longitudinal event data, such as 
 periods of employment and intervening unemployment:
 
-```{r}
+```{r squash-example}
 jobs <- dplyr::tribble(
   ~name,   ~job_title,             ~start,        ~end,
   "Greg",  "Mascot",               "2018-01-01",  "2018-06-03",
@@ -132,24 +167,70 @@ jobs <- dplyr::tribble(
 employment <- jobs |>
   dplyr::mutate(span = interval(start, end)) |>
   dplyr::group_by(name) |>
-  dplyr::summarize(employment = phint_squash(span))
+  dplyr::summarize(employed = phint_squash(span))
 
 employment
+```
+
+```r
+jobs <- dplyr::tribble(
+  ~name,   ~job_title,             ~start,        ~end,
+  "Greg",  "Mascot",               "2018-01-01",  "2018-06-03",
+  "Greg",  "Chief of Staff",       "2019-03-01",  "2020-11-28",
+  "Tom",   "Chairman",             "2019-05-01",  "2020-11-10",
+  "Tom",   "CEO",                  "2020-11-10",  "2020-12-31",
+  "Shiv",  "Political Consultant", "2017-01-01",  "2019-04-01"
+)
+
+employment <- jobs |>
+  dplyr::mutate(span = interval(start, end)) |>
+  dplyr::group_by(name) |>
+  dplyr::summarize(employed = phint_squash(span))
+
+employment
+# # A tibble: 3 × 2
+#   name                                          employed
+#   <chr>                                     <phint<UTC>>
+# 1 Greg  {2018-01-01--2018-06-03, 2019-03-01--2020-11-28}
+# 2 Shiv                          {2017-01-01--2019-04-01}
+# 3 Tom                           {2019-05-01--2020-12-31}
 ```
 
 All `phinterval` functions are vectorized, making them well suited for data
 analysis.
 
-```{r}
-employment |>
+```{r vectorized-example}
+unemployment <- employment |>
   dplyr::mutate(
-    # How long were workers employed?
-    n_emp_days = employment / lubridate::ddays(1),
-
-    # Where were the gaps in workers' employment?
-    unemployment = phint_invert(employment)
+    # When were there gaps in workers' employment?
+    unemployed = phint_invert(employed),
+    
+    # How long were the gaps in employment?
+    n_unemp_days = unemployed / lubridate::ddays(1)
   ) |>
-  dplyr::select(name, n_emp_days, unemployment)
+  dplyr::select(name, unemployed, n_unemp_days)
+
+unemployment
+```
+
+```r
+unemployment <- employment |>
+  dplyr::mutate(
+    # When were there gaps in workers' employment?
+    unemployed = phint_invert(employed),
+    
+    # How long were the gaps in employment?
+    n_unemp_days = unemployed / lubridate::ddays(1)
+  ) |>
+  dplyr::select(name, unemployed, n_unemp_days)
+
+unemployment
+# # A tibble: 3 × 3
+#   name                unemployed n_unemp_days
+#   <chr>             <phint<UTC>>        <dbl>
+# 1 Greg  {2018-06-03--2019-03-01}          271
+# 2 Shiv                    <hole>            0
+# 3 Tom                     <hole>            0
 ```
 
 # References
