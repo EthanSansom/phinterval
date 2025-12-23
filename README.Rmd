@@ -86,7 +86,7 @@ input intervals, without duplication.
 
 ## Example: Employment History
 
-`{phinterval}` is most useful when working with tabular data, like a longitudinal
+`{phinterval}` is most useful when working with tabular data, such as a longitudinal
 employment panel.
 
 ```{r}
@@ -121,12 +121,16 @@ print(employment)
 options(opts)
 ```
 
-Operations on `<phinterval>` vectors behave like those on standard intervals:
+Operations on `<phinterval>` vectors behave like those on standard intervals. Here,
+we can see that there was a 7-day gap in Greg's employment history:
 
 ```{r}
 employment |>
-  mutate(days_employed = employed / ddays(1)) |>
-  pull(days_employed)
+  mutate(
+    days_employed = employed / ddays(1),
+    days_unemployed = unemployed / ddays(1)
+  ) |>
+  select(name, days_employed, days_unemployed)
 ```
 
 ## phinterval <-> lubridate
