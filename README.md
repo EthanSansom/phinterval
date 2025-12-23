@@ -1,7 +1,21 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
+<!--
+HACK: This toggles light/dark-mode figures on Github. 
+`pkgdown/extra.css` prevents the dark-mode figure from appearing on the website.
+--->
+<style>
+@media (prefers-color-scheme: dark) {
+  .logo-light { display: none; }
+  .logo-dark  { display: block; }
+}
+&#10;@media (prefers-color-scheme: light) {
+  .logo-dark  { display: none; }
+  .logo-light { display: block; }
+}
+</style>
 
-# phinterval
+# phinterval <img src="man/figures/logo.png" align="right" height="120" alt="" />
 
 <!-- badges: start -->
 
@@ -67,10 +81,21 @@ phint
 
 Graphically, the elements of `phint` are represented as:
 
+<!-- TODO: Add back
 <picture>
 <source media="(prefers-color-scheme: dark)" srcset="man/figures/README-/phinterval-dark.svg">
-<img src="man/figures/README-/phinterval-light.svg" width="100%" />
-</picture>
+<img src="man/figures/README-/phinterval-light.svg" width="100%" /> </picture>
+&#10;![Phinterval Diagram](man/figures/README-/phinterval-light.svg#gh-light-mode-only)
+![Phinterval Diagram](man/figures/README-/phinterval-dark.svg#gh-dark-mode-only)
+&#10;<style>
+img[src*="gh-dark-mode-only"] {
+  display: none !important;
+}
+</style>
+---->
+
+<img src="man/figures/README-/phinterval-light.svg" class="figure-light" width="100%">
+<img src="man/figures/README-/phinterval-dark.svg" class="figure-dark" width="100%">
 
 In most cases, a `<phinterval>` vector will appear as the result of
 manipulating `<Interval>` vectors. For example, `phint_squash()`
@@ -86,10 +111,16 @@ phint_squash(ints)
 The squashed intervals contain the set of time spans within *any* of the
 input intervals, without duplication.
 
+<!-- TODO: Add back
 <picture>
 <source media="(prefers-color-scheme: dark)" srcset="man/figures/README-/phint_squash-dark.svg">
-<img src="man/figures/README-/phint_squash-light.svg" width="100%" />
-</picture>
+<img src="man/figures/README-/phint_squash-light.svg" width="100%" /> </picture>
+&#10;![Squash Diagram](man/figures/README-/phint_squash-light.svg#gh-light-mode-only)
+![Squash Diagram](man/figures/README-/phint_squash-dark.svg#gh-dark-mode-only)
+--->
+
+<img src="man/figures/README-/phint_squash-light.svg" class="figure-light" width="100%">
+<img src="man/figures/README-/phint_squash-dark.svg" class="figure-dark" width="100%">
 
 ## Example: Employment History
 
