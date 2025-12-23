@@ -65,8 +65,7 @@ phint
 
 Graphically, the elements of `phint` are represented as:
 
-![Phinterval Diagram](man/figures/README-/phinterval-light.svg#gh-light-mode-only)
-![Phinterval Diagram](man/figures/README-/phinterval-dark.svg#gh-dark-mode-only)
+<img src="man/figures/README-/phinterval.svg" width="100%">
 
 In most cases, a `<phinterval>` vector will appear as the result of 
 manipulating `<Interval>` vectors. For example, `phint_squash()` flattens
@@ -80,8 +79,7 @@ phint_squash(ints)
 The squashed intervals contain the set of time spans within *any* of the
 input intervals, without duplication.
 
-![Squash Diagram](man/figures/README-/phint_squash-light.svg#gh-light-mode-only)
-![Squash Diagram](man/figures/README-/phint_squash-dark.svg#gh-dark-mode-only)
+<img src="man/figures/README-/phint_squash.svg" width="100%">
 
 ## Example: Employment History
 
