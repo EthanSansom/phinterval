@@ -27,11 +27,11 @@ getOption("phinterval.print_max_width")
 phinterval(c(monday, friday))
 
 # Change the setting for the session duration
-opts <- options(phinterval.print_max_width = 100)
+opts <- options(phinterval.print_max_width = 25)
 phinterval(c(monday, friday))
 
 # Reset to the previous settings
-options(old)
+options(opts)
 
 }
 \keyword{datasets}

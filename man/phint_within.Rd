@@ -45,6 +45,7 @@ phint_within(jan_1_to_5, jan_1_to_5)
 phint_within(as.Date("2000-01-01"), jan_1_to_5)
 
 # Holes are never considered to be within an interval
+hole <- phinterval(interval())
 phint_within(c(hole, hole), c(hole, jan_1_to_5))
 
 }

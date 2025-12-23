@@ -1,6 +1,6 @@
 # class ------------------------------------------------------------------------
 
-methods::setOldClass(c("phinterval", "list", "vctrs_vctr"))
+setOldClass(c("phinterval", "list", "vctrs_vctr"))
 
 #' Create a new phinterval
 #'
@@ -297,7 +297,7 @@ vec_arith.phinterval.Duration <- function(op, x, y, ...) {
 #' n_spans(c(
 #'  phint_union(y2000, y2025),
 #'  phint_intersect(y2000, y2025),
-#'  y2000, 2025
+#'  y2000, y2025
 #' ))
 #'
 #' @export
@@ -344,7 +344,7 @@ n_spans.phinterval <- function(phint) {
 #' # The intersection of disjoint intervals is a hole
 #' is_hole(c(
 #'  phint_intersect(y2000, y2025),
-#'  y2000, 2025
+#'  y2000, y2025
 #' ))
 #'
 #' @export

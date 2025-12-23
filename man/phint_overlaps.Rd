@@ -27,7 +27,7 @@ tuesday <- interval(as.Date("2025-11-11"), as.Date("2025-11-12"))
 friday <- interval(as.Date("2025-11-14"), as.Date("2025-11-15"))
 mon_and_fri <- phint_union(monday, friday)
 
-phint_overlaps(c(monday, monday, friday), c(friday, mon_and_fri, NA))
+phint_overlaps(c(monday, monday, friday), c(mon_and_fri, friday, NA))
 
 # Adjacent intervals are considered overlapping
 phint_overlaps(monday, tuesday)

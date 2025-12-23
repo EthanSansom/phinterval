@@ -34,7 +34,7 @@ y2025 <- interval(as.Date("2025-01-01"), as.Date("2025-01-01"))
 n_spans(c(
  phint_union(y2000, y2025),
  phint_intersect(y2000, y2025),
- y2000, 2025
+ y2000, y2025
 ))
 
 }

@@ -231,7 +231,7 @@ empty_result <- function(empty_to) {
 #' friday <- interval(as.Date("2025-11-14"), as.Date("2025-11-15"))
 #' mon_and_fri <- phint_union(monday, friday)
 #'
-#' phint_overlaps(c(monday, monday, friday), c(friday, mon_and_fri, NA))
+#' phint_overlaps(c(monday, monday, friday), c(mon_and_fri, friday, NA))
 #'
 #' # Adjacent intervals are considered overlapping
 #' phint_overlaps(monday, tuesday)
@@ -288,6 +288,7 @@ phint_overlaps <- function(phint1, phint2) {
 #' phint_within(as.Date("2000-01-01"), jan_1_to_5)
 #'
 #' # Holes are never considered to be within an interval
+#' hole <- phinterval(interval())
 #' phint_within(c(hole, hole), c(hole, jan_1_to_5))
 #'
 #' @export

@@ -24,7 +24,7 @@ y2025 <- interval(as.Date("2025-01-01"), as.Date("2025-01-01"))
 # The intersection of disjoint intervals is a hole
 is_hole(c(
  phint_intersect(y2000, y2025),
- y2000, 2025
+ y2000, y2025
 ))
 
 }

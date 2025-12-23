@@ -3,9 +3,9 @@
 \docType{package}
 \name{phinterval-package}
 \alias{phinterval-package}
-\title{phinterval: What the Package Does (One Line, Title Case)}
+\title{phinterval: Set Operations for Time Intervals}
 \description{
-What the package does (one paragraph).
+Implements the phinterval vector class for representing time spans that may contain gaps (disjoint intervals) or be empty. This class generalizes the 'lubridate' package's interval class to support vectorized set operations (intersection, union, difference, complement) that always return a valid time span, even when gaps or empty sets are created.
 }
 \seealso{
 Useful links:
@@ -16,7 +16,7 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Ethan Sansom \email{ethan.sansom29@gmail.com} (\href{https://orcid.org/0009-0000-1573-0186}{ORCID})
+\strong{Maintainer}: Ethan Sansom \email{ethan.sansom29@gmail.com} (\href{https://orcid.org/0009-0000-1573-0186}{ORCID}) [copyright holder]
 
 }
 \keyword{internal}
