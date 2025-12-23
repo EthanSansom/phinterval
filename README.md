@@ -16,7 +16,7 @@ that may contain gaps. It implements the `<phinterval>` (think
 “potentially-holey-interval”) vector class, designed as an extension of
 the [{lubridate}](https://lubridate.tidyverse.org/) `<Interval>`, to
 represent spans of time that are contiguous, disjoint, empty, or
-unknown.
+missing.
 
 Functionality for manipulating these spans includes:
 
@@ -47,10 +47,10 @@ non-adjacent intervals. A `<phinterval>` can be created using a list of
 library(phinterval)
 library(lubridate, warn.conflicts = FALSE)
 
-jan_1_to_2 <- interval(as.Date("2000-01-01"), as.Date("2000-01-02"))
-jan_3_to_5 <- interval(as.Date("2000-01-03"), as.Date("2000-01-05"))
-jan_4_to_9 <- interval(as.Date("2000-01-04"), as.Date("2000-01-09"))
-jan_1_to_9 <- interval(as.Date("2000-01-01"), as.Date("2000-01-09"))
+jan_1_to_2 <- interval(ymd("2000-01-01"), ymd("2000-01-02"))
+jan_3_to_5 <- interval(ymd("2000-01-03"), ymd("2000-01-05"))
+jan_4_to_9 <- interval(ymd("2000-01-04"), ymd("2000-01-09"))
+jan_1_to_9 <- interval(ymd("2000-01-01"), ymd("2000-01-09"))
 
 phint <- phinterval(
   list(
@@ -90,24 +90,80 @@ input intervals, without duplication.
 <img src="man/figures/README-/phint_squash-light.svg" width="100%" />
 </picture>
 
+## Example: Employment History
+
+`{phinterval}` is most useful when working with tabular data, like a
+longitudinal employment panel.
+
+``` r
+library(dplyr, warn.conflicts = FALSE)
+
+jobs <- tribble(
+  ~name,   ~job_title,             ~start,        ~end,
+  "Greg",  "Mascot",               "2018-01-01",  "2018-06-03",
+  "Greg",  "Executive Assistant",  "2018-06-10",  "2020-04-01",
+  "Shiv",  "Political Consultant", "2017-01-01",  "2019-04-01"
+)
+
+employment <- jobs |>
+  # Squash overlapping/adjacent intervals into a single phinterval
+  group_by(name) |>
+  summarize(employed = phint_squash(interval(start, end))) |>
+  # Invert the employment timeline to find gaps
+  mutate(unemployed = phint_invert(employed))
+
+employment
+#> # A tibble: 2 × 3
+#>   name                                          employed
+#>   <chr>                                     <phint<UTC>>
+#> 1 Greg  {2018-01-01--2018-06-03, 2018-06-10--2020-04-01}
+#> 2 Shiv                          {2017-01-01--2019-04-01}
+#> # ℹ 1 more variable: unemployed <phint<UTC>>
+```
+
+Formatted `<phinterval>` elements are verbose by default, but can be
+truncated using the `phinterval.print_max_width` option for a narrower
+display.
+
+``` r
+opts <- options(phinterval.print_max_width = 25)
+print(employment)
+#> # A tibble: 2 × 3
+#>   name                  employed               unemployed
+#>   <chr>             <phint<UTC>>             <phint<UTC>>
+#> 1 Greg                <phint[2]> {2018-06-03--2018-06-10}
+#> 2 Shiv  {2017-01-01--2019-04-01}                   <hole>
+```
+
+Operations on `<phinterval>` vectors behave like those on standard
+intervals:
+
+``` r
+employment |>
+  mutate(days_employed = employed / ddays(1)) |>
+  pull(days_employed)
+#> [1] 814 820
+```
+
 ## phinterval \<-\> lubridate
 
-The {phinterval} package treats `<Interval>` vectors as a subclass of
-`<phinterval>`, meaning that all {phinterval} functions accept either
-`<Interval>` or `<phinterval>` inputs. The table below shows the
-{lubridate} functions that have drop-in {phinterval} replacements.
+The `<phinterval>` class is a generalization of the `<Interval>` class,
+meaning any `<Interval>` can be converted into an equivalent
+`<phinterval>` and all {phinterval} functions accept either `<Interval>`
+or `<phinterval>` inputs. The table below shows the {lubridate}
+functions that have drop-in {phinterval} replacements.
 
-| phinterval                        | lubridate                  |
-|-----------------------------------|----------------------------|
-| `phint_intersect(phint1, phint2)` | `intersect(x, y)`          |
-| `phint_setdiff(phint1, phint2)`   | `setdiff(x, y)`            |
-| `phint_union(phint1, phint2)`     | `union(x, y)`              |
-| `phint_end(phint)`                | `int_end(int)`             |
-| `phint_start(phint)`              | `int_start(int)`           |
-| `phint_length(phint)`             | `int_length(int)`          |
-| `phint_overlaps(phint1, phint2)`  | `int_overlaps(int1, int2)` |
-| `phint_within(x, phint)`          | `a %within% b`             |
-| `<phinterval> / <Duration>`       | `<interval> / <Duration>`  |
+| phinterval              | lubridate            | Returns                       |
+|-------------------------|----------------------|-------------------------------|
+| `phint_intersect(x, y)` | `intersect(x, y)`    | Times in `x` and `y`          |
+| `phint_setdiff(x, y)`   | `setdiff(x, y)`      | Times in `x`, but not in `y`  |
+| `phint_union(x, y)`     | `union(x, y)`        | Times in `x` or `y`           |
+| `phint_start(x)`        | `int_start(x)`       | The start time of `x`         |
+| `phint_end(x)`          | `int_end(x)`         | The end time of `x`           |
+| `phint_length(x)`       | `int_length(x)`      | The number of seconds in `x`  |
+| `phint_overlaps(x, y)`  | `int_overlaps(x, y)` | Whether `x` and `y` intersect |
+| `phint_within(x, y)`    | `x %within% y`       | Whether `y` contains `x`      |
+| `x / duration(...)`     | `x / duration(...)`  | How many durations fit in `x` |
 
 {phinterval} set operations work as expected with arbitrary time spans,
 enabling operations that are not supported by {lubridate}. For example,
@@ -173,7 +229,7 @@ This package is based on the
 [{lubridate}](https://lubridate.tidyverse.org/) package’s `<Interval>`
 class for representing contiguous time spans. The data structure of the
 `<phinterval>` class (a list of matrices) and the C++ implementation of
-`phint_squash()` was inspired by the
+`phint_squash()` were inspired by the
 [{intervals}](https://CRAN.R-project.org/package=intervals) package by
 Richard Bourgon and Edzer Pebesma. The figures used in this README and
 elsewhere were inspired by the documentation of Davis Vaughan’s
