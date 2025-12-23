@@ -25,24 +25,106 @@ library(tidyr, warn.conflicts = FALSE)
 
 ## Introduction
 
-The {phinterval} package is designed as an extension of the {lubridate} package 
+The `{phinterval}` package extends [{lubridate}](https://lubridate.tidyverse.org/) 
+to support disjoint ("holey") and empty time spans. It implements the `<phinterval>`
+vector class, a generalization of the standard contiguous `<Interval>`, which 
+can represent:
+
+- **Contiguous spans:** A contiguous interval bounded by a start and end point (e.g., the year 2025).
+- **Empty spans:** A set containing no time points (e.g., the intersection of your life and Napoleon's).
+- **Disjoint spans:** A set of multiple time spans separated by gaps (e.g., the days you attended school, excluding weekends and holidays).
+
+`{phinterval}` is designed to easily integrate into existing `{lubridate}` workflows.
+Any `<Interval>` vector can be converted to an equivalent `<phinterval>` vector 
+using `as_phinterval()`, and all `{phinterval}` functions accept either `<Interval>` 
+or `<phinterval>` inputs.
+
+## When Time Isn't Continuous
+
+Certain set operations on time spans naturally produce empty or disjoint results, 
+which are difficult to represent using a standard interval. This section 
+illustrates several such edge cases using the months of January and November 
+2025, along with the full calendar year.
 
 ```{r}
-work_day <- interval(ymd_h("2024-01-01 09"), ymd_h("2024-01-01 17"))
-lunch_break <- interval(ymd_h("2024-01-01 12"), ymd_h("2024-01-01 13"))
-
-# Create a phinterval representing the time actually spent working
-actual_work <- phint_setdiff(work_day, lunch_break)
-actual_work
+jan <- interval(ymd("2025-01-01"), ymd("2025-01-01") + months(1))
+nov <- interval(ymd("2025-11-01"), ymd("2025-11-01") + months(1))
+full_2025 <- interval(ymd("2025-01-01"), ymd("2025-01-01") + years(1))
 ```
 
-Rather than re-factor the code to 
+### Empty Intersections
 
-## Set Operations
+Because January and November do not overlap, their intersection should contain 
+no time.
 
+```{r}
+lubridate::intersect(jan, nov)
 
+phint_intersect(jan, nov)
+```
 
-## phinterval and dplyr
+`{lubridate}` resolves this by coercing the intersection to `NA`, while 
+`{phinterval}` returns a `<hole>`, which explicitly represents an empty span of 
+time.
+
+This distinction matters when performing downstream calculations. For example, 
+counting the number of days contained in both January and November:
+
+```{r}
+lubridate::intersect(jan, nov) / duration(days = 1)
+
+phint_intersect(jan, nov) / duration(days = 1)
+```
+
+### Punching Holes in Intervals
+
+Next, consider subtracting the month of November from the full year of 2025.
+
+```{r}
+try(lubridate::setdiff(full_2025, nov))
+
+phint_setdiff(full_2025, nov)
+```
+
+The result is two disjoint spans, January through October and December, which
+can't be represented by a single interval. As a result, `{lubridate}` raises an 
+error. `{phinterval}` instead represents the discontinuous span as a single 
+object with an explicit gap.
+
+### Unions of Non-Overlapping Spans
+
+Similarly, the union of January and November contains a gap from February to 
+October.
+
+```{r}
+lubridate::union(jan, nov)
+
+phint_union(jan, nov)
+```
+
+In this case `{lubridate}` returns the span from the beginning of January to the 
+end of November, implicitly filling in the gap. `{phinterval}` instead 
+represents the two disjoint months explicitly.
+
+### Subtracting an Interval from Itself
+
+Finally, consider subtracting an interval from itself. Intuitively, this should
+result in an empty time span.
+
+```{r}
+lubridate::setdiff(jan, jan)
+
+phint_setdiff(jan, jan)
+```
+
+In this case, `{lubridate}` returns the original interval, while `{phinterval}`
+returns a `<hole>`.
+
+## Case Study: Employment History
+
+`{phinterval}` is most useful when working with tabular data and vectorized 
+workflows. To illustrate this, we’ll consider an abridged employment history 
+for several characters from the television show *Succession*.
 
 ```{r}
 jobs <- tribble(
@@ -54,40 +136,107 @@ jobs <- tribble(
   "Tom",   "CEO",                  "2020-11-10",  "2020-12-31",
   "Shiv",  "Political Consultant", "2017-01-01",  "2019-04-01"
 )
-jobs <- jobs |> mutate(span = interval(start, end))
 ```
 
+Suppose we know that Greg, Tom, and Shiv went on a group Christmas vacation in 
+December 2017.
 
-```{r employment}
-employment <- jobs |>
-  group_by(name) |>
-  summarize(
-    n_jobs = n(),
-    employed = phint_squash(span),
-    unemployed = phint_invert(employed)
+```{r}
+vacation <- interval(ymd("2017-12-23"), ymd("2017-12-29"))
+```
+
+If we want to analyze only the time spent working, and exclude time on vacation, 
+we might try to subtract the vacation interval from each job span. However, this 
+approach breaks down when the vacation falls strictly within a job interval, as 
+it does for Shiv’s Political Consultant role.
+
+```{r}
+try(
+  jobs |>
+    mutate(
+      span = interval(start, end),
+      span = setdiff(span, vacation)
+    ) |>
+    select(name, job_title, span)
+)
+```
+
+Handling this correctly is surprisingly involved. One option is to split Shiv’s
+job into two rows (one pre-vacation and one post-vacation), breaking the one-row-per-job 
+structure of the data. Another is to represent each job as a list of intervals, 
+complicating downstream analysis. The main purpose of `{phinterval}` is to avoid 
+these workarounds, by providing drop-in replacements for `{lubridate}` interval 
+functions. Because `{phinterval}` functions accept either `<Interval>` or
+`<phinterval>` inputs, existing code can typically be adapted by simply replacing 
+a `{lubridate}` function with its `{phinterval}` counterpart.
+
+```{r}
+jobs |>
+  mutate(
+    span = interval(start, end),
+    span = phint_setdiff(span, vacation)
   ) |>
-  ungroup()
+  select(name, job_title, span)
+```
+
+### Merging Intervals with `phint_squash()`
+
+Suppose we want to analyze only the total time each character spent employed, 
+without distinguishing between individual jobs. This can be done using `phint_squash()`, 
+which aggregates a vector of intervals into a minimal set of non-overlapping spans
+within a scalar `<phinterval>`.
+
+```{r}
+employment <- jobs |>
+  mutate(span = interval(start, end)) |>
+  group_by(name) |>
+  summarize(employed = phint_squash(span))
 
 employment
 ```
 
+Notice that:
+- *Greg* has multiple disjoint employment periods, which are preserved as separate spans within a single `<phinterval>` element.
+- *Tom* held two back-to-back positions (Chairman followed by CEO), which `phint_squash()` correctly merges into a single contiguous span.
+
+To return the dataset to a one-row-per-span format, we can extract the start and 
+end points of each `<phinterval>` element using `phint_starts()` and `phint_ends()`. 
+These functions return lists of start and end dates, which can then be unnested 
+back into separate rows:
 
 ```{r}
-employment |> 
+employment |>
   mutate(
-    days_employed = employed / ddays(1L),
-    days_unemployed = unemployed / ddays(1L)
+    start = phint_starts(employed), 
+    end = phint_ends(employed)
   ) |>
-  select(name, days_employed, days_unemployed)
+  unnest(cols = c(start, end)) |>
+  select(-employed)
 ```
 
+The resulting tidy format integrates well with `{dplyr}` and `{lubridate}` 
+workflows.
+
+### Finding Gaps with `phint_invert()`
+
+To analyze periods of unemployment, we need to identify the gaps between 
+employment intervals. The `phint_invert()` function returns the gaps between
+spans in a `<phinterval>`.
 
 ```{r}
-employment |> 
+unemployment <- employment |>
   mutate(
-    work_with_shiv = phint_intersect(employed, employed[name == "Shiv"]),
-    work_without_shiv = phint_setdiff(employed, employed[name == "Shiv"])
+    # Find the gaps between jobs
+    unemployed = phint_invert(employed),
+    
+    # Calculate duration of unemployment
+    days_unemployed = unemployed / ddays(1)
   ) |>
-  select(name, work_with_shiv, work_without_shiv)
+  select(name, unemployed, days_unemployed)
+
+unemployment
 ```
 
+Greg was unemployed for 7 days between his time as a Mascot and his role as 
+Executive Assistant. Tom and Shiv have no gaps within their respective employment 
+timelines, represented by a `<hole>`.
