@@ -1,3 +1,15 @@
-.figure-dark {
+img[src*="phinterval-light.svg"] {
+  width: 100%;
+}
+
+img[src*="phint_squash-light.svg"] {
+  width: 100%;
+}
+
+img[src*="phinterval-dark.svg"] {
+  display: none !important;
+}
+
+img[src*="phint_squash-dark.svg"] {
   display: none !important;
 }
