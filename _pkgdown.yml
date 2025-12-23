@@ -42,3 +42,7 @@ reference:
       - phint_to_spans
       - phint_length
       - phint_lengths
+
+  - title: Package Options
+    contents:
+      - phinterval-options
