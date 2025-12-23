@@ -1,0 +1,9 @@
+pandoc: 3.1.11
+pkgdown: 2.2.0
+pkgdown_sha: ~
+articles:
+  phinterval: phinterval.html
+last_built: 2025-12-23T20:28Z
+urls:
+  reference: https://ethansansom.github.io/phinterval/reference
+  article: https://ethansansom.github.io/phinterval/articles

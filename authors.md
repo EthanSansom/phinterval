@@ -1,0 +1,22 @@
+# Authors and Citation
+
+## Authors
+
+- **Ethan Sansom**. Author, maintainer, copyright holder.
+  [](https://orcid.org/0009-0000-1573-0186)
+
+## Citation
+
+Source:
+[`DESCRIPTION`](https://github.com/EthanSansom/phinterval/blob/main/DESCRIPTION)
+
+Sansom E (2025). *phinterval: Set Operations for Time Intervals*. R
+package version 0.0.0.9000, <https://github.com/EthanSansom/phinterval>.
+
+    @Manual{,
+      title = {phinterval: Set Operations for Time Intervals},
+      author = {Ethan Sansom},
+      year = {2025},
+      note = {R package version 0.0.0.9000},
+      url = {https://github.com/EthanSansom/phinterval},
+    }
