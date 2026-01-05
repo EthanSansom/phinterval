@@ -2,6 +2,7 @@
 ^\.Rproj\.user$
 ^LICENSE\.md$
 ^under_construction$
+^benchmarks$
 ^paper$
 ^README\.Rmd$
 ^codecov\.yml$
