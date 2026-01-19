@@ -16,6 +16,12 @@ get_tzone.phinterval <- function(x) {
   attr(x, "tzone")
 }
 
+# TODO: Remove this
+#' @export
+get_tzone.phinterval_v2 <- function(x) {
+  attr(x, "tzone")
+}
+
 #' @export
 get_tzone.default <- function(x) {
   lubridate::tz(x)

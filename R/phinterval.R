@@ -1,3 +1,64 @@
+# todos ------------------------------------------------------------------------
+
+# TODO: Underlying {vctrs} structure
+# - Convert to a record style structure
+
+# TODO: Testing: squash and intersect
+# - Finish the underlying squash implementation
+# - Add user-facing squash and intersect functions
+# - Use {intervalset} style benchmarking to check results (vs. lubridate and ivs)
+
+# TODO: Formatting
+#
+# I have three width options:
+# 1. <phint[3]>
+# 2. { 2026-01-15-[3]-2026-01-26 }
+# 3. { 2026-01-15--2026-01-16, 2026-01-18--2026-01-20, 2026-01-25--2026-01-26 }
+#
+# 4A. Single elements, "{ 2026-01-15--2026-01-26 }"
+# 4B. NA elements, <NA>
+# 4C. Holes, <hole>
+#
+# (1) is likely to be shown in a tibble, (2) is the default print (looks like an
+# <Interval>), and (3) is when the user asks "I'd like to see all the data".
+#
+# - Implement custom pillar options for switching between (1) and (2)
+#   - In pillar shaft, drop the "{}" to save space
+# - Look into how other packages implement a `max_print_width`
+# - Choose between (2) and (3) dynamically when printing to the console
+#
+# Options:
+# - phinterval.print_max_width  -> printing options, toggle between 1-3
+# - phinterval.pillar_max_width -> printing in tibbles, toggle between 1-3 (1-2?)
+
+# TODO: Object naming scheme:
+# - phint_operate(phint, phint, fn) -> parallel, returns a phinterval
+# - phint_relate(phint, phint, fn)  -> parallel, returns a logical
+# - phint_modify(phint, fn)         -> single, returns a phinterval
+# - int_operate/relate/modify()     -> same, input is an interval, fast track
+#
+# - PhintervalVector -> AKA SpanSetVector ({size, starts, ends})
+# - IntervalVector   -> ({start, end})
+
+# TODO: Remaining functionality
+# - operations: union, setdiff
+# - modifications: invert, complement, sift
+# - relations: within, overlaps
+# - accessors: start(s)/end(s), spans, lengths
+
+# TODO: phint_unnest()
+# Convert a phinterval into a data.frame. By default, we'll ditch empty phintervals.
+# - `hole_to = c("drop", "na")` -> how to treat holes
+# - `keep_size = FALSE`         -> should a size column be added in the output
+#
+# Example: <phint[2]>, <phint[1]>, <phint[1]>
+# ~key, ~start, ~end,
+# <int>, <dttm>, <dttm>
+# 1, ..., ...,
+# 1, ..., ...,
+# 2, ..., ...,
+# 3, ..., ...
+
 # class ------------------------------------------------------------------------
 
 setOldClass(c("phinterval", "list", "vctrs_vctr"))
@@ -68,6 +129,10 @@ phinterval <- function(intervals = list(), tzone = NULL) {
     tzone = tzone %||% get_tzone(intervals[[1]])
   )
 }
+# TODO:
+# - input is now a `start` and `end` vector with same rules as `lubridate::interval()`
+# - additional `group` (or `by`) option, fed to `squash_by()` to split the input
+#   dates into phinterval elements
 
 new_phinterval <- function(interval_sets = list(), tzone = "UTC") {
   new_vctr(
