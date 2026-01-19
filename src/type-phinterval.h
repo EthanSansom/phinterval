@@ -10,6 +10,8 @@ struct PhintView {
   const double* starts;
   const double* ends;
 
+  double start(int i) const { return starts[i]; }
+  double end(int i) const { return ends[i]; }
   bool is_empty() const { return !size; }
 };
 
@@ -41,24 +43,23 @@ public:
 
 class PhintScalar {
 private:
-  const PhintVector& m_phint;
   const PhintView m_view;
   const int m_size;
 
 public:
-  PhintScalar(const PhintVector& phint_)
-    : m_phint(phint_),
-      m_view(phint_.view(0)),
-      m_size(phint_.size(0))
+  PhintScalar(const PhintVector& phint)
+    : m_view(phint.view(0)),
+      m_size(phint.size(0))
   {
-    if (phint_.n_sets() != 1) {
-      stop("Attempted to initialize a PhintScalar from a vector of length %i.", phint_.n_sets());
+    if (phint.n_sets() != 1) {
+      stop("Attempted to initialize a PhintScalar from a vector of length %i.", phint.n_sets());
     }
   }
 
-  PhintView view(R_xlen_t) const { return m_view; }
-  R_xlen_t n_sets() const { return 1; }
-  int size(R_xlen_t) { return m_size; }
+  // TODO: See if inline matters here and look elsewhere for inline opportunities
+  inline PhintView view(R_xlen_t) const { return m_view; }
+  inline R_xlen_t n_sets() const { return 1; }
+  inline int size(R_xlen_t) const { return m_size; }
 };
 
 class PhintBuffer {
