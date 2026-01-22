@@ -5,3 +5,7 @@ lubridate::interval
 #' @importFrom lubridate duration
 #' @export
 lubridate::duration
+
+#' @importFrom lubridate POSIXct
+#' @export
+lubridate::POSIXct

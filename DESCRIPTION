@@ -24,6 +24,7 @@ Imports:
     methods,
     Rcpp,
     rlang,
+    tzdb,
     vctrs
 Suggests: 
     dplyr,
@@ -33,5 +34,7 @@ Suggests:
     tidyr
 Config/testthat/edition: 3
 LinkingTo: 
-    Rcpp
+    Rcpp,
+    tzdb
 VignetteBuilder: knitr
+SystemRequirements: C++17

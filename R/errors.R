@@ -9,55 +9,32 @@ check_valid_tzone <- function(
   if (allow_null && is.null(x)) {
     return(invisible(NULL))
   }
-  check_string(x, arg = arg, call = call)
 
-  # Hack to ensure that recognized time zones match those in lubridate
-  tryCatch(
-    lubridate::force_tz(lubridate::POSIXct(), tzone = x),
-    error = function(e) {
-      abort(
-        sprintf("`%s = %s` is an unrecognized timezone.", arg, str_encode(x)),
-        call = call,
-        arg = arg
-      )
-    }
-  )
+  check_string(x, arg = arg, call = call)
+  if (!tzone_is_valid_cpp(x)) {
+    abort(
+      c(
+        sprintf("`%s` is an unrecognized timezone: %s.", arg, str_encode(x)),
+        i = "Run `tzdb_names()` to see recognized timezones."
+      ),
+      call = call
+    )
+  }
+
   return(invisible(NULL))
 }
 
 check_is_phintish <- function(x, arg = caller_arg(x), call = caller_env()) {
-  if (lubridate::is.interval(x) || is_phinterval(x)) {
+  if (is_phintish(x)) {
     return(invisible(NULL))
   }
+
   stop_input_type(
     x,
     "a <phinterval> or <Interval> vector",
     arg = arg,
     call = call
   )
-}
-
-check_is_list_of_phintish <- function(x, arg = caller_arg(x), call = caller_env()) {
-  if (!is_bare_list(x)) {
-    stop_input_type(
-      x,
-      "a list of <Interval> or <phinterval> vectors",
-      arg = arg,
-      call = call
-    )
-  }
-  not_phintish <- !map_lgl(x, is_phintish)
-  if (any(not_phintish)) {
-    idx <- which.max(not_phintish)
-    arg <- paste0(arg, "[[", idx, "]]")
-    stop_input_type(
-      x[[idx]],
-      "a <phinterval> or <Interval> vector",
-      arg = arg,
-      call = call
-    )
-  }
-  return(invisible(NULL))
 }
 
 check_recycleable <- function(
@@ -72,6 +49,7 @@ check_recycleable <- function(
   if (x_len == y_len || x_len == 1 || y_len == 1) {
     return(invisible(NULL))
   }
+
   abort(
     sprintf(
       "Can't recycle `%s` (length %i) and `%s` (length %i) to a common length.",
