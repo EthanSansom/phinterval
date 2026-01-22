@@ -2,6 +2,7 @@
 % Please edit documentation in R/phinterval-package.R
 \docType{package}
 \name{phinterval-package}
+\alias{phinterval}
 \alias{phinterval-package}
 \title{phinterval: Set Operations for Time Intervals}
 \description{
