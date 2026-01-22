@@ -30,7 +30,7 @@ public:
   R_xlen_t n_sets() const { return n; }
 };
 
-IntvlView IntvlVector::view(R_xlen_t i) const {
+inline IntvlView IntvlVector::view(R_xlen_t i) const {
   double start = p_start[i];
   double span = p_span[i];
 
