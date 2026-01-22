@@ -135,7 +135,7 @@ bench::mark(
 
 ## squash ----------------------------------------------------------------------
 
-### equivilance checks ---------------------------------------------------------
+### equivalence checks ---------------------------------------------------------
 
 squash_and_compare <- function(x_interval_sets, x_iv, by = NULL) {
   if (is.null(by)) {
