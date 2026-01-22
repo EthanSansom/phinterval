@@ -1,3 +1,6 @@
+#include "type-helpers.h"
+#include "type-datetime.h"
+#include "type-interval.h"
 #include "type-phinterval.h"
 #include <algorithm>
 #include <numeric>
@@ -5,10 +8,10 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
-// TODO: Neither `phint_squash_cpp()` nor `intvl_squash_cpp()` handle empty inputs
-// - Confirm when/if empty inputs are handled in R
+// TODO: Add checks for length-0 inputs (or ensure these aren't called with
+//       length 0 in R).
 
-// squash ----------------------------------------------------------------------
+// phint squash ----------------------------------------------------------------
 
 // TODO: Using basically the exact logic of `phint_squash_cpp()`, you could
 // create a `datetime_groups()` (like `ivs::iv_groups()`) which returns a
@@ -50,9 +53,7 @@ List phint_squash_cpp(NumericVector starts, NumericVector ends) {
     double next_end = p_ends[span_index];
 
     if (next_start <= current_max_end) {
-      if (next_end > current_max_end) {
-        current_max_end = next_end;
-      }
+      current_max_end = std::max(current_max_end, next_end);
     } else {
       p_out_starts[out_index] = current_start;
       p_out_ends[out_index] = current_max_end;
@@ -74,29 +75,25 @@ List phint_squash_cpp(NumericVector starts, NumericVector ends) {
   );
 }
 
-// TODO: Consider using an IntvlVector (and DtimeVector) here instead. Then
-// we can easily define a template and use views within the function.
+// spans squash ----------------------------------------------------------------
 
-// [[Rcpp::export]]
-List intvl_squash_cpp(DatetimeVector starts, NumericVector spans, bool na_rm) {
-  const R_xlen_t n = starts.size();
+template <typename VectorType>
+List squash_impl(const VectorType& vec, bool na_rm) {
+  const R_xlen_t n = vec.n_sets();
 
   NumericVector norm_starts = no_init(n);
   NumericVector norm_ends = no_init(n);
   double* p_norm_starts = REAL(norm_starts);
   double* p_norm_ends = REAL(norm_ends);
 
-  const double* p_starts = REAL(starts);
-  const double* p_spans = REAL(spans);
-
   int n_non_na = 0;
+
   for (R_xlen_t i = 0; i < n; i++) {
     if (!(i & 8191)) checkUserInterrupt();
 
-    double start = p_starts[i];
-    double span = p_spans[i];
+    auto view = vec.view(i);
 
-    if (ISNAN(start) || ISNAN(span)) {
+    if (view.is_na) {
       if (na_rm) continue;
       return List::create(
         Named("size") = IntegerVector::create(NA_INTEGER),
@@ -105,25 +102,31 @@ List intvl_squash_cpp(DatetimeVector starts, NumericVector spans, bool na_rm) {
       );
     }
 
-    // TODO: Benchmark `std::min/max()` approach vs. `if (span < 0)` approach
-    double end = start + span;
-    p_norm_starts[n_non_na] = std::min(start, end);
-    p_norm_ends[n_non_na] = std::max(start, end);
+    p_norm_starts[n_non_na] = view.start(0);
+    p_norm_ends[n_non_na] = view.end(0);
     n_non_na++;
   }
 
-  if (na_rm) {
+  if (na_rm && n_non_na < n) {
     return phint_squash_cpp(head(norm_starts, n_non_na), head(norm_ends, n_non_na));
   }
-  // If `!na_rm` and we're here, then every element was non-NA
+  // If !na_rm and we're here, all elements were non-NA
   return phint_squash_cpp(norm_starts, norm_ends);
 }
 
-// squash by -------------------------------------------------------------------
+// [[Rcpp::export]]
+List intvl_squash_cpp(DatetimeVector starts, NumericVector spans, bool na_rm) {
+  IntvlVector vec { starts, spans };
+  return squash_impl(vec, na_rm);
+}
 
-// TODO: Revise `squash_by` to use a template. We can use the `view()` method
-// of the <phinterval>, <Interval>, and <datetime> types to consolidate. We'll
-// pass in either a PhintVector, IntvlVector, or DtimeVector.
+// [[Rcpp::export]]
+List datetime_squash_cpp(DatetimeVector starts, DatetimeVector ends, bool na_rm) {
+  DtimeVector vec { starts, ends };
+  return squash_impl(vec, na_rm);
+}
+
+// squash by -------------------------------------------------------------------
 
 void squash_span_set(
     const std::vector<double>& starts,
@@ -131,6 +134,70 @@ void squash_span_set(
     std::vector<size_t>& index_buffer,
     PhintBuffer& buffer
 );
+
+template <typename VectorType>
+List squash_by_impl(
+    const VectorType& vec,
+    List group_locs,
+    bool na_rm
+) {
+  R_xlen_t n_groups = group_locs.size();
+  PhintBuffer buffer(n_groups);
+
+  std::vector<double> temp_group_starts;
+  std::vector<double> temp_group_ends;
+  std::vector<size_t> span_indices;
+
+  temp_group_starts.reserve(64);
+  temp_group_ends.reserve(64);
+  span_indices.reserve(64);
+
+  for (R_xlen_t group = 0; group < n_groups; group++) {
+    SEXP locs = VECTOR_ELT(group_locs, group);
+    const int* p_locs = INTEGER(locs);
+    R_xlen_t group_size = Rf_xlength(locs);
+
+    bool group_is_na = true;
+
+    for (R_xlen_t j = 0; j < group_size; j++) {
+      int i = p_locs[j] - 1;
+
+      auto view = vec.view(i);
+
+      if (view.is_na) {
+        if (na_rm) continue; // If `na_rm = true`, skip NA elements
+        group_is_na = true;  // Otherwise, set the entire group to NA
+        break;
+      }
+      group_is_na = false;
+
+      if (view.is_empty()) continue;
+
+      // Requires C++17, skips loop for scalar span types (e.g. not PhintVector)
+      if constexpr (is_scalar_view<decltype(view)>) {
+        temp_group_starts.push_back(view.starts);
+        temp_group_ends.push_back(view.ends);
+      } else {
+        for (int k = 0; k < view.size; k++) {
+          temp_group_starts.push_back(view.start(k));
+          temp_group_ends.push_back(view.end(k));
+        }
+      }
+    }
+
+    // Add the squashed group spans to the buffer
+    if (group_is_na) {
+      buffer.add_na_element();
+    } else {
+      squash_span_set(temp_group_starts, temp_group_ends, span_indices, buffer);
+    }
+
+    temp_group_starts.clear();
+    temp_group_ends.clear();
+  }
+
+  return buffer.get_results();
+}
 
 // [[Rcpp::export]]
 List phint_squash_by_cpp(
@@ -140,62 +207,8 @@ List phint_squash_by_cpp(
     List group_locs,
     bool na_rm
 ) {
-  R_xlen_t n_groups = group_locs.size();
-  const int* p_size = INTEGER(size);
-  PhintBuffer buffer(n_groups);
-
-  std::vector<double> temp_group_starts;
-  std::vector<double> temp_group_ends;
-  std::vector<size_t> span_indices;
-
-  temp_group_starts.reserve(64);
-  temp_group_ends.reserve(64);
-  span_indices.reserve(64);
-
-  for (R_xlen_t group = 0; group < n_groups; group++) {
-    // 1. Collect the starts and ends from every span set in this group
-    SEXP locs = VECTOR_ELT(group_locs, group);
-    const int* p_locs = INTEGER(locs);
-
-    R_xlen_t group_size = Rf_xlength(locs);
-    bool group_is_na = true;
-
-    for (R_xlen_t j = 0; j < group_size; j++) {
-      int i = p_locs[j] - 1; // Adjust for R 1-based indexing
-      int size = p_size[i];
-
-      if (size == NA_INTEGER) {
-        if (na_rm) continue; // If `na_rm`, skip `NA` elements
-        group_is_na = true;  // Otherwise, set the entire group to `NA`
-        break;
-      }
-
-      group_is_na = false;
-      if (size == 0) continue;
-
-      SEXP starts_i = VECTOR_ELT(starts, i);
-      SEXP ends_i = VECTOR_ELT(ends, i);
-      const double* p_starts_i = REAL(starts_i);
-      const double* p_ends_i = REAL(ends_i);
-
-      for (int k = 0; k < size; k++) {
-        temp_group_starts.push_back(p_starts_i[k]);
-        temp_group_ends.push_back(p_ends_i[k]);
-      }
-    }
-
-    // 2. Squash the spans within this group
-    if (group_is_na) {
-      buffer.add_na_element();
-    } else {
-      squash_span_set(temp_group_starts, temp_group_ends, span_indices, buffer);
-    }
-
-    temp_group_starts.clear();
-    temp_group_ends.clear();
-  }
-
-  return buffer.get_results();
+  PhintVector vec { size, starts, ends };
+  return squash_by_impl(vec, group_locs, na_rm);
 }
 
 // [[Rcpp::export]]
@@ -205,54 +218,8 @@ List intvl_squash_by_cpp(
     List group_locs,
     bool na_rm
 ) {
-  R_xlen_t n_groups = group_locs.size();
-  PhintBuffer buffer(n_groups);
-
-  std::vector<double> temp_group_starts;
-  std::vector<double> temp_group_ends;
-  std::vector<size_t> span_indices;
-
-  temp_group_starts.reserve(64);
-  temp_group_ends.reserve(64);
-  span_indices.reserve(64);
-
-  for (R_xlen_t group = 0; group < n_groups; group++) {
-    // 1. Collect the starts and ends from every span set in this group
-    SEXP locs = VECTOR_ELT(group_locs, group);
-    const int* p_locs = INTEGER(locs);
-
-    R_xlen_t group_size = Rf_xlength(locs);
-    bool group_is_na = true;
-
-    for (R_xlen_t j = 0; j < group_size; j++) {
-      int i = p_locs[j] - 1; // Adjust for R 1-based indexing
-      double start = starts[i];
-      double span = spans[i];
-
-      if (ISNAN(start) || ISNAN(span)) {
-        if (na_rm) continue;
-        group_is_na = true;
-        break;
-      }
-      group_is_na = false;
-
-      double end = start + span;
-      temp_group_starts.push_back(std::min(start, end));
-      temp_group_ends.push_back(std::max(start, end));
-    }
-
-    // 2. Squash the spans within this group
-    if (group_is_na) {
-      buffer.add_na_element();
-    } else {
-      squash_span_set(temp_group_starts, temp_group_ends, span_indices, buffer);
-    }
-
-    temp_group_starts.clear();
-    temp_group_ends.clear();
-  }
-
-  return buffer.get_results();
+  IntvlVector vec { starts, spans };
+  return squash_by_impl(vec, group_locs, na_rm);
 }
 
 // [[Rcpp::export]]
@@ -262,53 +229,8 @@ List datetime_squash_by_cpp(
     List group_locs,
     bool na_rm
 ) {
-  R_xlen_t n_groups = group_locs.size();
-  PhintBuffer buffer(n_groups);
-
-  std::vector<double> temp_group_starts;
-  std::vector<double> temp_group_ends;
-  std::vector<size_t> span_indices;
-
-  temp_group_starts.reserve(64);
-  temp_group_ends.reserve(64);
-  span_indices.reserve(64);
-
-  for (R_xlen_t group = 0; group < n_groups; group++) {
-    // 1. Collect the starts and ends from every span set in this group
-    SEXP locs = VECTOR_ELT(group_locs, group);
-    const int* p_locs = INTEGER(locs);
-
-    R_xlen_t group_size = Rf_xlength(locs);
-    bool group_is_na = true;
-
-    for (R_xlen_t j = 0; j < group_size; j++) {
-      int i = p_locs[j] - 1; // Adjust for R 1-based indexing
-      double start = starts[i];
-      double end = ends[i];
-
-      if (ISNAN(start) || ISNAN(end)) {
-        if (na_rm) continue;
-        group_is_na = true;
-        break;
-      }
-      group_is_na = false;
-
-      temp_group_starts.push_back(std::min(start, end));
-      temp_group_ends.push_back(std::max(start, end));
-    }
-
-    // 2. Squash the spans within this group
-    if (group_is_na) {
-      buffer.add_na_element();
-    } else {
-      squash_span_set(temp_group_starts, temp_group_ends, span_indices, buffer);
-    }
-
-    temp_group_starts.clear();
-    temp_group_ends.clear();
-  }
-
-  return buffer.get_results();
+  DtimeVector vec { starts, ends };
+  return squash_by_impl(vec, group_locs, na_rm);
 }
 
 // helpers ---------------------------------------------------------------------
