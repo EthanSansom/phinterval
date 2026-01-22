@@ -36,6 +36,9 @@ public:
 
 inline PhintView PhintVector::view(R_xlen_t i) const {
   int size = p_size[i];
+  if (size == NA_INTEGER) {
+    return SetView::na_view();
+  }
   SEXP starts_i = VECTOR_ELT(m_starts, i);
   SEXP ends_i = VECTOR_ELT(m_ends, i);
   return { size, REAL(starts_i), REAL(ends_i) };

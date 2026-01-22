@@ -46,10 +46,21 @@ struct SetView {
       is_na(size_ == NA_INTEGER)
   {}
 
+  static SetView na_view() {
+    static const double na_sentinel = NA_REAL;
+    return SetView(NA_INTEGER, &na_sentinel, &na_sentinel, true);
+  }
+
   inline double start(int i) const { return starts[i]; }
   inline double end(int i) const { return ends[i]; }
   inline bool is_empty() const { return !size; }
   inline bool is_scalar() const { return size == 1; }
+
+private:
+  // Private constructor for the NA case
+  SetView(int size_, const double* starts_, const double* ends_, bool is_na_)
+    : size(size_), starts(starts_), ends(ends_), is_na(is_na_)
+  {}
 };
 
 template <typename VectorType, typename ViewType>
@@ -72,5 +83,11 @@ public:
   inline R_xlen_t n_sets() const { return 1; }
   inline int size(R_xlen_t) const { return m_size; }
 };
+
+template<typename T>
+inline constexpr bool is_scalar_view = false;
+
+template<>
+inline constexpr bool is_scalar_view<ScalarView> = true;
 
 #endif
