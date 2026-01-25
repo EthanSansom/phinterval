@@ -1,12 +1,24 @@
 # TODO: Document
 #' @export
-phint_squash <- function(x, by = NULL, na.rm = TRUE) {
+phint_squash <- function(
+    x,
+    by = NULL,
+    na.rm = TRUE,
+    empty_to = c("hole", "na", "empty"),
+    order_by = FALSE
+) {
   x_type <- validate_type_phintish(x)
   if (!is.null(by)) {
     check_vector(by)
     check_recycleable_to(by, x)
   }
   check_bool(na.rm)
+  empty_to <- arg_match0(empty_to, c("hole", "na", "empty"))
+  check_bool(order_by)
+
+  if (is_empty(x)) {
+    return(empty_squash(empty_to, tzone = get_tzone(x)))
+  }
 
   if (is.null(by) || vec_size(by) == 1L) {
     out <- phint_unary_dispatch(
@@ -19,13 +31,13 @@ phint_squash <- function(x, by = NULL, na.rm = TRUE) {
       na_rm = na.rm
     )
   } else {
-    groups <- vec_group_loc(by)
+    groups <- if (order_by) vec_locate_sorted_groups(by) else vec_group_loc(by)
     out <- phint_unary_dispatch(
       x = x,
       x_type = x_type,
       funs_cpp = list(
-        phint = phint_squash_cpp,
-        intvl = intvl_squash_cpp
+        phint = phint_squash_by_cpp,
+        intvl = intvl_squash_by_cpp
       ),
       na_rm = na.rm,
       group_locs = groups[["loc"]]
@@ -37,12 +49,21 @@ phint_squash <- function(x, by = NULL, na.rm = TRUE) {
 
 # TODO: Document
 #' @export
-datetime_squash <- function(start, end, by = NULL, na.rm = FALSE) {
+datetime_squash <- function(
+    start,
+    end,
+    by = NULL,
+    na.rm = FALSE,
+    empty_to = c("hole", "na", "empty"),
+    order_by = FALSE
+) {
   check_instant(start)
   check_instant(end)
   check_recycleable(start, end)
-  check_bool(na.rm)
   check_vector(by, allow_null = TRUE)
+  check_bool(na.rm)
+  empty_to <- arg_match0(empty_to, c("hole", "na", "empty"))
+  check_bool(order_by)
 
   range <- vec_recycle_common(starts = as.POSIXct(start), ends = as.POSIXct(end))
   if (!is_null(by)) {
@@ -53,6 +74,10 @@ datetime_squash <- function(start, end, by = NULL, na.rm = FALSE) {
     )
   }
 
+  if (is_empty(range$starts)) {
+    return(empty_squash(empty_to, tzone = tz_union(start, end)))
+  }
+
   if (is.null(by) || vec_size(by) == 1L) {
     out <- range_squash_cpp(
       starts = range$starts,
@@ -60,7 +85,7 @@ datetime_squash <- function(start, end, by = NULL, na.rm = FALSE) {
       na_rm = na.rm
     )
   } else {
-    groups <- vec_group_loc(by)
+    groups <- if (order_by) vec_locate_sorted_groups(by) else vec_group_loc(by)
     out <- range_squash_by_cpp(
       starts = range$starts,
       ends = range$ends,
@@ -70,4 +95,13 @@ datetime_squash <- function(start, end, by = NULL, na.rm = FALSE) {
   }
 
   new_phinterval_bare(out, tzone = tz_union(start, end))
+}
+
+empty_squash <- function(empty_to, tzone) {
+  switch(
+    empty_to,
+    hole = hole(tzone = tzone),
+    na = na_phinterval(tzone = tzone),
+    empty = phinterval(tzone = tzone)
+  )
 }
