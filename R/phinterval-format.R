@@ -54,7 +54,7 @@ pillar_shaft.phinterval <- function(x, ...) {
 
 #' @export
 format.pillar_shaft_phinterval <- function(x, width, ...) {
-  out <- format_impl(x$phint, max_width = width, style = TRUE)
+  out <- format_impl(x$phint, max_width = width, style = style)
   pillar::new_ornament(out, align = "left")
 }
 
@@ -70,52 +70,42 @@ format_impl <- function(x, max_width, style = FALSE) {
   width <- get_format_widths(size)
 
   if (max_width >= width$set) {
-    format_set(size, phint_starts(x), phint_ends(x), style = style)
+    format_set(size, phint_starts(x), phint_ends(x))
   } else if (max_width >= width$span) {
-    format_span(size, phint_start(x), phint_end(x), style = style)
+    format_span(size, phint_start(x), phint_end(x))
   } else {
-    format_terse(size, style = style)
+    format_terse(size)
   }
 }
 
 format_set <- function(size, starts, ends, style = FALSE) {
-  grey <- if (style) pillar::style_subtle else identity
-
-  out <- paste0(grey("{"), map2_chr(
+  out <- paste0("{", map2_chr(
     map(starts, function(starts) format(starts, usetz = FALSE)),
     map(ends, function(ends) format(ends, usetz = FALSE)),
     function(starts, ends) {
       # <hole> elements are initially formatted as `character(0L)`
-      paste(starts, ends, sep = grey("--"), collapse = grey(", ")) %0|% ""
+      paste(starts, ends, sep = "--", collapse = ", ") %0|% ""
     }
-  ), grey("}"))
+  ), "}")
   after_format(out, size, style = style)
 }
 
 format_span <- function(size, start, end, style = FALSE) {
-  grey <- if (style) pillar::style_subtle else identity
   start <- format(start, usetz = FALSE)
   end <- format(end, usetz = FALSE)
 
-  out <- ifelse(
-    size == 1,
-    paste0(grey("{"), start, grey("--"), end, grey("}")),
-    paste0(grey("{"), start, grey("-["), size, grey("]-"), end, grey("}"))
-  )
-  after_format(out, size, style = style)
+  out <- paste0("{", start, "-[", size, "]-", end, "}")
+  after_format(gsub("[1]", "", out, fixed = TRUE), size, style = style)
 }
 
 format_terse <- function(size, style = FALSE) {
-  grey <- if (style) pillar::style_subtle else identity
-  out <- paste0(grey("<phint["), size, grey("]>"))
+  out <- paste0("<phint[", size, "]>")
   after_format(out, size, style = style)
 }
 
-# TODO: I'm not sure in general what I want the pillar format to be, if anything at all!
 after_format <- function(out, size, style = FALSE) {
-  #out[size == 0] <- if (style) pillar::style_subtle("<hole>") else "<hole>"
   out[size == 0] <- "<hole>"
-  out[is.na(size)] <- NA_character_
+  out[is.na(size)] <- if (style) NA_character_ else pillar::style_na("<NA>")
   out
 }
 

@@ -22,7 +22,10 @@ phint
 options(phinterval.print_max_width = 15)
 phint
 
-tibble::tibble(phint)
+tibble::tibble(
+  phint = phint,
+  intvl = interval(phint_start(phint), phint_end(phint))
+)
 
 # Reset options
 options(opts)
