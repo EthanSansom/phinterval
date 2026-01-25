@@ -1,5 +1,6 @@
 #include "type-interval.h"
-#include "type-datetime.h"
+#include "type-range.h"
+#include "type-point.h"
 #include <algorithm>
 #include <Rcpp.h>
 using namespace Rcpp;
@@ -14,8 +15,14 @@ List as_phint_intvl_cpp(DatetimeVector starts, NumericVector spans) {
 }
 
 // [[Rcpp::export]]
-List as_phint_datetime_cpp(DatetimeVector starts, DatetimeVector ends) {
-  DtimeVector vec { starts, ends };
+List as_phint_range_cpp(DatetimeVector starts, DatetimeVector ends) {
+  RangeVector vec { starts, ends };
+  return as_phint_impl(vec);
+}
+
+// [[Rcpp::export]]
+List as_phint_point_cpp(DatetimeVector points) {
+  PointVector vec { points };
   return as_phint_impl(vec);
 }
 
