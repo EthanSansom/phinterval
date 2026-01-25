@@ -1,23 +1,16 @@
 # todos ------------------------------------------------------------------------
 
-# TODO: Remove all references to `phint_to_spans()`
-# - It's much slower than using `phint_unnest()` and I can't see why
-#   you'd ever want a list of interval vectors
+# TODO: Revise unit tests to use the new structure!
 
-# TODO: Dealing with infinite dates in C++
-# - Check that IntvlVector and RangeVector deal with infinite starts, ends, and spans
-
-# TODO: Poke into C++ functionality to make sure it's doing what you want
+# TODO: New unit testing categories
+# - Check that IntvlVector/RangeVector deal with infinite starts, ends, and spans
 # - Check the `na_view()` from `SetView()` and `SpanView()`
 
-# TODO: Add a section on the {lubridate} quirks of the package
-# - Weird stuff with intersect, setdiff, etc. and instants or abutting times
-# - Allowing any timezone to be used
-#
-# TODO: Note tzone coercion methods:
-# - NA timezone is silently coerced to "UTC"
-# - <phinterval> can have bad timezone, but we coerce during display
-#   - we warn about this once per session
+# TODO: New documentation
+# - Remove all references to `phint_to_spans()`
+# - Show speed of phint_squash(by) vs. group_by(by) |> mutate(phint_squash)
+# - Document lubridate quirks that come with phinterval (e.g. setdiff with instants)
+# - Explicitly document full treatment of timezones!
 
 # constructors -----------------------------------------------------------------
 
@@ -65,6 +58,29 @@ phinterval <- function(start = POSIXct(), end = POSIXct(), tzone = NULL, by = NU
   }
 
   new_phinterval_bare(out, tzone = tzone)
+}
+
+# TODO: Document
+hole <- function(n = 1L, tzone = "") {
+  check_number_whole(n, min = 1)
+  check_string(tzone)
+
+  points <- rep(list(numeric()), n)
+  new_phinterval(
+    size = rep(0L, n),
+    starts = points,
+    ends = points,
+    tzone = tzone
+  )
+}
+
+na_phinterval <- function(tzone) {
+  new_phinterval(
+    size = NA_integer_,
+    starts = list(NULL),
+    ends = list(NULL),
+    tzone = tzone
+  )
 }
 
 new_phinterval <- function(
@@ -404,7 +420,6 @@ phint_start.phinterval <- function(phint) {
   phint_start_cpp(
     size = field(phint, "size"),
     starts = field(phint, "starts"),
-    ends = field(phint, "ends"),
     tzone = get_tzone(phint)
   )
 }
@@ -436,7 +451,6 @@ phint_end.Interval <- function(phint) {
 phint_end.phinterval <- function(phint) {
   phint_end_cpp(
     size = field(phint, "size"),
-    starts = field(phint, "starts"),
     ends = field(phint, "ends"),
     tzone = get_tzone(phint)
   )
@@ -463,10 +477,9 @@ phint_starts.Interval <- function(phint) {
 #' @rdname phinterval-accessors
 #' @export
 phint_starts.phinterval <- function(phint) {
-  phint_starts_cpp(
+  phint_points_cpp(
     size = field(phint, "size"),
-    starts = field(phint, "starts"),
-    ends = field(phint, "ends"),
+    points = field(phint, "starts"),
     tzone = get_tzone(phint)
   )
 }
@@ -492,10 +505,9 @@ phint_ends.Interval <- function(phint) {
 #' @rdname phinterval-accessors
 #' @export
 phint_ends.phinterval <- function(phint) {
-  phint_ends_cpp(
+  phint_points_cpp(
     size = field(phint, "size"),
-    starts = field(phint, "starts"),
-    ends = field(phint, "ends"),
+    points = field(phint, "ends"),
     tzone = get_tzone(phint)
   )
 }
