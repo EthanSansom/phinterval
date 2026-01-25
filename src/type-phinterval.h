@@ -63,10 +63,29 @@ public:
   PhintBuffer(R_xlen_t n, int reserve_size = 8);
   void add_na_element();
   void add_empty_element();
+  void add_inf_element();
   void add_scalar_element(double start, double end);
+  void add_set_element(const SetView& view);
+  void add_set_element(const ScalarView& view);
   void add_span(double start, double end);
   void finish_element();
   List get_results();
 };
+
+inline List phint_result_hole() {
+  return List::create(
+    Named("size") = IntegerVector::create(0),
+    Named("starts") = List::create(NumericVector()),
+    Named("ends") = List::create(NumericVector())
+  );
+}
+
+inline List phint_result_na() {
+  return List::create(
+    Named("size") = IntegerVector::create(NA_INTEGER),
+    Named("starts") = List::create(R_NilValue),
+    Named("ends") = List::create(R_NilValue)
+  );
+}
 
 #endif

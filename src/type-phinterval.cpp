@@ -1,5 +1,6 @@
 #include "type-phinterval.h"
 #include <vector>
+#include <cstring>
 #include <Rcpp.h>
 using namespace Rcpp;
 
@@ -32,6 +33,31 @@ void PhintBuffer::add_scalar_element(double start, double end) {
   SET_VECTOR_ELT(starts, current_elt, Rf_ScalarReal(start));
   SET_VECTOR_ELT(ends, current_elt, Rf_ScalarReal(end));
   current_elt++;
+}
+
+void PhintBuffer::add_inf_element() {
+  add_scalar_element(R_NegInf, R_PosInf);
+}
+
+void PhintBuffer::add_set_element(const SetView& view) {
+  const int size = view.size;
+  p_size[current_elt] = size;
+
+  NumericVector set_starts(size);
+  NumericVector set_ends(size);
+
+  if (size) {
+    std::memcpy(REAL(set_starts), view.starts, size * sizeof(double));
+    std::memcpy(REAL(set_ends), view.ends, size * sizeof(double));
+  }
+
+  SET_VECTOR_ELT(starts, current_elt, set_starts);
+  SET_VECTOR_ELT(ends, current_elt, set_ends);
+  current_elt++;
+}
+
+void PhintBuffer::add_set_element(const ScalarView& view) {
+  add_scalar_element(view.start(0), view.end(0));
 }
 
 void PhintBuffer::add_span(double start, double end) {
