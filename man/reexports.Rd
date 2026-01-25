@@ -6,6 +6,7 @@
 \alias{interval}
 \alias{duration}
 \alias{POSIXct}
+\alias{NA_POSIXct_}
 \alias{tzdb_names}
 \alias{tzdb_version}
 \title{Objects exported from other packages}
@@ -15,7 +16,7 @@ These objects are imported from other packages. Follow the links
 below to see their documentation.
 
 \describe{
-  \item{lubridate}{\code{\link[lubridate]{duration}}, \code{\link[lubridate]{interval}}, \code{\link[lubridate:posix_utils]{POSIXct}}}
+  \item{lubridate}{\code{\link[lubridate]{duration}}, \code{\link[lubridate]{interval}}, \code{\link[lubridate:posix_utils]{NA_POSIXct_}}, \code{\link[lubridate:posix_utils]{POSIXct}}}
 
   \item{tzdb}{\code{\link[tzdb]{tzdb_names}}, \code{\link[tzdb]{tzdb_version}}}
 }}
