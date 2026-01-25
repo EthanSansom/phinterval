@@ -1,156 +1,131 @@
-#include "fun-operators.h"
+#include "fun-relations.h"
 #include "type-interval.h"
 #include "type-phinterval.h"
+#include "type-point.h"
 #include "vectorization.h"
 #include <Rcpp.h>
 using namespace Rcpp;
 
-// intersect -------------------------------------------------------------------
+// within ----------------------------------------------------------------------
 
 // [[Rcpp::export]]
-List phint_phint_intersect_cpp(
+LogicalVector phint_phint_within_cpp(
     IntegerVector x_size, List x_starts, List x_ends,
     IntegerVector y_size, List y_starts, List y_ends
 ) {
-  return phint_operate(
+  return phint_relate(
     PhintVector{x_size, x_starts, x_ends},
     PhintVector{y_size, y_starts, y_ends},
-    Intersect{}
+    Within{}
   );
 }
 
 // [[Rcpp::export]]
-List phint_intvl_intersect_cpp(
+LogicalVector phint_intvl_within_cpp(
     IntegerVector x_size, List x_starts, List x_ends,
     DatetimeVector y_starts, NumericVector y_spans
 ) {
-  return phint_operate(
+  return phint_relate(
     PhintVector{x_size, x_starts, x_ends},
     IntvlVector{y_starts, y_spans},
-    Intersect{}
+    Within{}
   );
 }
 
 // [[Rcpp::export]]
-List intvl_phint_intersect_cpp(
+LogicalVector intvl_phint_within_cpp(
     DatetimeVector x_starts, NumericVector x_spans,
     IntegerVector y_size, List y_starts, List y_ends
 ) {
-  return phint_operate(
+  return phint_relate(
     IntvlVector{x_starts, x_spans},
     PhintVector{y_size, y_starts, y_ends},
-    Intersect{}
+    Within{}
   );
 }
 
 // [[Rcpp::export]]
-List intvl_intvl_intersect_cpp(
+LogicalVector intvl_intvl_within_cpp(
     DatetimeVector x_starts, NumericVector x_spans,
     DatetimeVector y_starts, NumericVector y_spans
 ) {
-  return phint_operate(
+  return phint_relate(
     IntvlVector{x_starts, x_spans},
     IntvlVector{y_starts, y_spans},
-    Intersect{}
+    Within{}
   );
 }
 
-// union -----------------------------------------------------------------------
+// [[Rcpp::export]]
+LogicalVector point_phint_within_cpp(
+    DatetimeVector x_points,
+    IntegerVector y_size, List y_starts, List y_ends
+) {
+  return phint_relate(
+    PointVector{x_points},
+    PhintVector{y_size, y_starts, y_ends},
+    Within{}
+  );
+}
 
 // [[Rcpp::export]]
-List phint_phint_union_cpp(
+LogicalVector point_intvl_within_cpp(
+    DatetimeVector x_points,
+    DatetimeVector y_starts, NumericVector y_spans
+) {
+  return phint_relate(
+    PointVector{x_points},
+    IntvlVector{y_starts, y_spans},
+    Within{}
+  );
+}
+
+// overlaps --------------------------------------------------------------------
+
+// [[Rcpp::export]]
+LogicalVector phint_phint_overlaps_cpp(
     IntegerVector x_size, List x_starts, List x_ends,
     IntegerVector y_size, List y_starts, List y_ends
 ) {
-  return phint_operate(
+  return phint_relate(
     PhintVector{x_size, x_starts, x_ends},
     PhintVector{y_size, y_starts, y_ends},
-    Union{}
+    Overlaps{}
   );
 }
 
 // [[Rcpp::export]]
-List phint_intvl_union_cpp(
+LogicalVector phint_intvl_overlaps_cpp(
     IntegerVector x_size, List x_starts, List x_ends,
     DatetimeVector y_starts, NumericVector y_spans
 ) {
-  return phint_operate(
+  return phint_relate(
     PhintVector{x_size, x_starts, x_ends},
     IntvlVector{y_starts, y_spans},
-    Union{}
+    Overlaps{}
   );
 }
 
 // [[Rcpp::export]]
-List intvl_phint_union_cpp(
+LogicalVector intvl_phint_overlaps_cpp(
     DatetimeVector x_starts, NumericVector x_spans,
     IntegerVector y_size, List y_starts, List y_ends
 ) {
-  return phint_operate(
+  return phint_relate(
     IntvlVector{x_starts, x_spans},
     PhintVector{y_size, y_starts, y_ends},
-    Union{}
+    Overlaps{}
   );
 }
 
 // [[Rcpp::export]]
-List intvl_intvl_union_cpp(
+LogicalVector intvl_intvl_overlaps_cpp(
     DatetimeVector x_starts, NumericVector x_spans,
     DatetimeVector y_starts, NumericVector y_spans
 ) {
-  return phint_operate(
+  return phint_relate(
     IntvlVector{x_starts, x_spans},
     IntvlVector{y_starts, y_spans},
-    Union{}
-  );
-}
-
-// setdiff ---------------------------------------------------------------------
-
-// [[Rcpp::export]]
-List phint_phint_setdiff_cpp(
-    IntegerVector x_size, List x_starts, List x_ends,
-    IntegerVector y_size, List y_starts, List y_ends
-) {
-  return phint_operate(
-    PhintVector{x_size, x_starts, x_ends},
-    PhintVector{y_size, y_starts, y_ends},
-    Setdiff{}
-  );
-}
-
-// [[Rcpp::export]]
-List phint_intvl_setdiff_cpp(
-    IntegerVector x_size, List x_starts, List x_ends,
-    DatetimeVector y_starts, NumericVector y_spans
-) {
-  return phint_operate(
-    PhintVector{x_size, x_starts, x_ends},
-    IntvlVector{y_starts, y_spans},
-    Setdiff{}
-  );
-}
-
-// [[Rcpp::export]]
-List intvl_phint_setdiff_cpp(
-    DatetimeVector x_starts, NumericVector x_spans,
-    IntegerVector y_size, List y_starts, List y_ends
-) {
-  return phint_operate(
-    IntvlVector{x_starts, x_spans},
-    PhintVector{y_size, y_starts, y_ends},
-    Setdiff{}
-  );
-}
-
-// [[Rcpp::export]]
-List intvl_intvl_setdiff_cpp(
-    DatetimeVector x_starts, NumericVector x_spans,
-    DatetimeVector y_starts, NumericVector y_spans
-) {
-  return phint_operate(
-    IntvlVector{x_starts, x_spans},
-    IntvlVector{y_starts, y_spans},
-    Setdiff{}
+    Overlaps{}
   );
 }
