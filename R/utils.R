@@ -1,49 +1,11 @@
 #nocov start
 
-# time zones -------------------------------------------------------------------
-
-get_tzone <- function(x) {
-  UseMethod("get_tzone")
+is_instant <- function(x) {
+  inherits(x, c("POSIXt", "POSIXct", "POSIXlt", "Date"))
 }
-
-#' @export
-get_tzone.Interval <- function(x) {
-  attr(x, "tzone")
-}
-
-#' @export
-get_tzone.phinterval <- function(x) {
-  attr(x, "tzone")
-}
-
-# TODO: Remove this
-#' @export
-get_tzone.phinterval_v2 <- function(x) {
-  attr(x, "tzone")
-}
-
-#' @export
-get_tzone.default <- function(x) {
-  lubridate::tz(x)
-}
-
-tz_is_local <- function(x) {
-  identical(x, "")
-}
-
-tz_union <- function(x, y) {
-  x_tzone <- get_tzone(x)
-  y_tzone <- get_tzone(y)
-
-  if (tz_is_local(x_tzone)) {
-    y_tzone
-  } else {
-    x_tzone
-  }
-}
-
-# miscellaneous ----------------------------------------------------------------
 
 `%0|%` <- function(lhs, rhs) if (is_empty(lhs)) rhs else lhs
+
+`%|string%` <- function(lhs, rhs) if (is_string(lhs)) lhs else rhs
 
 #nocov end
