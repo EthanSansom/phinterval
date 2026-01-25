@@ -23,6 +23,7 @@ List phint_squash_cpp(IntegerVector size, List starts, List ends, bool na_rm) {
   }
   const int* p_size = INTEGER(size);
 
+  bool all_na = true;
   R_xlen_t total_spans = 0;
   for (R_xlen_t i = 0; i < n; i++) {
     int size_i = p_size[i];
@@ -30,10 +31,14 @@ List phint_squash_cpp(IntegerVector size, List starts, List ends, bool na_rm) {
       if (na_rm) continue;
       return phint_result_na();
     }
+    all_na = false;
     total_spans += size_i;
   }
 
   if (total_spans == 0) {
+    if (all_na) {
+      return phint_result_na();
+    }
     return phint_result_hole();
   }
 
@@ -159,11 +164,13 @@ List squash_vec_impl(const VectorType& vec, bool na_rm) {
     n_non_na++;
   }
 
-  if (na_rm && n_non_na < n) {
+  if (n_non_na == 0) {
+    return phint_result_na();
+  } else if (n_non_na < n) {
     return squash_num_impl(head(norm_starts, n_non_na), head(norm_ends, n_non_na));
+  } else {
+    return squash_num_impl(norm_starts, norm_ends);
   }
-  // If we're here, all elements were non-NA
-  return squash_num_impl(norm_starts, norm_ends);
 }
 
 // squash by -------------------------------------------------------------------
