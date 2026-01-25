@@ -22,6 +22,7 @@ BugReports: https://github.com/EthanSansom/phinterval/issues
 Imports: 
     lubridate,
     methods,
+    pillar,
     Rcpp,
     rlang,
     tzdb,

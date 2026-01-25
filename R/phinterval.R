@@ -1,36 +1,11 @@
 # todos ------------------------------------------------------------------------
 
-# TODO: pillar formatting and `phinterval.pillar_max_width`
-
-# TODO: Object naming scheme:
-# - phint_operate(phint, phint, fn) -> parallel, returns a phinterval
-# - phint_relate(phint, phint, fn)  -> parallel, returns a logical
-# - phint_modify(phint, fn)         -> single, returns a phinterval
-# - intvl_operate/relate/modify()   -> same, input is an interval, fast track
-
-# TODO: Remaining functionality
-# - operations: union, setdiff
-# - modifications: invert, complement, sift
-# - relations: within, overlaps
-
-# TODO: datetime_groups(start, end, by)
-# - Wrapper around `datetime_squash(start, end, by) |> phint_unnest()`
-# - Faster because we skip the list assignment while creating a <phinterval>
-#
-# NOTE: Maybe put this off until an update.
+# TODO: Remove all references to `phint_to_spans()`
+# - It's much slower than using `phint_unnest()` and I can't see why
+#   you'd ever want a list of interval vectors
 
 # TODO: Dealing with infinite dates in C++
-# - Check that IntvlVector and DtimeVector deal with infinite starts, ends, and spans
-
-# TODO: Stricter timezone treatment
-# I think either use `OlsonNames()` or a `valid_timezones <- c(...)` constant
-# and then `test_tzone(x) { x %in% valid_timezones }`. Have a `valid_tzones()`
-# export which returns a vector (or dataframe) of time-zones. The data.frame
-# version could have `~tz`, ~`tz_parent`, where `tz_parent` is the equivalent
-# timezone (e.g. "EST" is a `tz_parent` of "America New York/Toronto").
-#
-# Document this in the package "Getting Started". The fix is just to use
-# `with_tz()` before converting to phinterval (if needed).
+# - Check that IntvlVector and RangeVector deal with infinite starts, ends, and spans
 
 # TODO: Poke into C++ functionality to make sure it's doing what you want
 # - Check the `na_view()` from `SetView()` and `SpanView()`
@@ -38,6 +13,11 @@
 # TODO: Add a section on the {lubridate} quirks of the package
 # - Weird stuff with intersect, setdiff, etc. and instants or abutting times
 # - Allowing any timezone to be used
+#
+# TODO: Note tzone coercion methods:
+# - NA timezone is silently coerced to "UTC"
+# - <phinterval> can have bad timezone, but we coerce during display
+#   - we warn about this once per session
 
 # constructors -----------------------------------------------------------------
 
@@ -46,20 +26,39 @@ setOldClass(c("phinterval", "list", "vctrs_rcrd"))
 # TODO: Documentation
 #' @export
 phinterval <- function(start = POSIXct(), end = POSIXct(), tzone = NULL, by = NULL) {
-  # TODO: Input validation
-  # TODO: Decide on timezone error or coercion
-  # - Ugh, I feel like it's best to allow whatever timezones, as lubridate does...
+  check_instant(start)
+  check_instant(end)
+  check_recycleable(start, end)
+  check_string(tzone, allow_null = TRUE)
 
   tzone <- tzone %||% tz_union(start, end)
-  start <- as.POSIXct(start)
-  end <- as.POSIXct(end)
+  range <- vec_recycle_common(starts = as.POSIXct(start), ends = as.POSIXct(end))
+  if (!is_null(by)) {
+    check_vector(by)
+    check_recycleable_to(
+      x = by,
+      to = range$starts,
+      to_arg = "vctrs::vec_recycle_common(start, end)"
+    )
+  }
+
   if (is.null(by)) {
-    out <- as_phint_datetime_cpp(starts = start, ends = end)
+    out <- as_phint_range_cpp(
+      starts = range$starts,
+      ends = range$ends
+    )
+  } else if (vec_size(by) == 1L) {
+    # Equivalent to recycling `by`, then using `range_squash_by_cpp()`
+    out <- range_squash_cpp(
+      starts = range$starts,
+      ends = range$ends,
+      na_rm = TRUE
+    )
   } else {
     groups <- vec_group_loc(by)
-    out <- datetime_squash_by_cpp(
-      starts = start,
-      ends = end,
+    out <- range_squash_by_cpp(
+      starts = range$starts,
+      ends = range$ends,
       group_locs = groups[["loc"]],
       na_rm = TRUE
     )
@@ -74,6 +73,7 @@ new_phinterval <- function(
     ends = list(),
     tzone = "UTC"
 ) {
+  check_string(tzone, call = caller_env())
   new_rcrd(
     fields = list(
       size = size,
@@ -87,6 +87,7 @@ new_phinterval <- function(
 
 # Exported Rcpp functions return the `fields` directly
 new_phinterval_bare <- function(fields, tzone = "UTC") {
+  check_string(tzone, call = caller_env())
   new_rcrd(
     fields = fields,
     tzone = tzone,
@@ -94,144 +95,7 @@ new_phinterval_bare <- function(fields, tzone = "UTC") {
   )
 }
 
-new_empty_phinterval <- function(tzone = "UTC") {
-  out <- `empty_phinterval!`
-  attr(out, "tzone") <- tzone
-  out
-}
-
-new_na_phinterval <- function(tzone = "UTC") {
-  out <- `na_phinterval!`
-  attr(out, "tzone") <- tzone
-  out
-}
-
-new_hole <- function(tzone = "UTC") {
-  out <- `hole!`
-  attr(out, "tzone") <- tzone
-  out
-}
-
-`empty_phinterval!` <- new_rcrd(
-  fields = list(size = integer(), starts = list(), ends = list()),
-  tzone = "UTC",
-  class = "phinterval"
-)
-
-`na_phinterval!` <- new_rcrd(
-  fields = list(size = NA_integer_, starts = list(NULL), ends = list(NULL)),
-  tzone = "UTC",
-  class = "phinterval"
-)
-
-`hole!` <- new_rcrd(
-  fields = list(size = 0L, starts = list(numeric()), ends = list(numeric())),
-  tzone = "UTC",
-  class = "phinterval"
-)
-
-# formatting -------------------------------------------------------------------
-
-#' @export
-obj_print_data.phinterval <- function(x, max_width = getOption("phinterval.print_max_width"), ...) {
-  check_number_whole(max_width, min = 1)
-  if (length(x) == 0) {
-    return(invisible(x))
-  }
-
-  # Truncating prior to formatting as format.phinterval() is slow
-  max_print <- getOption("max.print", 9999L)
-  if (length(x) > max_print) {
-    x_t <- x[seq_len(max_print)]
-    out <- set_names(format(x_t, max_width = max_width), names(x_t))
-    print(out, quote = FALSE)
-    cat(" [ Omitted", length(x) - max_print, "entries ]\n")
-    return(invisible(x))
-  }
-
-  out <- set_names(format(x, max_width = max_width), names(x))
-  print(out, quote = FALSE)
-  invisible(x)
-}
-
-#' @export
-format.phinterval <- function(x, max_width = getOption("phinterval.print_max_width"), ...) {
-  # TODO: Input validation
-
-  # <phinterval> vectors have 3 potential formats
-  # - Set:   {YYYY-MM-DD HH:MM:SS--YYYY-MM-DD HH:MM:SS, ...}
-  # - Span:  {YYYY-MM-DD HH:MM:SS-[size]-YYYY-MM-DD HH:MM:SS}
-  # - Terse: <phint[size]>
-
-  size <- field(x, "size")
-
-  datetime_width <- 20L
-  span_width <- (datetime_width * 2L) + 7L
-  set_width <- datetime_width * 2L * max(size, na.rm = TRUE)
-
-  if (max_width >= set_width) {
-    format_type <- "set"
-  } else if (max_width >= span_width) {
-    format_type <- "span"
-  } else {
-    format_type <- "terse"
-  }
-
-  switch(
-    format_type,
-    terse = format_terse(size),
-    set = format_set(size, phint_starts(x), phint_ends(x)),
-    span = format_span(size, phint_start(x), phint_end(x))
-  )
-}
-
-format_terse <- function(size) {
-  out <- paste0("<phint[", size, "]>")
-  after_format(out, size)
-}
-
-format_span <- function(size, start, end) {
-  start <- format(start, usetz = FALSE)
-  end <- format(end, usetz = FALSE)
-
-  out <- paste0("{", start, "-[", size, "]-", end, "}")
-  out <- gsub("[1]", "", out, fixed = TRUE)
-  after_format(out, size)
-}
-
-format_set <- function(size, starts, ends) {
-  out <- paste0("{", map2_chr(
-    map(starts, function(starts) format(starts, usetz = FALSE)),
-    map(ends, function(ends) format(ends, usetz = FALSE)),
-    # <hole> elements are initially formatted as `character(0L)`
-    function(starts, ends) paste(starts, ends, sep = "--", collapse = ", ") %0|% ""
-  ), "}")
-  after_format(out, size)
-}
-
-after_format <- function(out, size) {
-  out[size == 0] <- "<hole>"
-  out[is.na(size)] <- NA_character_
-  out
-}
-
-#' @export
-vec_ptype_abbr.phinterval <- function(x, ...) {
-  tzone <- get_tzone(x)
-  if (tz_is_local(tzone)) tzone <- "local" #nocov
-  paste0("phint<", tzone, ">")
-}
-
-#' @export
-vec_ptype_full.phinterval <- function(x, ...) {
-  tzone <- get_tzone(x)
-  if (tz_is_local(tzone)) tzone <- "local" #nocov
-  paste0("phinterval<", tzone, ">")
-}
-
 # vctrs ------------------------------------------------------------------------
-
-# TODO: Think about how invalid timezones interact here!
 
 #' @export
 vec_proxy_equal.phinterval <- function(x, ...) {
@@ -308,6 +172,13 @@ is_phintish <- function(x) {
   is_phinterval(x) || lubridate::is.interval(x)
 }
 
+# TODO: Document
+#' @export
+is_valid_tzone <- function(x) {
+  is_string(x) && tzone_is_valid_cpp(x)
+}
+
+# TODO: Document the instant case!
 #' Convert an interval vector into a phinterval
 #'
 #' @description
@@ -345,14 +216,24 @@ as_phinterval <- function(x, ...) {
 #' @rdname as_phinterval
 #' @export
 as_phinterval.default <- function(x, ...) {
-  vec_cast(x, new_phinterval())
+  if (is_instant(x)) {
+    new_phinterval_bare(
+      fields = as_phint_point_cpp(as.POSIXct(x)),
+      tzone = get_tzone(x)
+    )
+  } else {
+    vec_cast(x, new_phinterval())
+  }
 }
 
 #' @rdname as_phinterval
 #' @export
 as_phinterval.Interval <- function(x, ...) {
   new_phinterval_bare(
-    fields = as_phint_intvl_cpp(x),
+    fields = as_phint_intvl_cpp(
+      starts = lubridate::int_start(x),
+      spans = lubridate::int_length(x)
+    ),
     tzone = get_tzone(x)
   )
 }
@@ -406,7 +287,7 @@ n_spans <- function(phint) {
 #' @rdname n_spans
 #' @export
 n_spans.default <- function(phint) {
-  check_is_phintish(phint)
+  check_phintish(phint)
 }
 
 #' @rdname n_spans
@@ -504,7 +385,7 @@ phint_start <- function(phint) {
 #' @rdname phinterval-accessors
 #' @export
 phint_start.default <- function(phint) {
-  check_is_phintish(phint)
+  check_phintish(phint)
 }
 
 #' @rdname phinterval-accessors
@@ -537,7 +418,7 @@ phint_end <- function(phint) {
 #' @rdname phinterval-accessors
 #' @export
 phint_end.default <- function(phint) {
-  check_is_phintish(phint)
+  check_phintish(phint)
 }
 
 #' @rdname phinterval-accessors
@@ -570,7 +451,7 @@ phint_starts <- function(phint) {
 #' @rdname phinterval-accessors
 #' @export
 phint_starts.default <- function(phint) {
-  check_is_phintish(phint)
+  check_phintish(phint)
 }
 
 #' @rdname phinterval-accessors
@@ -599,7 +480,7 @@ phint_ends <- function(phint) {
 #' @rdname phinterval-accessors
 #' @export
 phint_ends.default <- function(phint) {
-  check_is_phintish(phint)
+  check_phintish(phint)
 }
 
 #' @rdname phinterval-accessors
@@ -659,7 +540,7 @@ phint_length <- function(phint) {
 #' @rdname phint_length
 #' @export
 phint_length.default <- function(phint) {
-  check_is_phintish(phint)
+  check_phintish(phint)
 }
 
 #' @rdname phint_length
@@ -687,7 +568,7 @@ phint_lengths <- function(phint) {
 #' @rdname phint_length
 #' @export
 phint_lengths.default <- function(phint) {
-  check_is_phintish(phint)
+  check_phintish(phint)
 }
 
 #' @rdname phint_length
@@ -707,7 +588,6 @@ phint_lengths.phinterval <- function(phint) {
 }
 
 # TODO: Document
-# TODO: Input validation
 #' @export
 phint_unnest <- function(phint, hole_to = c("drop", "na"), keep_size = FALSE) {
   UseMethod("phint_unnest")
@@ -715,7 +595,8 @@ phint_unnest <- function(phint, hole_to = c("drop", "na"), keep_size = FALSE) {
 
 #' @export
 phint_unnest.Interval <- function(phint, hole_to = c("drop", "na"), keep_size = FALSE) {
-  hole_to <- arg_match(hole_to)
+  hole_to <- arg_match0(hole_to, values = c("drop", "na"))
+  check_bool(keep_size)
   intvl_unnest_cpp(
     starts = lubridate::int_start(phint),
     spans = lubridate::int_length(phint),
@@ -727,7 +608,8 @@ phint_unnest.Interval <- function(phint, hole_to = c("drop", "na"), keep_size = 
 
 #' @export
 phint_unnest.phinterval <- function(phint, hole_to = c("drop", "na"), keep_size = FALSE) {
-  hole_to <- arg_match0(hole_to, values = c("drop", "na")) # TODO: arg_match0() everywhere?
+  hole_to <- arg_match0(hole_to, values = c("drop", "na"))
+  check_bool(keep_size)
   phint_unnest_cpp(
     size = field(phint, "size"),
     starts = field(phint, "starts"),
@@ -735,173 +617,6 @@ phint_unnest.phinterval <- function(phint, hole_to = c("drop", "na"), keep_size 
     tzone = get_tzone(phint),
     hole_to = hole_to,
     keep_size = keep_size
-  )
-}
-
-# miscellaneous ----------------------------------------------------------------
-
-# TODO: All of these need re-factoring for the new <phinterval> data structure.
-
-#' Get the gaps in a phinterval as time spans
-#'
-#' @description
-#'
-#' `phint_invert()` returns the gaps in a phinterval as a `<phinterval>` vector.
-#' Contiguous time spans (e.g. [lubridate::interval()] vectors) are inverted to
-#' `<hole>` time spans.
-#'
-#' `phint_invert()` is similar to `phint_complement()`, except that the time occurring
-#' outside the extent of `phint` (i.e. before its earliest start or after its
-#' latest end) is not included in the result.
-#'
-#' @inheritParams params
-#'
-#' @param hole_to `["hole" / "inf" / "na"]`
-#'
-#' What to turn `<hole>` (i.e. empty) time spans into.
-#' - If `hole_to = "hole"` (the default), `<hole>` spans remain as `<hole>` elements.
-#' - If `"inf"`, they are returned as a time span from `-Inf` to `Inf`.
-#' - If `"na"`, they are returned as a missing (`NA`) span.
-#'
-#' @return
-#'
-#' A `<phinterval>` vector the same length as `phint`.
-#'
-#' @examples
-#' monday <- interval(as.Date("2025-11-10"), as.Date("2025-11-11"))
-#' friday <- interval(as.Date("2025-11-14"), as.Date("2025-11-15"))
-#' sunday <- interval(as.Date("2025-11-16"), as.Date("2025-11-17"))
-#'
-#' # Contiguous intervals are inverted to holes,
-#' # disjoint intervals to spans
-#' phint_invert(monday)
-#' phint_invert(phint_squash(c(monday, friday, sunday)))
-#'
-#' tues_to_thurs <- interval(as.Date("2025-11-11"), as.Date("2025-11-14"))
-#' phint_invert(phint_union(monday, friday)) == tues_to_thurs
-#'
-#' # The time before `monday` and after `friday` is included
-#' # in the complement, but not the inversion
-#' mon_and_fri <- phint_union(monday, friday)
-#' phint_invert(mon_and_fri)
-#' phint_complement(mon_and_fri)
-#'
-#' # Specify how to invert empty time spans
-#' hole <- phint_intersect(monday, friday)
-#' phint_invert(hole, hole_to = "hole")
-#' phint_invert(hole, hole_to = "inf")
-#' phint_invert(hole, hole_to = "na")
-#'
-#' @export
-phint_invert <- function(phint, hole_to = c("hole", "inf", "na")) {
-  UseMethod("phint_invert")
-}
-
-#' @rdname phint_invert
-#' @export
-phint_invert.default <- function(phint, hole_to = c("hole", "inf", "na")) {
-  check_is_phintish(phint)
-}
-
-#' @rdname phint_invert
-#' @export
-phint_invert.Interval <- function(phint, hole_to = c("hole", "inf", "na")) {
-  arg_match(hole_to)
-  interval_sets <- rep(list(the$empty_interval_set), length(phint))
-  interval_sets[is.na(phint)] <- list(the$na_interval_set)
-  new_phinterval(interval_sets, tzone = get_tzone(phint))
-}
-
-#' @rdname phint_invert
-#' @export
-phint_invert.phinterval <- function(phint, hole_to = c("hole", "inf", "na")) {
-  hole_to <- arg_match(hole_to)
-  interval_sets <- cpp_invert_interval_sets(vec_data(phint))
-  switch(
-    hole_to,
-    inf = interval_sets[is_hole(phint)] <- list(the$inf_interval_set),
-    na = interval_sets[is_hole(phint)] <- list(the$na_interval_set)
-  )
-  new_phinterval(interval_sets = interval_sets, tzone = get_tzone(phint))
-}
-
-#' Convert a phinterval into a list of intervals
-#'
-#' @description
-#'
-#' `phint_to_spans()` decomposes each element of a phinterval into the set
-#' of its contiguous time spans, returned as [lubridate::interval()] vectors.
-#'
-#' @inheritParams params
-#'
-#' @param hole_to `["empty" / "na" / "null"]`
-#'
-#' What to turn `<hole>` (i.e. empty) time spans into.
-#' If `hole_to = "empty"` (the default), `<hole>` spans are returned as length 0 intervals.
-#' If `"na"`, they are returned as a missing (`NA`) interval.
-#' If `"null"`, they are returned as a `NULL` element.
-#'
-#' @return
-#'
-#' A list of `<Interval>` vectors the same length as `phint`. If `hole_to = "null"`,
-#' the list may contain `NULL` elements.
-#'
-#' @examples
-#' monday <- interval(as.Date("2025-11-10"), as.Date("2025-11-11"))
-#' friday <- interval(as.Date("2025-11-14"), as.Date("2025-11-15"))
-#' sunday <- interval(as.Date("2025-11-16"), as.Date("2025-11-17"))
-#'
-#' mon_and_fri <- phint_union(monday, friday)
-#' phint_to_spans(mon_and_fri)
-#' phint_to_spans(sunday)
-#'
-#' # Specify how to invert empty time spans
-#' hole <- phint_intersect(monday, friday)
-#' phint_to_spans(hole, hole_to = "empty")
-#' phint_to_spans(hole, hole_to = "na")
-#' phint_to_spans(hole, hole_to = "null")
-#'
-#' @export
-phint_to_spans <- function(phint, hole_to = c("empty", "na", "null")) {
-  hole_to <- arg_match(hole_to)
-  out <- map2(phint_starts(phint), phint_ends(phint), interval)
-  switch(
-    hole_to,
-    null = out[is_hole(phint)] <- list(NULL),
-    na = out[is_hole(phint)] <- list(interval(NA, NA, tzone = get_tzone(phint)))
-  )
-  out
-}
-
-#' Remove instantaneous time spans from a phinterval
-#'
-#' @description
-#'
-#' `phint_sift()` removes instants (i.e. spans of 0 seconds in duration) from
-#' elements of a phinterval.
-#'
-#' @inheritParams params
-#' @return A `<phinterval>` vector the same length as `phint`.
-#'
-#' @examples
-#' y2020 <- interval(as.Date("2020-01-01"), as.Date("2021-01-01"))
-#' y2021 <- interval(as.Date("2021-01-01"), as.Date("2022-01-01"))
-#' y2022 <- interval(as.Date("2022-01-01"), as.Date("2023-01-01"))
-#'
-#' # The intersection of two adjacent intervals is an instant.
-#' # phint_sift() is useful for removing these instants.
-#' (new_years_2021 <- phint_intersect(y2020, y2021))
-#' phint_sift(new_years_2021)
-#'
-#' (y2022_and_new_years_2021 <- phint_union(y2022, new_years_2021))
-#' phint_sift(y2022_and_new_years_2021)
-#'
-#' @export
-phint_sift <- function(phint) {
-  check_is_phintish(phint)
-  new_phinterval(
-    cpp_interval_sets_remove_instants(vec_data(as_phinterval(phint))),
-    tzone = get_tzone(phint)
   )
 }
 

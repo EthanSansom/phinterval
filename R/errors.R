@@ -1,30 +1,6 @@
 #nocov start
 
-check_valid_tzone <- function(
-    x,
-    allow_null = FALSE,
-    arg = caller_arg(x),
-    call = caller_env()
-  ) {
-  if (allow_null && is.null(x)) {
-    return(invisible(NULL))
-  }
-
-  check_string(x, arg = arg, call = call)
-  if (!tzone_is_valid_cpp(x)) {
-    abort(
-      c(
-        sprintf("`%s` is an unrecognized timezone: %s.", arg, str_encode(x)),
-        i = "Run `tzdb_names()` to see recognized timezones."
-      ),
-      call = call
-    )
-  }
-
-  return(invisible(NULL))
-}
-
-check_is_phintish <- function(x, arg = caller_arg(x), call = caller_env()) {
+check_phintish <- function(x, arg = caller_arg(x), call = caller_env()) {
   if (is_phintish(x)) {
     return(invisible(NULL))
   }
@@ -37,6 +13,77 @@ check_is_phintish <- function(x, arg = caller_arg(x), call = caller_env()) {
   )
 }
 
+validate_type_phintish <- function(x, arg = caller_arg(x), call = caller_env()) {
+  if (is_phinterval(x)) {
+    return("phint")
+  } else if (lubridate::is.interval(x)) {
+    return("intvl")
+  }
+
+  stop_input_type(
+    x,
+    "a <phinterval> or <Interval> vector",
+    arg = arg,
+    call = call
+  )
+}
+
+check_phintish_or_instant <- function(x, arg = caller_arg(x), call = caller_env()) {
+  if (is_phintish(x) || is_instant(x)) {
+    return(invisible(NULL))
+  }
+
+  stop_input_type(
+    x,
+    "a <phinterval>, <Interval>, or datetime vector",
+    arg = arg,
+    call = call
+  )
+}
+
+validate_type_phintish_or_instant <- function(x, arg = caller_arg(x), call = caller_env()) {
+  if (is_phinterval(x)) {
+    return("phint")
+  } else if (lubridate::is.interval(x)) {
+    return("intvl")
+  } else if (is_instant(x)) {
+    "point"
+  }
+
+  stop_input_type(
+    x,
+    "a <phinterval>, <Interval>, or datetime vector",
+    arg = arg,
+    call = call
+  )
+}
+
+check_instant <- function(x, arg = caller_arg(x), call = caller_env()) {
+  if (is_instant(x)) {
+    return(invisible(NULL))
+  }
+
+  stop_input_type(
+    x,
+    "a datetime vector",
+    arg = arg,
+    call = call
+  )
+}
+
+check_vector <- function(x, allow_null = TRUE, arg = caller_arg(x), call = caller_env()) {
+  if (obj_is_vector(x) || (is.null(x) && allow_null)) {
+    return(invisible(NULL))
+  }
+
+  stop_input_type(
+    x,
+    "a vector",
+    arg = arg,
+    call = call
+  )
+}
+
 check_recycleable <- function(
     x,
     y,
@@ -44,16 +91,38 @@ check_recycleable <- function(
     y_arg = caller_arg(y),
     call = caller_env()
   ) {
-  x_len <- length(x)
-  y_len <- length(y)
-  if (x_len == y_len || x_len == 1 || y_len == 1) {
+  x_size <- vec_size(x)
+  y_size <- vec_size(y)
+  if (x_size == y_size || x_size == 1 || y_size == 1) {
     return(invisible(NULL))
   }
 
   abort(
     sprintf(
-      "Can't recycle `%s` (length %i) and `%s` (length %i) to a common length.",
-      x_arg, x_len, y_arg, y_len
+      "Can't recycle `%s` (size %i) and `%s` (size %i) to a common size.",
+      x_arg, x_size, y_arg, y_size
+    ),
+    call = call
+  )
+}
+
+check_recycleable_to <- function(
+    x,
+    to,
+    x_arg = caller_arg(x),
+    to_arg = caller_arg(to),
+    call = caller_env()
+) {
+  x_size <- vec_size(x)
+  to_size <- vec_size(to)
+  if (x_size == to_size || x_size == 1) {
+    return(invisible(NULL))
+  }
+
+  abort(
+    sprintf(
+      "Can't recycle `%s` (size %i) to match `%s` (size %i).",
+      x_arg, x_size, to_arg, to_size
     ),
     call = call
   )
