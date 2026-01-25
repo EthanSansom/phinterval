@@ -51,151 +51,73 @@
 #' @name phinterval-set-operations
 NULL
 
+# TODO: The dispatch system doesn't handle invalid combinations
+# like "point_phint" which are only possible for *some* functions.
+
 #' @rdname phinterval-set-operations
 #' @export
 phint_complement <- function(phint) {
-  check_is_phintish(phint)
-  new_phinterval(
-    cpp_complement_interval_sets(phint_data(phint)),
-    tzone = get_tzone(phint)
+  out <- phint_unary_dispatch(
+    x = phint,
+    x_type = validate_type_phintish(phint),
+    funs_cpp = list(
+      phint = phint_complement_cpp,
+      intvl = intvl_complement_cpp
+    )
   )
+  new_phinterval_bare(out, tzone = get_tzone(phint))
 }
 
 #' @rdname phinterval-set-operations
 #' @export
 phint_union <- function(phint1, phint2) {
-  phints <- validate_phints(phint1, phint2)
-  new_phinterval(
-    cpp_union_interval_sets(phint_data(phints[[1]]), phint_data(phints[[2]])),
-    tzone = tz_union(phint1, phint2)
+  out <- phint_binary_dispatch(
+    x = phint1,
+    y = phint2,
+    x_type = validate_type_phintish(phint1),
+    y_type = validate_type_phintish(phint2),
+    funs_cpp = list(
+      phint_phint = phint_phint_union_cpp,
+      phint_intvl = phint_intvl_union_cpp,
+      intvl_phint = intvl_phint_union_cpp,
+      intvl_intvl = intvl_intvl_union_cpp
+    )
   )
+  new_phinterval_bare(out, tzone = tz_union(phint1, phint2))
 }
 
 #' @rdname phinterval-set-operations
 #' @export
 phint_intersect <- function(phint1, phint2) {
-  phints <- validate_phints(phint1, phint2)
-  new_phinterval(
-    cpp_intersect_interval_sets(phint_data(phints[[1]]), phint_data(phints[[2]])),
-    tzone = tz_union(phint1, phint2)
+  out <- phint_binary_dispatch(
+    x = phint1,
+    y = phint2,
+    x_type = validate_type_phintish(phint1),
+    y_type = validate_type_phintish(phint2),
+    funs_cpp = list(
+      phint_phint = phint_phint_intersect_cpp,
+      phint_intvl = phint_intvl_intersect_cpp,
+      intvl_phint = intvl_phint_intersect_cpp,
+      intvl_intvl = intvl_intvl_intersect_cpp
+    )
   )
+  new_phinterval_bare(out, tzone = tz_union(phint1, phint2))
 }
 
 #' @rdname phinterval-set-operations
 #' @export
 phint_setdiff <- function(phint1, phint2) {
-  phints <- validate_phints(phint1, phint2)
-  new_phinterval(
-    cpp_setdiff_interval_sets(phint_data(phints[[1]]), phint_data(phints[[2]])),
-    tzone = tz_union(phint1, phint2)
-  )
-}
-
-# overlaps ---------------------------------------------------------------------
-
-#' Test whether two phintervals overlap
-#'
-#' @description
-#'
-#' `phint_overlaps()` tests whether the i-th element of `phint1` overlaps
-#' with the i-th element of `phint2`, returning a logical vector. Adjacent
-#' intervals are considered overlapping. `phint1` and `phint2` are recycled to
-#' their common length using vctrs-style recycling rules.
-#'
-#' @inheritParams params
-#' @return A logical vector.
-#'
-#' @examples
-#' monday <- interval(as.Date("2025-11-10"), as.Date("2025-11-11"))
-#' tuesday <- interval(as.Date("2025-11-11"), as.Date("2025-11-12"))
-#' friday <- interval(as.Date("2025-11-14"), as.Date("2025-11-15"))
-#' mon_and_fri <- phint_union(monday, friday)
-#'
-#' phint_overlaps(c(monday, monday, friday), c(mon_and_fri, friday, NA))
-#'
-#' # Adjacent intervals are considered overlapping
-#' phint_overlaps(monday, tuesday)
-#'
-#' # Holes are always considered non-overlapping
-#' hole <- phinterval(interval())
-#' phint_overlaps(c(hole, monday), c(hole, hole))
-#'
-#' @export
-phint_overlaps <- function(phint1, phint2) {
-  phints <- validate_phints(phint1, phint2)
-  cpp_interval_sets_overlaps(phint_data(phints[[1]]), phint_data(phints[[2]]))
-}
-
-# within -----------------------------------------------------------------------
-
-#' Test whether a date, time, or phinterval is within another phinterval
-#'
-#' @description
-#'
-#' `phint_within()` tests whether the i-th element of `x` is contained within
-#' the i-th element of `phint`, returning a logical vector. `x` may be a date or
-#' time, while `phint` must be a phinterval. `x` and `phint` are recycled to
-#' their common length using vctrs-style recycling rules.
-#'
-#' Dates and times on an endpoint of an interval are considered to be within
-#' the interval. An interval is considered to be within itself.
-#'
-#' @inheritParams params
-#'
-#' @param x
-#'
-#' A `<POSIXct>`, `<POSIXlt>`, `<Date>`, `<Interval>` or `<phinterval>`
-#' vector to test.
-#'
-#' @return A logical vector.
-#'
-#' @examples
-#' jan_1_to_5 <- interval(as.Date("2000-01-01"), as.Date("2000-01-05"))
-#' jan_2_to_4 <- interval(as.Date("2000-01-03"), as.Date("2000-01-09"))
-#' jan_3_to_9 <- interval(as.Date("2000-01-03"), as.Date("2000-01-09"))
-#'
-#' phint_within(
-#'   c(jan_2_to_4, jan_3_to_9, jan_1_to_5),
-#'   c(jan_1_to_5, jan_1_to_5, NA)
-#' )
-#'
-#' phint_within(as.Date(c("2000-01-06", "2000-01-20")), jan_3_to_9)
-#'
-#' # Intervals are within themselves
-#' phint_within(jan_1_to_5, jan_1_to_5)
-#'
-#' # Interval endpoints are considered to be within the interval
-#' phint_within(as.Date("2000-01-01"), jan_1_to_5)
-#'
-#' # Holes are never considered to be within an interval
-#' hole <- phinterval(interval())
-#' phint_within(c(hole, hole), c(hole, jan_1_to_5))
-#'
-#' @export
-phint_within <- function(x, phint) {
-  if (lubridate::is.instant(x)) {
-    check_is_phintish(phint)
-    check_recycleable(x, phint)
-    objs <- vctrs::vec_recycle_common(phint, x)
-    cpp_interval_sets_contains(
-      phint_data(objs[[1]]),
-      as.numeric(lubridate::as_datetime(objs[[2]]))
+  out <- phint_binary_dispatch(
+    x = phint1,
+    y = phint2,
+    x_type = validate_type_phintish(phint1),
+    y_type = validate_type_phintish(phint2),
+    funs_cpp = list(
+      phint_phint = phint_phint_setdiff_cpp,
+      phint_intvl = phint_intvl_setdiff_cpp,
+      intvl_phint = intvl_phint_setdiff_cpp,
+      intvl_intvl = intvl_intvl_setdiff_cpp
     )
-  } else {
-    phints <- validate_phints(x, phint)
-    cpp_interval_sets_within(phint_data(phints[[1]]), phint_data(phints[[2]]))
-  }
+  )
+  new_phinterval_bare(out, tzone = tz_union(phint1, phint2))
 }
-
-# utils ------------------------------------------------------------------------
-
-#nocov start
-validate_phints <- function(phint1, phint2, call = caller_env()) {
-  check_is_phintish(phint1, call = call)
-  check_is_phintish(phint2, call = call)
-  check_recycleable(phint1, phint2, call = call)
-  vctrs::vec_recycle_common(phint1, phint2)
-}
-
-phint_data <- function(phint) vec_data(as_phinterval(phint))
-#nocov end

@@ -1,93 +1,73 @@
 # TODO: Document
 #' @export
 phint_squash <- function(x, by = NULL, na.rm = TRUE) {
-  # TODO: Input validation
-
-  # TODO: This would be the output of a `check_type_phintish()`
-  type <- if (is_phinterval(x)) "phinterval" else "Interval"
-
-  tzone <- get_tzone(x)
-  if (is_empty(x)) {
-    return(new_empty_phinterval(tzone = tzone))
-  }
-  if (!na.rm && anyNA(x)) {
-    return(new_na_phinterval(tzone = tzone))
-  }
-
+  x_type <- validate_type_phintish(x)
   if (!is.null(by)) {
-    groups <- vec_group_loc(by)
-    out <- switch(
-      type,
-      phinterval = phint_squash_by_cpp(
-        size = field(x, "size"),
-        starts = field(x, "starts"),
-        ends = field(x, "ends"),
-        group_locs = groups[["loc"]],
-        na_rm = na.rm
-      ),
-      Interval = intvl_squash_by_cpp(
-        starts = lubridate::int_start(x),
-        spans = lubridate::int_length(x),
-        group_locs = groups[["loc"]],
-        na_rm = na.rm
-      )
-    )
-    return(new_phinterval_bare(out, tzone = tzone))
+    check_vector(by)
+    check_recycleable_to(by, x)
   }
+  check_bool(na.rm)
 
-  if (type == "Interval") {
-    out <- intvl_squash_cpp(
-      starts = lubridate::int_start(x),
-      spans = lubridate::int_length(x),
+  if (is.null(by) || vec_size(by) == 1L) {
+    out <- phint_unary_dispatch(
+      x = x,
+      x_type = x_type,
+      funs_cpp = list(
+        phint = phint_squash_cpp,
+        intvl = intvl_squash_cpp
+      ),
       na_rm = na.rm
     )
-    return(new_phinterval_bare(out, tzone = tzone))
+  } else {
+    groups <- vec_group_loc(by)
+    out <- phint_unary_dispatch(
+      x = x,
+      x_type = x_type,
+      funs_cpp = list(
+        phint = phint_squash_cpp,
+        intvl = intvl_squash_cpp
+      ),
+      na_rm = na.rm,
+      group_locs = groups[["loc"]]
+    )
   }
 
-  # `unlist()` removes `NULL` elements (NAs) from `starts` and `ends`
-  all_starts <- unlist(field(x, "starts"), use.names = FALSE)
-  all_ends <- unlist(field(x, "ends"), use.names = FALSE)
-
-  # If all elements were NA and `na.rm = TRUE`, return NA
-  if (is_empty(all_starts)) {
-    return(new_na_phinterval(tzone = tzone))
-  }
-
-  # `phint_squash_cpp()` assumes endpoints are non-empty and non-NA
-  new_phinterval_bare(
-    fields = phint_squash_cpp(starts = all_starts, ends = all_ends),
-    tzone = tzone
-  )
+  new_phinterval_bare(out, tzone = get_tzone(x))
 }
 
 # TODO: Document
 #' @export
 datetime_squash <- function(start, end, by = NULL, na.rm = FALSE) {
-  # TODO: Input validation
-  stopifnot(is.POSIXct(start), is.POSIXct(end))
+  check_instant(start)
+  check_instant(end)
+  check_recycleable(start, end)
+  check_bool(na.rm)
+  check_vector(by, allow_null = TRUE)
 
-  tzone <- tz_union(start, end)
-  if (is_empty(x)) {
-    return(new_empty_phinterval(tzone = tzone))
-  }
-  if (!na.rm && anyNA(x)) {
-    return(new_na_phinterval(tzone = tzone))
+  range <- vec_recycle_common(starts = as.POSIXct(start), ends = as.POSIXct(end))
+  if (!is_null(by)) {
+    check_recycleable_to(
+      x = by,
+      to = range$starts,
+      to_arg = "vctrs::vec_recycle_common(start, end)"
+    )
   }
 
-  if (!is.null(by)) {
-    groups <- vec_group_loc(by)
-    out <- datetime_squash_by_cpp(
-      starts = start,
-      ends = end,
-      group_locs = groups[["loc"]],
+  if (is.null(by) || vec_size(by) == 1L) {
+    out <- range_squash_cpp(
+      starts = range$starts,
+      ends = range$ends,
       na_rm = na.rm
     )
   } else {
-    out <- datetime_squash_cpp(
-      starts = start,
-      ends = end,
+    groups <- vec_group_loc(by)
+    out <- range_squash_by_cpp(
+      starts = range$starts,
+      ends = range$ends,
+      group_locs = groups[["loc"]],
       na_rm = na.rm
     )
   }
-  new_phinterval_bare(out, tzone = tzone)
+
+  new_phinterval_bare(out, tzone = tz_union(start, end))
 }
