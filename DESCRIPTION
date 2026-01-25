@@ -26,7 +26,7 @@ Imports:
     Rcpp,
     rlang,
     tzdb,
-    vctrs
+    vctrs (>= 0.7.0)
 Suggests: 
     dplyr,
     knitr,
