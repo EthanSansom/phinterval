@@ -47,7 +47,7 @@ validate_type_phintish_or_instant <- function(x, arg = caller_arg(x), call = cal
   } else if (lubridate::is.interval(x)) {
     return("intvl")
   } else if (is_instant(x)) {
-    "point"
+    return("point")
   }
 
   stop_input_type(
