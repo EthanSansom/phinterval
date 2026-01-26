@@ -18,46 +18,44 @@ setOldClass(c("phinterval", "list", "vctrs_rcrd"))
 
 # TODO: Documentation
 #' @export
-phinterval <- function(start = POSIXct(), end = POSIXct(), tzone = NULL, by = NULL) {
+phinterval <- function(
+    start = POSIXct(),
+    end = POSIXct(),
+    tzone = NULL,
+    by = NULL,
+    order_by = FALSE
+) {
   check_instant(start)
   check_instant(end)
   check_recycleable(start, end)
   check_string(tzone, allow_null = TRUE)
+  check_vector(by, allow_null = TRUE)
+  check_bool(order_by)
 
   tzone <- tzone %||% tz_union(start, end)
   range <- vec_recycle_common(starts = as.POSIXct(start), ends = as.POSIXct(end))
-  if (!is_null(by)) {
-    check_vector(by)
-    check_recycleable_to(
-      x = by,
-      to = range$starts,
-      to_arg = "vctrs::vec_recycle_common(start, end)"
-    )
+
+  if (is_null(by)) {
+    out <- as_phint_range_cpp(starts = range$starts, ends = range$ends)
+    return(new_phinterval_bare(out, tzone = tzone))
   }
 
-  if (is.null(by)) {
-    out <- as_phint_range_cpp(
-      starts = range$starts,
-      ends = range$ends
-    )
-  } else if (vec_size(by) == 1L) {
-    # Equivalent to recycling `by`, then using `range_squash_by_cpp()`
-    out <- range_squash_cpp(
-      starts = range$starts,
-      ends = range$ends,
-      na_rm = TRUE
-    )
-  } else {
-    groups <- vec_group_loc(by)
-    out <- range_squash_by_cpp(
-      starts = range$starts,
-      ends = range$ends,
-      group_locs = groups[["loc"]],
-      na_rm = TRUE
-    )
-  }
+  check_recycleable_to(
+    x = by,
+    to = range$starts,
+    to_arg = "vctrs::vec_recycle_common(start, end)"
+  )
 
-  new_phinterval_bare(out, tzone = tzone)
+  # TODO: Check if the rearranging with `datetime_squash_impl()` worked
+  datetime_squash_impl(
+    starts = range$starts,
+    ends = range$ends,
+    by = by,
+    tzone = tzone,
+    na.rm = FALSE,
+    empty_to = empty_to,
+    order_by = order_by
+  )
 }
 
 # TODO: Document

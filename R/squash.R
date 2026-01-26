@@ -74,27 +74,39 @@ datetime_squash <- function(
     )
   }
 
-  if (is_empty(range$starts)) {
+  datetime_squash_impl(
+    starts = range$starts,
+    ends = range$ends,
+    by = by,
+    tzone = tz_union(start, end),
+    na.rm = na.rm,
+    empty_to = empty_to,
+    order_by = order_by
+  )
+}
+
+datetime_squash_impl <- function(starts, ends, by, tzone, na.rm, empty_to, order_by) {
+  if (is_empty(starts)) {
     return(empty_squash(empty_to, tzone = tz_union(start, end)))
   }
 
-  if (is.null(by) || vec_size(by) == 1L) {
+  if (vec_size(by) == 1L || is.null(by)) {
     out <- range_squash_cpp(
-      starts = range$starts,
-      ends = range$ends,
+      starts = starts,
+      ends = ends,
       na_rm = na.rm
     )
   } else {
     groups <- if (order_by) vec_locate_sorted_groups(by) else vec_group_loc(by)
     out <- range_squash_by_cpp(
-      starts = range$starts,
-      ends = range$ends,
+      starts = starts,
+      ends = ends,
       group_locs = groups[["loc"]],
       na_rm = na.rm
     )
   }
 
-  new_phinterval_bare(out, tzone = tz_union(start, end))
+  new_phinterval_bare(out, tzone = tzone)
 }
 
 empty_squash <- function(empty_to, tzone) {
