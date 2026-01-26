@@ -38,6 +38,12 @@ inline IntvlView IntvlVector::view(R_xlen_t i) const {
     return ScalarView::na_view();
   }
 
+  // When `start` and `span` are opposite-signed infinite values, adding them
+  // results in `NaN`. Instead, manually setting to infinite range in this case.
+  if (!R_FINITE(span) && !R_FINITE(start) && (span != start)) {
+    return { R_NegInf, R_PosInf };
+  }
+
   if (span < 0) {
     return { start + span, start };
   }
