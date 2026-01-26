@@ -1,7 +1,7 @@
 #nocov start
 
 # From {lubridate}:
-# - TODO: Add github link
+# - https://github.com/tidyverse/lubridate/blob/69034a5d933b53b9d8815f954c877c539aff868a/R/vctrs.R#L212
 
 # `get_tzone()` coerces non-string input to "UTC" for non-phinterval inputs
 # - POSIXct can have NA_character_ timezone

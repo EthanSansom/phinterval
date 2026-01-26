@@ -141,7 +141,7 @@ validate_format_tzone <- function(tzone, call = caller_env()) {
     ),
     call = call,
     .frequency = "once", # display once per session
-    .frequency_id = "phinterval_warning_invalid_tzone"
+    .frequency_id = "phinterval_warning_unrecognized_tzone"
   )
   "UTC"
 }
