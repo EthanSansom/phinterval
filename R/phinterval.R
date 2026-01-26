@@ -135,10 +135,31 @@ vec_ptype2.Interval.phinterval <- function(x, y, ...) {
 }
 
 #' @export
-vec_cast.phinterval.phinterval <- function(x, to, ...) x
+vec_cast.phinterval.phinterval <- function(x, to, ...) {
+  x_tzone <- get_tzone(x)
+  to_tzone <- get_tzone(to)
+
+  if (identical(x_tzone, to_tzone)) {
+    return(x)
+  }
+
+  attr(x, "tzone") <- to_tzone
+  x
+}
 
 #' @export
-vec_cast.phinterval.Interval <- function(x, to, ...) as_phinterval(x)
+vec_cast.phinterval.Interval <- function(x, to, ...) {
+  x_tzone <- get_tzone(x)
+  to_tzone <- get_tzone(to)
+
+  if (identical(x_tzone, to_tzone)) {
+    return(as_phinterval(x))
+  }
+
+  out <- as_phinterval(x)
+  attr(out, "tzone") <- to_tzone
+  out
+}
 
 #' @export
 is.na.phinterval <- function(x) {
