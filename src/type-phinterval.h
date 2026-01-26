@@ -88,4 +88,12 @@ inline List phint_result_na() {
   );
 }
 
+inline List phint_result_empty() {
+  return List::create(
+    Named("size") = IntegerVector(0),
+    Named("starts") = List(0),
+    Named("ends") = List(0)
+  );
+}
+
 #endif
