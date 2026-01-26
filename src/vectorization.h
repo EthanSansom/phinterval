@@ -24,6 +24,7 @@ List phint_operate(const VectorX& x, const VectorY& y, Op op) {
   const R_xlen_t n = std::max(x_n, y_n);
 
   // Recyclability of `x` and `y` is checked in R
+  if (x_n == 0 || y_n == 0) return phint_result_empty();
   if (x_n == 1) return phint_operate_impl(x.as_recycled(), y, op, n);
   if (y_n == 1) return phint_operate_impl(x, y.as_recycled(), op, n);
   return phint_operate_impl(x, y, op, n);
@@ -36,6 +37,7 @@ LogicalVector phint_relate(const VectorX& x, const VectorY& y, Rel rel) {
   const R_xlen_t n = std::max(x_n, y_n);
 
   // Recyclability of `x` and `y` is checked in R
+  if (x_n == 0 || y_n == 0) return LogicalVector(0);
   if (x_n == 1) return phint_relate_impl(x.as_recycled(), y, rel, n);
   if (y_n == 1) return phint_relate_impl(x, y.as_recycled(), rel, n);
   return phint_relate_impl(x, y, rel, n);
@@ -44,6 +46,7 @@ LogicalVector phint_relate(const VectorX& x, const VectorY& y, Rel rel) {
 template <typename VectorX, typename Fn>
 List phint_modify(const VectorX& x, Fn fn) {
   const R_xlen_t n = x.n_sets();
+  if (n == 0) return phint_result_empty();
   return phint_modify_impl(x, fn, n);
 }
 
