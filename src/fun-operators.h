@@ -54,8 +54,8 @@ void Intersect::apply_to_set(const XView& x, const YView& y, PhintBuffer& out) {
 
   int i = 0, j = 0;
   while (i < x.size && j < y.size) {
-    double start = std::max(x.start(i), y.start(i));
-    double end = std::min(x.end(i), y.end(i));
+    double start = std::max(x.start(i), y.start(j));
+    double end = std::min(x.end(i), y.end(j));
 
     if (start <= end) {
       out.add_span(start, end);
@@ -125,14 +125,17 @@ void Union::apply_to_set(const XView& x, const YView& y, PhintBuffer& out) {
     double next_start, next_end;
 
     if (i >= x.size) {
+      // x is exhausted, check remaining spans in y
       next_start = y.start(j);
       next_end = y.end(j);
       j++;
     } else if (j >= y.size) {
+      // y is exhausted, check remaining spans in x
       next_start = x.start(i);
       next_end = x.end(i);
       i++;
     } else {
+      // spans remain in x and y, check whichever span has the earliest start
       if (x.start(i) <= y.start(j)) {
         next_start = x.start(i);
         next_end = x.end(i);
