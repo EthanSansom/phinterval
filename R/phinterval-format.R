@@ -54,7 +54,7 @@ pillar_shaft.phinterval <- function(x, ...) {
 
 #' @export
 format.pillar_shaft_phinterval <- function(x, width, ...) {
-  out <- format_impl(x$phint, max_width = width, style = style)
+  out <- format_impl(x$phint, max_width = width, style = TRUE)
   pillar::new_ornament(out, align = "left")
 }
 
@@ -105,7 +105,7 @@ format_terse <- function(size, style = FALSE) {
 
 after_format <- function(out, size, style = FALSE) {
   out[size == 0] <- "<hole>"
-  out[is.na(size)] <- if (style) NA_character_ else pillar::style_na("<NA>")
+  out[is.na(size)] <- if (style) pillar::style_na("<NA>") else NA_character_
   out
 }
 

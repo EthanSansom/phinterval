@@ -51,6 +51,8 @@ options(digits.secs = 4)
 phint
 intvl
 
+options(digits.secs = 0)
+
 # unnest -----------------------------------------------------------------------
 
 intvl <- interval(starts, ends, tzone = "EST")
