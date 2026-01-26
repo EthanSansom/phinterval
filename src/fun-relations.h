@@ -67,8 +67,8 @@ bool Overlaps::apply_to_set(const XView& x, const YView& y) {
 
   int i = 0, j = 0;
   while (i < x.size && j < y.size) {
-    double start = std::max(x.start(i), y.start(i));
-    double end = std::min(x.end(i), y.end(i));
+    double start = std::max(x.start(i), y.start(j));
+    double end = std::min(x.end(i), y.end(j));
 
     if (start <= end) return true;
 
