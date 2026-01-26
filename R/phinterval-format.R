@@ -70,11 +70,11 @@ format_impl <- function(x, max_width, style = FALSE) {
   width <- get_format_widths(size)
 
   if (max_width >= width$set) {
-    format_set(size, phint_starts(x), phint_ends(x))
+    format_set(size, phint_starts(x), phint_ends(x), style = style)
   } else if (max_width >= width$span) {
-    format_span(size, phint_start(x), phint_end(x))
+    format_span(size, phint_start(x), phint_end(x), style = style)
   } else {
-    format_terse(size)
+    format_terse(size, style = style)
   }
 }
 
@@ -124,7 +124,7 @@ after_format <- function(out, size, style = FALSE) {
 # <phinterval<unknown_zone>[1]>
 # [1] {1970-01-01--1970-01-01}
 validate_format_tzone <- function(tzone, call = caller_env()) {
-  if (is_valid_tzone(tzone)) {
+  if (is_recognized_tzone(tzone)) {
     return(tzone)
   }
 

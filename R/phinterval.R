@@ -2,6 +2,9 @@
 
 # TODO: Revise unit tests to use the new structure!
 
+# TODO: Fix private field not used warnings
+# - type-interval.h warning: private field 'span' is not used [-Wunused-private-field]
+
 # TODO: New unit testing categories
 # - Check that IntvlVector/RangeVector deal with infinite starts, ends, and spans
 # - Check the `na_view()` from `SetView()` and `SpanView()`
@@ -188,7 +191,7 @@ is_phintish <- function(x) {
 
 # TODO: Document
 #' @export
-is_valid_tzone <- function(x) {
+is_recognized_tzone <- function(x) {
   is_string(x) && tzone_is_valid_cpp(x)
 }
 
