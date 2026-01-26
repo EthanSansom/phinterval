@@ -622,46 +622,189 @@ test_that("phint_squash(by = by, order_by = order_by) works as expected", {
 
 })
 
-# phint_union ------------------------------------------------------------------
+# binary dispatch --------------------------------------------------------------
 
-test_that("phint_union() recycles inputs", {
+test_that("Binary operations work on <Interval> x <phinterval> combinations", {
+  t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
+  t2 <- as.POSIXct("2021-01-01 00:00:45", tz = "UTC")
+  t3 <- as.POSIXct("2021-01-01 00:00:55", tz = "UTC")
+  t4 <- as.POSIXct("2021-01-01 00:01:00", tz = "UTC")
+
+  intvl13 <- interval(t1, t3)
+  intvl24 <- interval(t2, t4)
+  phint13 <- phinterval(t1, t3)
+  phint24 <- phinterval(t2, t4)
+
+  ## Set operations
+  res_union <- list(
+    phint_phint = phint_union(phint13, phint24),
+    phint_intvl = phint_union(phint13, intvl24),
+    intvl_phint = phint_union(intvl13, phint24),
+    intvl_intvl = phint_union(intvl13, intvl24)
+  )
+  res_intersect <- list(
+    phint_phint = phint_intersect(phint13, phint24),
+    phint_intvl = phint_intersect(phint13, intvl24),
+    intvl_phint = phint_intersect(intvl13, phint24),
+    intvl_intvl = phint_intersect(intvl13, intvl24)
+  )
+  res_setdiff <- list(
+    phint_phint = phint_setdiff(phint13, phint24),
+    phint_intvl = phint_setdiff(phint13, intvl24),
+    intvl_phint = phint_setdiff(intvl13, phint24),
+    intvl_intvl = phint_setdiff(intvl13, intvl24)
+  )
+
+  expect_all_true(map_lgl(res_union[-1], ~ .x == res_union[[1]]))
+  expect_all_true(map_lgl(res_intersect[-1], ~ .x == res_intersect[[1]]))
+  expect_all_true(map_lgl(res_setdiff[-1], ~ .x == res_setdiff[[1]]))
+
+  expect_error(phint_union(phint13, t1))
+  expect_error(phint_union(t1, phint13))
+  expect_error(phint_intersect(phint13, t1))
+  expect_error(phint_intersect(t1, phint13))
+  expect_error(phint_setdiff(phint13, t1))
+  expect_error(phint_setdiff(t1, phint13))
+
+  ## Relations
+  res_overlaps <- list(
+    phint_phint = phint_overlaps(phint13, phint24),
+    phint_intvl = phint_overlaps(phint13, intvl24),
+    intvl_phint = phint_overlaps(intvl13, phint24),
+    intvl_intvl = phint_overlaps(intvl13, intvl24)
+  )
+  res_within <- list(
+    phint_phint = phint_within(phint13, phint24),
+    phint_intvl = phint_within(phint13, intvl24),
+    intvl_phint = phint_within(intvl13, phint24),
+    intvl_intvl = phint_within(intvl13, intvl24)
+  )
+
+  expect_all_true(map_lgl(res_overlaps[-1], ~ .x == res_overlaps[[1]]))
+  expect_all_true(map_lgl(res_within[-1], ~ .x == res_within[[1]]))
+
+  expect_error(phint_overlaps(phint13, t1))
+  expect_error(phint_overlaps(t1, phint13))
+})
+
+test_that("phint_within(<datetime>, <phintish>) combinations work", {
+  t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
+  t2 <- as.POSIXct("2021-01-01 00:00:45", tz = "UTC")
+  t3 <- as.POSIXct("2021-01-01 00:00:55", tz = "UTC")
+  t4 <- as.POSIXct("2021-01-01 00:01:00", tz = "UTC")
+
+  expect_true(phint_within(t2, phinterval(t1, t3)))
+  expect_true(phint_within(t2, interval(t1, t3)))
+  expect_false(phint_within(t4, phinterval(t1, t3)))
+  expect_false(phint_within(t4, interval(t1, t3)))
+
+  expect_error(phint_within(phinterval(t1, t3), t2))
+  expect_error(phint_within(interval(t1, t3), t2))
+})
+
+# binary operations ------------------------------------------------------------
+
+test_that("Binary operations empty input results in empty output", {
+  expect_all_true(
+    map_lgl(
+      list(
+        phint_union(phinterval(), phinterval()),
+        phint_intersect(phinterval(), phinterval()),
+        phint_setdiff(phinterval(), phinterval()),
+      ),
+      identical,
+      phinterval()
+    )
+  )
+
+  expect_all_true(
+    map_lgl(
+      list(
+        phint_within(phinterval(), phinterval()),
+        phint_within(lubridate::POSIXct(), interval()),
+        phint_overlaps(phinterval(), phinterval()),
+      ),
+      identical,
+      logical()
+    )
+  )
+})
+
+test_that("Binary operations NA input results in NA output", {
+  t1 <- as.POSIXct("2021-01-01", tz = "UTC")
+  t2 <- as.POSIXct("2021-01-02", tz = "UTC")
+
+  point <- c(t1, NA, NA, NA, NA)
+  intvl <- interval(c(t1, t1, NA, t1, NA), c(t2, t2, t2, NA, NA))
+  phint <- phinterval(c(t1, NA, t1, NA, NA), c(t2, NA, t2, NA, NA))
+
+  expect_all_true(
+    map_lgl(
+      list(
+        is.na(phint_union(intvl, phint)),
+        is.na(phint_intersect(intvl, phint)),
+        is.na(phint_setdiff(intvl, phint)),
+        is.na(phint_within(intvl, phint)),
+        is.na(phint_overlaps(intvl, phint)),
+        is.na(phint_union(phint, intvl)),
+        is.na(phint_intersect(phint, intvl)),
+        is.na(phint_setdiff(phint, intvl)),
+        is.na(phint_within(phint, intvl)),
+        is.na(phint_overlaps(phint, intvl)),
+        is.na(phint_within(point, phint)),
+        is.na(phint_within(point, intvl))
+      ),
+      identical,
+      c(FALSE, TRUE, TRUE, TRUE, TRUE)
+    )
+  )
+})
+
+test_that("Binary operations recycle inputs", {
+  t0 <- lubridate::POSIXct(tz = "UTC")
   t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
   t2 <- as.POSIXct("2021-01-01 00:10:00", tz = "UTC")
   t3 <- as.POSIXct("2021-01-01 00:20:00", tz = "UTC")
   t4 <- as.POSIXct("2021-01-01 00:30:00", tz = "UTC")
 
   phint0 <- phinterval()
-  phint1 <- phinterval(interval(t1, t2))
-  phint3 <- as_phinterval(interval(c(t1, t3, t4), c(t2, t4, t4)))
+  phint1 <- phinterval(t1, t2)
+  phint3 <- phinterval(c(t1, t3, t4), c(t2, t4, t4))
 
-  expect_equal(
-    phint_union(phint1, phint3),
-    phint_union(rep(phint1, 3), phint3)
-  )
-  expect_equal(
-    phint_union(phint0, phint1),
-    phint0
-  )
+  expect_equal(phint_union(phint1, phint3), phint_union(rep(phint1, 3), phint3))
+  expect_equal(phint_union(phint3, phint1), phint_union(phint3, rep(phint1, 3)))
+  expect_equal(phint_union(phint0, phint1), phint0)
+  expect_equal(phint_union(phint1, phint0), phint0)
+
+  expect_equal(phint_intersect(phint1, phint3), phint_intersect(rep(phint1, 3), phint3))
+  expect_equal(phint_intersect(phint3, phint1), phint_intersect(phint3, rep(phint1, 3)))
+  expect_equal(phint_intersect(phint0, phint1), phint0)
+  expect_equal(phint_intersect(phint1, phint0), phint0)
+
+  expect_equal(phint_setdiff(phint1, phint3), phint_setdiff(rep(phint1, 3), phint3))
+  expect_equal(phint_setdiff(phint3, phint1), phint_setdiff(phint3, rep(phint1, 3)))
+  expect_equal(phint_setdiff(phint0, phint1), phint0)
+  expect_equal(phint_setdiff(phint1, phint0), phint0)
+
+  expect_equal(phint_overlaps(phint1, phint3), phint_overlaps(rep(phint1, 3), phint3))
+  expect_equal(phint_overlaps(phint3, phint1), phint_overlaps(phint3, rep(phint1, 3)))
+  expect_equal(phint_overlaps(phint0, phint1), logical())
+  expect_equal(phint_overlaps(phint1, phint0), logical())
+
+  expect_equal(phint_within(phint1, phint3), phint_within(rep(phint1, 3), phint3))
+  expect_equal(phint_within(phint3, phint1), phint_within(rep(phint1, 3), phint3))
+  expect_equal(phint_within(t1, phint3), phint_within(rep(t1, 3), phint3))
+  expect_equal(phint_within(phint0, phint1), logical())
+  expect_equal(phint_within(phint1, phint0), logical())
+  expect_equal(phint_within(t0, phint1), logical())
+
   expect_error(phint_union(rep(phint1, 2), phint3))
   expect_error(phint_union(phint3, phint0))
+  expect_error(phint_within(rep(phint1, 2), phint3))
+  expect_error(phint_within(phint3, phint0))
 })
 
-test_that("phint_union() empty input results in empty output", {
-  expect_equal(phint_union(phinterval(), phinterval()), phinterval())
-  expect_equal(phint_union(interval(), interval()), phinterval())
-})
-
-test_that("phint_union() NA input results in NA output", {
-  t1 <- as.POSIXct("2021-01-01", tz = "UTC")
-  t2 <- as.POSIXct("2021-01-02", tz = "UTC")
-
-  int <- interval(t1, t2)
-  na_int <- interval(NA, NA)
-  phint <- phinterval(list(na_int, int))
-
-  expect_equal(is.na(phint_union(int, phint)), c(TRUE, FALSE))
-  expect_equal(is.na(phint_union(phint, na_int)), c(TRUE, TRUE))
-})
+# phint_union ------------------------------------------------------------------
 
 test_that("phint_union() errors on invalid inputs", {
   int <- interval(as.Date("2021-01-01"), as.Date("2021-02-01"))
@@ -669,6 +812,7 @@ test_that("phint_union() errors on invalid inputs", {
 
   expect_error(phint_union(int, 10))
   expect_error(phint_union("A", phint))
+  expect_error(phint_union(phint))
 })
 
 test_that("phint_union() works as expected", {
@@ -679,15 +823,15 @@ test_that("phint_union() works as expected", {
   t5 <- as.POSIXct("2021-01-01 00:04:00", tz = "UTC")
   t6 <- as.POSIXct("2021-01-01 00:08:00", tz = "UTC")
 
-  int12 <- interval(t1, t2)
-  int23 <- interval(t2, t3)
-  int34 <- interval(t3, t4)
-  int25 <- interval(t2, t5)
-  int36 <- interval(t3, t6)
+  int12 <- phinterval(t1, t2)
+  int23 <- phinterval(t2, t3)
+  int34 <- phinterval(t3, t4)
+  int25 <- phinterval(t2, t5)
+  int36 <- phinterval(t3, t6)
 
-  int22 <- interval(t2, t2)
+  int22 <- phinterval(t2, t2)
 
-  hole <- phinterval(interval())
+  hole <- hole(tzone = "UTC")
 
   # Self union
   expect_equal(phint_union(int12, int12), int12)
@@ -706,13 +850,13 @@ test_that("phint_union() works as expected", {
       phint_squash(c(int12, int34)),
       int25
     ),
-    phint_squash(c(interval(t1, t5), int34))
+    phint_squash(c(phinterval(t1, t5), int34))
   )
 
   # Union of overlapping or abutting
-  expect_equal(phint_union(int12, interval(t1, t3)), interval(t1, t3))
-  expect_equal(phint_union(int25, int36), interval(t2, t6))
-  expect_equal(phint_union(int23, int34), interval(t2, t4))
+  expect_equal(phint_union(int12, phinterval(t1, t3)), phinterval(t1, t3))
+  expect_equal(phint_union(int25, int36), phinterval(t2, t6))
+  expect_equal(phint_union(int23, int34), phinterval(t2, t4))
 
   # Union with instant
   expect_equal(phint_union(int22, int12), int12)
@@ -722,16 +866,7 @@ test_that("phint_union() works as expected", {
 
 # phint_setdiff ----------------------------------------------------------------
 
-test_that("phint_setdiff() empty input results in empty output", {
-  expect_equal(phint_setdiff(interval(), interval()), interval())
-})
-
-test_that("phint_setdiff() NA input results in NA output", {
-  int <- interval(as.Date("2021-01-01"), as.Date("2021-02-01"))
-  expect_equal(phint_setdiff(interval(NA, NA), int), interval(NA, NA))
-  expect_equal(phint_setdiff(int, interval(NA, NA)), interval(NA, NA))
-})
-
+# Set-difference assumes exclusive `()` intervals (unlike union and intersection)
 test_that("phint_setdiff() works as expected", {
   t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
   t2 <- as.POSIXct("2021-01-01 00:00:45", tz = "UTC")
@@ -740,18 +875,18 @@ test_that("phint_setdiff() works as expected", {
   t5 <- as.POSIXct("2021-01-01 00:04:00", tz = "UTC")
   t6 <- as.POSIXct("2021-01-01 00:08:00", tz = "UTC")
 
-  int12 <- interval(t1, t2)
-  int23 <- interval(t2, t3)
-  int34 <- interval(t3, t4)
-  int45 <- interval(t4, t5)
-  int56 <- interval(t5, t6)
+  int12 <- phinterval(t1, t2)
+  int23 <- phinterval(t2, t3)
+  int34 <- phinterval(t3, t4)
+  int45 <- phinterval(t4, t5)
+  int56 <- phinterval(t5, t6)
 
-  int13 <- interval(t1, t3)
-  int25 <- interval(t2, t5)
-  int36 <- interval(t3, t6)
-  int22 <- interval(t2, t2)
+  int13 <- phinterval(t1, t3)
+  int25 <- phinterval(t2, t5)
+  int36 <- phinterval(t3, t6)
+  int22 <- phinterval(t2, t2)
 
-  hole <- phinterval(interval())
+  hole <- hole(tzone = "UTC")
 
   # Self difference
   expect_equal(phint_setdiff(int12, int12), hole)
@@ -783,7 +918,7 @@ test_that("phint_setdiff() works as expected", {
     phint_squash(c(int23, int45))
   )
   expect_equal(
-    phint_setdiff(interval(t2, t5), phint_squash(c(int13, interval(t4, t6)))),
+    phint_setdiff(phinterval(t2, t5), phint_squash(c(int13, phinterval(t4, t6)))),
     phint_squash(int34)
   )
   expect_equal(
@@ -795,23 +930,14 @@ test_that("phint_setdiff() works as expected", {
 
   # Difference with instants
   expect_equal(phint_setdiff(int12, int22), int12)
-  expect_equal(phint_setdiff(int22, int12), hole)
+  expect_equal(phint_setdiff(int22, int12), int22)
   expect_equal(phint_setdiff(int13, int22), int13)
   expect_equal(phint_setdiff(int22, int13), hole)
 })
 
 # phint_intersect --------------------------------------------------------------
 
-test_that("phint_intersect() empty input results in empty output", {
-  expect_equal(phint_intersect(interval(), interval()), interval())
-})
-
-test_that("phint_intersect() NA input results in NA output", {
-  int <- interval(as.Date("2021-01-01"), as.Date("2021-02-01"))
-  expect_equal(phint_intersect(interval(NA, NA), int), interval(NA, NA))
-  expect_equal(phint_intersect(int, interval(NA, NA)), interval(NA, NA))
-})
-
+# TODO: YOU ARE HERE, there are some failing cases
 test_that("phint_intersect() works as expected", {
   t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
   t2 <- as.POSIXct("2021-01-01 00:00:45", tz = "UTC")
@@ -820,22 +946,22 @@ test_that("phint_intersect() works as expected", {
   t5 <- as.POSIXct("2021-01-01 00:04:00", tz = "UTC")
   t6 <- as.POSIXct("2021-01-01 00:08:00", tz = "UTC")
 
-  int12 <- interval(t1, t2)
-  int23 <- interval(t2, t3)
-  int34 <- interval(t3, t4)
-  int45 <- interval(t4, t5)
-  int56 <- interval(t5, t6)
+  int12 <- phinterval(t1, t2)
+  int23 <- phinterval(t2, t3)
+  int34 <- phinterval(t3, t4)
+  int45 <- phinterval(t4, t5)
+  int56 <- phinterval(t5, t6)
 
-  int13 <- interval(t1, t3)
-  int25 <- interval(t2, t5)
-  int35 <- interval(t3, t5)
-  int36 <- interval(t3, t6)
-  int16 <- interval(t1, t6)
+  int13 <- phinterval(t1, t3)
+  int25 <- phinterval(t2, t5)
+  int35 <- phinterval(t3, t5)
+  int36 <- phinterval(t3, t6)
+  int16 <- phinterval(t1, t6)
 
-  int11 <- interval(t1, t1)
-  int22 <- interval(t2, t2)
+  int11 <- phinterval(t1, t1)
+  int22 <- phinterval(t2, t2)
 
-  hole <- phinterval(interval())
+  hole <- hole(tzone = "UTC")
 
   # Self intersection
   expect_equal(phint_intersect(int12, int12), int12)
