@@ -79,7 +79,7 @@ bool Overlaps::apply_to_set(const XView& x, const YView& y) {
     }
   }
 
-  return true;
+  return false;
 }
 
 #endif
