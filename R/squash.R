@@ -53,7 +53,7 @@ datetime_squash <- function(
     start,
     end,
     by = NULL,
-    na.rm = FALSE,
+    na.rm = TRUE,
     empty_to = c("hole", "na", "empty"),
     order_by = FALSE
 ) {
@@ -87,7 +87,7 @@ datetime_squash <- function(
 
 datetime_squash_impl <- function(starts, ends, by, tzone, na.rm, empty_to, order_by) {
   if (is_empty(starts)) {
-    return(empty_squash(empty_to, tzone = tz_union(start, end)))
+    return(empty_squash(empty_to, tzone = tz_union(starts, ends)))
   }
 
   if (vec_size(by) == 1L || is.null(by)) {
