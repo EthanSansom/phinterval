@@ -23,6 +23,7 @@ List phint_squash_cpp(IntegerVector size, List starts, List ends, bool na_rm) {
   }
   const int* p_size = INTEGER(size);
 
+  // First pass: count the total number of spans and test for NA values
   bool all_na = true;
   R_xlen_t total_spans = 0;
   for (R_xlen_t i = 0; i < n; i++) {
@@ -42,16 +43,17 @@ List phint_squash_cpp(IntegerVector size, List starts, List ends, bool na_rm) {
     return phint_result_hole();
   }
 
-  // Unlist the starts and ends
-  NumericVector all_starts = no_init(total_spans);
-  NumericVector all_ends = no_init(total_spans);
-  double* p_all_starts = REAL(all_starts);
-  double* p_all_ends = REAL(all_ends);
+  // Allocate vectors to unlist into
+  NumericVector starts_buffer = no_init(total_spans);
+  NumericVector ends_buffer = no_init(total_spans);
+  double* p_starts_buffer = REAL(starts_buffer);
+  double* p_ends_buffer = REAL(ends_buffer);
 
+  // Second pass: unlist, copy all non-NA elements into the buffers
   R_xlen_t offset = 0;
   for (R_xlen_t i = 0; i < n; i++) {
     int size_i = p_size[i];
-    if (size_i == 0) continue;
+    if (size_i == 0 || size_i == NA_INTEGER) continue;
 
     SEXP starts_i = VECTOR_ELT(starts, i);
     SEXP ends_i = VECTOR_ELT(ends, i);
@@ -59,13 +61,13 @@ List phint_squash_cpp(IntegerVector size, List starts, List ends, bool na_rm) {
     const double* p_ends_i = REAL(ends_i);
 
     // Note size_i > 0
-    std::memcpy(p_all_starts + offset, p_starts_i, size_i * sizeof(double));
-    std::memcpy(p_all_ends + offset, p_ends_i, size_i * sizeof(double));
+    std::memcpy(p_starts_buffer + offset, p_starts_i, size_i * sizeof(double));
+    std::memcpy(p_ends_buffer + offset, p_ends_i, size_i * sizeof(double));
     offset += size_i;
   }
 
-  // Squash the unified spans
-  return squash_num_impl(all_starts, all_ends);
+  // Squash the unlisted spans
+  return squash_num_impl(starts_buffer, ends_buffer);
 }
 
 // [[Rcpp::export]]
