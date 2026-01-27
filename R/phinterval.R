@@ -5,10 +5,6 @@
 # TODO: Fix private field not used warnings
 # - type-interval.h warning: private field 'span' is not used [-Wunused-private-field]
 
-# TODO: New unit testing categories
-# - Check that IntvlVector/RangeVector deal with infinite starts, ends, and spans
-# - Check the `na_view()` from `SetView()` and `SpanView()`
-
 # TODO: New documentation
 # - Remove all references to `phint_to_spans()`
 # - Show speed of phint_squash(by) vs. group_by(by) |> mutate(phint_squash)
@@ -49,7 +45,6 @@ phinterval <- function(
     to_arg = "vctrs::vec_recycle_common(start, end)"
   )
 
-  # TODO: Check if the rearranging with `datetime_squash_impl()` worked
   datetime_squash_impl(
     starts = range$starts,
     ends = range$ends,
@@ -62,6 +57,7 @@ phinterval <- function(
 }
 
 # TODO: Document
+#' @export
 hole <- function(n = 1L, tzone = "") {
   check_number_whole(n, min = 1)
   check_string(tzone)
@@ -625,6 +621,11 @@ phint_lengths.phinterval <- function(phint) {
 #' @export
 phint_unnest <- function(phint, hole_to = c("drop", "na"), keep_size = FALSE) {
   UseMethod("phint_unnest")
+}
+
+#' @export
+phint_unnest.default <- function(phint, hole_to = c("drop", "na"), keep_size = FALSE) {
+  check_phintish(phint)
 }
 
 #' @export
