@@ -97,7 +97,7 @@ test_that("Binary functions empty input results in empty output", {
     map_lgl(
       list(
         phint_within(phinterval(), phinterval()),
-        phint_within(lubridate::POSIXct(), interval()),
+        phint_within(lubridate::POSIXct(), phinterval()),
         phint_overlaps(phinterval(), phinterval())
       ),
       identical,
