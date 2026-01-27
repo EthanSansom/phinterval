@@ -14,8 +14,8 @@ LogicalVector phint_phint_within_cpp(
     IntegerVector y_size, List y_starts, List y_ends
 ) {
   return phint_relate(
-    PhintVector{x_size, x_starts, x_ends},
-    PhintVector{y_size, y_starts, y_ends},
+    PhintVectorView{x_size, x_starts, x_ends},
+    PhintVectorView{y_size, y_starts, y_ends},
     Within{}
   );
 }
@@ -26,8 +26,8 @@ LogicalVector phint_intvl_within_cpp(
     DatetimeVector y_starts, NumericVector y_spans
 ) {
   return phint_relate(
-    PhintVector{x_size, x_starts, x_ends},
-    IntvlVector{y_starts, y_spans},
+    PhintVectorView{x_size, x_starts, x_ends},
+    IntvlVectorView{y_starts, y_spans},
     Within{}
   );
 }
@@ -38,8 +38,8 @@ LogicalVector intvl_phint_within_cpp(
     IntegerVector y_size, List y_starts, List y_ends
 ) {
   return phint_relate(
-    IntvlVector{x_starts, x_spans},
-    PhintVector{y_size, y_starts, y_ends},
+    IntvlVectorView{x_starts, x_spans},
+    PhintVectorView{y_size, y_starts, y_ends},
     Within{}
   );
 }
@@ -50,8 +50,8 @@ LogicalVector intvl_intvl_within_cpp(
     DatetimeVector y_starts, NumericVector y_spans
 ) {
   return phint_relate(
-    IntvlVector{x_starts, x_spans},
-    IntvlVector{y_starts, y_spans},
+    IntvlVectorView{x_starts, x_spans},
+    IntvlVectorView{y_starts, y_spans},
     Within{}
   );
 }
@@ -62,8 +62,8 @@ LogicalVector point_phint_within_cpp(
     IntegerVector y_size, List y_starts, List y_ends
 ) {
   return phint_relate(
-    PointVector{x_points},
-    PhintVector{y_size, y_starts, y_ends},
+    PointVectorView{x_points},
+    PhintVectorView{y_size, y_starts, y_ends},
     Within{}
   );
 }
@@ -74,8 +74,8 @@ LogicalVector point_intvl_within_cpp(
     DatetimeVector y_starts, NumericVector y_spans
 ) {
   return phint_relate(
-    PointVector{x_points},
-    IntvlVector{y_starts, y_spans},
+    PointVectorView{x_points},
+    IntvlVectorView{y_starts, y_spans},
     Within{}
   );
 }
@@ -88,8 +88,8 @@ LogicalVector phint_phint_overlaps_cpp(
     IntegerVector y_size, List y_starts, List y_ends
 ) {
   return phint_relate(
-    PhintVector{x_size, x_starts, x_ends},
-    PhintVector{y_size, y_starts, y_ends},
+    PhintVectorView{x_size, x_starts, x_ends},
+    PhintVectorView{y_size, y_starts, y_ends},
     Overlaps{}
   );
 }
@@ -100,8 +100,8 @@ LogicalVector phint_intvl_overlaps_cpp(
     DatetimeVector y_starts, NumericVector y_spans
 ) {
   return phint_relate(
-    PhintVector{x_size, x_starts, x_ends},
-    IntvlVector{y_starts, y_spans},
+    PhintVectorView{x_size, x_starts, x_ends},
+    IntvlVectorView{y_starts, y_spans},
     Overlaps{}
   );
 }
@@ -112,8 +112,8 @@ LogicalVector intvl_phint_overlaps_cpp(
     IntegerVector y_size, List y_starts, List y_ends
 ) {
   return phint_relate(
-    IntvlVector{x_starts, x_spans},
-    PhintVector{y_size, y_starts, y_ends},
+    IntvlVectorView{x_starts, x_spans},
+    PhintVectorView{y_size, y_starts, y_ends},
     Overlaps{}
   );
 }
@@ -124,8 +124,8 @@ LogicalVector intvl_intvl_overlaps_cpp(
     DatetimeVector y_starts, NumericVector y_spans
 ) {
   return phint_relate(
-    IntvlVector{x_starts, x_spans},
-    IntvlVector{y_starts, y_spans},
+    IntvlVectorView{x_starts, x_spans},
+    IntvlVectorView{y_starts, y_spans},
     Overlaps{}
   );
 }

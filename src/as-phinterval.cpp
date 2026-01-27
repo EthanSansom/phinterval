@@ -10,19 +10,19 @@ List as_phint_impl(const VectorType& vec);
 
 // [[Rcpp::export]]
 List as_phint_intvl_cpp(DatetimeVector starts, NumericVector spans) {
-  IntvlVector vec { starts, spans };
+  IntvlVectorView vec { starts, spans };
   return as_phint_impl(vec);
 }
 
 // [[Rcpp::export]]
 List as_phint_range_cpp(DatetimeVector starts, DatetimeVector ends) {
-  RangeVector vec { starts, ends };
+  RangeVectorView vec { starts, ends };
   return as_phint_impl(vec);
 }
 
 // [[Rcpp::export]]
 List as_phint_point_cpp(DatetimeVector points) {
-  PointVector vec { points };
+  PointVectorView vec { points };
   return as_phint_impl(vec);
 }
 

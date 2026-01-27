@@ -6,11 +6,11 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
-class RangeVector;
+class RangeVectorView;
 using RangeView = ScalarView;
-using RangeRecycled = Recycled<RangeVector, RangeView>;
+using RangeRecycled = Recycled<RangeVectorView, RangeView>;
 
-class RangeVector {
+class RangeVectorView {
 private:
   const DatetimeVector& start;
   const DatetimeVector& end;
@@ -19,7 +19,7 @@ private:
   const R_xlen_t n;
 
 public:
-  RangeVector(
+  RangeVectorView(
     const DatetimeVector& start_,
     const DatetimeVector& end_
   ) : start(start_), end(end_), p_start(REAL(start_)), p_end(REAL(end_)), n(start_.size()) {}
@@ -29,7 +29,7 @@ public:
   R_xlen_t n_sets() const { return n; }
 };
 
-inline RangeView RangeVector::view(R_xlen_t i) const {
+inline RangeView RangeVectorView::view(R_xlen_t i) const {
   double start = p_start[i];
   double end = p_end[i];
 
@@ -43,7 +43,7 @@ inline RangeView RangeVector::view(R_xlen_t i) const {
   return { start, end };
 }
 
-inline RangeRecycled RangeVector::as_recycled() const {
+inline RangeRecycled RangeVectorView::as_recycled() const {
   return RangeRecycled{*this};
 }
 

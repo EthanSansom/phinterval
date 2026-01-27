@@ -52,6 +52,8 @@ List phint_squash_cpp(IntegerVector size, List starts, List ends, bool na_rm) {
   // Second pass: unlist, copy all non-NA elements into the buffers
   R_xlen_t offset = 0;
   for (R_xlen_t i = 0; i < n; i++) {
+    if (!(i & 8191)) checkUserInterrupt();
+
     int size_i = p_size[i];
     if (size_i == 0 || size_i == NA_INTEGER) continue;
 
@@ -72,13 +74,13 @@ List phint_squash_cpp(IntegerVector size, List starts, List ends, bool na_rm) {
 
 // [[Rcpp::export]]
 List intvl_squash_cpp(DatetimeVector starts, NumericVector spans, bool na_rm) {
-  IntvlVector vec { starts, spans };
+  IntvlVectorView vec { starts, spans };
   return squash_vec_impl(vec, na_rm);
 }
 
 // [[Rcpp::export]]
 List range_squash_cpp(DatetimeVector starts, DatetimeVector ends, bool na_rm) {
-  RangeVector vec { starts, ends };
+  RangeVectorView vec { starts, ends };
   return squash_vec_impl(vec, na_rm);
 }
 
@@ -188,7 +190,7 @@ List phint_squash_by_cpp(
     List group_locs,
     bool na_rm
 ) {
-  PhintVector vec { size, starts, ends };
+  PhintVectorView vec { size, starts, ends };
   return squash_by_impl(vec, group_locs, na_rm);
 }
 
@@ -199,7 +201,7 @@ List intvl_squash_by_cpp(
     List group_locs,
     bool na_rm
 ) {
-  IntvlVector vec { starts, spans };
+  IntvlVectorView vec { starts, spans };
   return squash_by_impl(vec, group_locs, na_rm);
 }
 
@@ -210,7 +212,7 @@ List range_squash_by_cpp(
     List group_locs,
     bool na_rm
 ) {
-  RangeVector vec { starts, ends };
+  RangeVectorView vec { starts, ends };
   return squash_by_impl(vec, group_locs, na_rm);
 }
 
@@ -255,7 +257,7 @@ List squash_by_impl(const VectorType& vec, List group_locs, bool na_rm) {
 
       if (view.is_empty()) continue;
 
-      // Requires C++17, skips loop for scalar span types (e.g. not PhintVector)
+      // Requires C++17, skips loop for scalar span types (e.g. not PhintVectorView)
       if constexpr (is_scalar_view<decltype(view)>) {
         temp_group_starts.push_back(view.starts);
         temp_group_ends.push_back(view.ends);

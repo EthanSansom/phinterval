@@ -13,8 +13,8 @@ List phint_phint_intersect_cpp(
     IntegerVector y_size, List y_starts, List y_ends
 ) {
   return phint_operate(
-    PhintVector{x_size, x_starts, x_ends},
-    PhintVector{y_size, y_starts, y_ends},
+    PhintVectorView{x_size, x_starts, x_ends},
+    PhintVectorView{y_size, y_starts, y_ends},
     Intersect{}
   );
 }
@@ -25,8 +25,8 @@ List phint_intvl_intersect_cpp(
     DatetimeVector y_starts, NumericVector y_spans
 ) {
   return phint_operate(
-    PhintVector{x_size, x_starts, x_ends},
-    IntvlVector{y_starts, y_spans},
+    PhintVectorView{x_size, x_starts, x_ends},
+    IntvlVectorView{y_starts, y_spans},
     Intersect{}
   );
 }
@@ -37,8 +37,8 @@ List intvl_phint_intersect_cpp(
     IntegerVector y_size, List y_starts, List y_ends
 ) {
   return phint_operate(
-    IntvlVector{x_starts, x_spans},
-    PhintVector{y_size, y_starts, y_ends},
+    IntvlVectorView{x_starts, x_spans},
+    PhintVectorView{y_size, y_starts, y_ends},
     Intersect{}
   );
 }
@@ -49,8 +49,8 @@ List intvl_intvl_intersect_cpp(
     DatetimeVector y_starts, NumericVector y_spans
 ) {
   return phint_operate(
-    IntvlVector{x_starts, x_spans},
-    IntvlVector{y_starts, y_spans},
+    IntvlVectorView{x_starts, x_spans},
+    IntvlVectorView{y_starts, y_spans},
     Intersect{}
   );
 }
@@ -63,8 +63,8 @@ List phint_phint_union_cpp(
     IntegerVector y_size, List y_starts, List y_ends
 ) {
   return phint_operate(
-    PhintVector{x_size, x_starts, x_ends},
-    PhintVector{y_size, y_starts, y_ends},
+    PhintVectorView{x_size, x_starts, x_ends},
+    PhintVectorView{y_size, y_starts, y_ends},
     Union{}
   );
 }
@@ -75,8 +75,8 @@ List phint_intvl_union_cpp(
     DatetimeVector y_starts, NumericVector y_spans
 ) {
   return phint_operate(
-    PhintVector{x_size, x_starts, x_ends},
-    IntvlVector{y_starts, y_spans},
+    PhintVectorView{x_size, x_starts, x_ends},
+    IntvlVectorView{y_starts, y_spans},
     Union{}
   );
 }
@@ -87,8 +87,8 @@ List intvl_phint_union_cpp(
     IntegerVector y_size, List y_starts, List y_ends
 ) {
   return phint_operate(
-    IntvlVector{x_starts, x_spans},
-    PhintVector{y_size, y_starts, y_ends},
+    IntvlVectorView{x_starts, x_spans},
+    PhintVectorView{y_size, y_starts, y_ends},
     Union{}
   );
 }
@@ -99,8 +99,8 @@ List intvl_intvl_union_cpp(
     DatetimeVector y_starts, NumericVector y_spans
 ) {
   return phint_operate(
-    IntvlVector{x_starts, x_spans},
-    IntvlVector{y_starts, y_spans},
+    IntvlVectorView{x_starts, x_spans},
+    IntvlVectorView{y_starts, y_spans},
     Union{}
   );
 }
@@ -113,8 +113,8 @@ List phint_phint_setdiff_cpp(
     IntegerVector y_size, List y_starts, List y_ends
 ) {
   return phint_operate(
-    PhintVector{x_size, x_starts, x_ends},
-    PhintVector{y_size, y_starts, y_ends},
+    PhintVectorView{x_size, x_starts, x_ends},
+    PhintVectorView{y_size, y_starts, y_ends},
     Setdiff{}
   );
 }
@@ -125,8 +125,8 @@ List phint_intvl_setdiff_cpp(
     DatetimeVector y_starts, NumericVector y_spans
 ) {
   return phint_operate(
-    PhintVector{x_size, x_starts, x_ends},
-    IntvlVector{y_starts, y_spans},
+    PhintVectorView{x_size, x_starts, x_ends},
+    IntvlVectorView{y_starts, y_spans},
     Setdiff{}
   );
 }
@@ -137,8 +137,8 @@ List intvl_phint_setdiff_cpp(
     IntegerVector y_size, List y_starts, List y_ends
 ) {
   return phint_operate(
-    IntvlVector{x_starts, x_spans},
-    PhintVector{y_size, y_starts, y_ends},
+    IntvlVectorView{x_starts, x_spans},
+    PhintVectorView{y_size, y_starts, y_ends},
     Setdiff{}
   );
 }
@@ -149,8 +149,8 @@ List intvl_intvl_setdiff_cpp(
     DatetimeVector y_starts, NumericVector y_spans
 ) {
   return phint_operate(
-    IntvlVector{x_starts, x_spans},
-    IntvlVector{y_starts, y_spans},
+    IntvlVectorView{x_starts, x_spans},
+    IntvlVectorView{y_starts, y_spans},
     Setdiff{}
   );
 }

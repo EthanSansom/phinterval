@@ -23,14 +23,14 @@ DatetimeVector phint_end_cpp(IntegerVector size, List ends, String tzone) {
 
 // [[Rcpp::export]]
 DatetimeVector intvl_start_cpp(DatetimeVector starts, NumericVector spans, String tzone) {
-  IntvlVector vec { starts, spans };
-  return scalar_point_impl<IntvlVector, true>(vec, tzone);
+  IntvlVectorView vec { starts, spans };
+  return scalar_point_impl<IntvlVectorView, true>(vec, tzone);
 }
 
 // [[Rcpp::export]]
 DatetimeVector intvl_end_cpp(DatetimeVector starts, NumericVector spans, String tzone) {
-  IntvlVector vec { starts, spans };
-  return scalar_point_impl<IntvlVector, false>(vec, tzone);
+  IntvlVectorView vec { starts, spans };
+  return scalar_point_impl<IntvlVectorView, false>(vec, tzone);
 }
 
 template <bool PointIsStart>

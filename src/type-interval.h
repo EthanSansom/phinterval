@@ -6,11 +6,11 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
-class IntvlVector;
+class IntvlVectorView;
 using IntvlView = ScalarView;
-using IntvlRecycled = Recycled<IntvlVector, IntvlView>;
+using IntvlRecycled = Recycled<IntvlVectorView, IntvlView>;
 
-class IntvlVector {
+class IntvlVectorView {
 private:
   const DatetimeVector& start;
   const NumericVector& span;
@@ -19,7 +19,7 @@ private:
   const R_xlen_t n;
 
 public:
-  IntvlVector(
+  IntvlVectorView(
     const DatetimeVector& start_,
     const NumericVector& span_
   ) : start(start_), span(span_), p_start(REAL(start_)), p_span(REAL(span_)), n(start.size()) {}
@@ -30,7 +30,7 @@ public:
   R_xlen_t n_sets() const { return n; }
 };
 
-inline IntvlView IntvlVector::view(R_xlen_t i) const {
+inline IntvlView IntvlVectorView::view(R_xlen_t i) const {
   double start = p_start[i];
   double span = p_span[i];
 
@@ -50,7 +50,7 @@ inline IntvlView IntvlVector::view(R_xlen_t i) const {
   return { start, start + span };
 }
 
-inline IntvlRecycled IntvlVector::as_recycled() const {
+inline IntvlRecycled IntvlVectorView::as_recycled() const {
   return IntvlRecycled{*this};
 }
 

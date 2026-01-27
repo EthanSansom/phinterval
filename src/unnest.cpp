@@ -16,7 +16,7 @@ DataFrame phint_unnest_cpp(
     String hole_to,
     bool keep_size
 ) {
-  PhintVector vec { size, starts, ends };
+  PhintVectorView vec { size, starts, ends };
   bool drop_holes = (hole_to == "drop");
 
   if (keep_size && drop_holes) {
@@ -38,7 +38,7 @@ DataFrame intvl_unnest_cpp(
     String hole_to,
     bool keep_size
 ) {
-  IntvlVector vec { starts, spans };
+  IntvlVectorView vec { starts, spans };
   bool drop_holes = (hole_to == "drop");
 
   if (keep_size && drop_holes) {
@@ -122,7 +122,7 @@ DataFrame phint_unnest_impl(const VectorType& vec, String tzone) {
       continue;
     }
 
-    // Requires C++17, skips loop for scalar span types (e.g. not PhintVector)
+    // Requires C++17, skips loop for scalar span types (e.g. not PhintVectorView)
     if constexpr (is_scalar_view<decltype(view)>) {
       p_out_key[row] = key;
       p_out_starts[row] = view.start(0);

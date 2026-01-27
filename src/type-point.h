@@ -6,18 +6,18 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
-class PointVector;
+class PointVectorView;
 using PointView = ScalarView;
-using PointRecycled = Recycled<PointVector, PointView>;
+using PointRecycled = Recycled<PointVectorView, PointView>;
 
-class PointVector {
+class PointVectorView {
 private:
   const DatetimeVector& point;
   const double* p_point;
   const R_xlen_t n;
 
 public:
-  PointVector(const DatetimeVector& point_) :
+  PointVectorView(const DatetimeVector& point_) :
     point(point_), p_point(REAL(point_)), n(point_.size()) {}
 
   PointRecycled as_recycled() const;
@@ -25,7 +25,7 @@ public:
   R_xlen_t n_sets() const { return n; }
 };
 
-inline PointView PointVector::view(R_xlen_t i) const {
+inline PointView PointVectorView::view(R_xlen_t i) const {
   double point = p_point[i];
 
   if (ISNAN(point)) {
@@ -34,7 +34,7 @@ inline PointView PointVector::view(R_xlen_t i) const {
   return { point, point };
 }
 
-inline PointRecycled PointVector::as_recycled() const {
+inline PointRecycled PointVectorView::as_recycled() const {
   return PointRecycled{*this};
 }
 

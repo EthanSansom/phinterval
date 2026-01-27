@@ -6,11 +6,11 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
-class PhintVector;
+class PhintVectorView;
 using PhintView = SetView;
-using PhintRecycled = Recycled<PhintVector, PhintView>;
+using PhintRecycled = Recycled<PhintVectorView, PhintView>;
 
-class PhintVector {
+class PhintVectorView {
 private:
   const IntegerVector& m_size;
   const List& m_starts;
@@ -19,7 +19,7 @@ private:
   const R_xlen_t n;
 
 public:
-  PhintVector(const IntegerVector& size_, const List& starts_, const List& ends_)
+  PhintVectorView(const IntegerVector& size_, const List& starts_, const List& ends_)
     : m_size(size_),
       m_starts(starts_),
       m_ends(ends_),
@@ -34,7 +34,7 @@ public:
   int size(R_xlen_t i) const { return p_size[i]; }
 };
 
-inline PhintView PhintVector::view(R_xlen_t i) const {
+inline PhintView PhintVectorView::view(R_xlen_t i) const {
   int size = p_size[i];
   if (size == NA_INTEGER) {
     return SetView::na_view();
@@ -44,7 +44,7 @@ inline PhintView PhintVector::view(R_xlen_t i) const {
   return { size, REAL(starts_i), REAL(ends_i) };
 }
 
-inline PhintRecycled PhintVector::as_recycled() const {
+inline PhintRecycled PhintVectorView::as_recycled() const {
   return PhintRecycled{*this};
 }
 
