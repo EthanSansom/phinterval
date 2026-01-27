@@ -71,13 +71,7 @@ private:
 
 public:
   explicit Recycled(const VectorType& vec)
-    : m_view(vec.view(0)),
-      m_size(vec.view(0).size)
-  {
-    if (vec.n_sets() != 1) {
-      stop("Attempted to recycle a vector of length %i.", vec.n_sets());
-    }
-  }
+    : m_view(vec.view(0)), m_size(vec.view(0).size) {}
 
   inline ViewType view(R_xlen_t) const { return m_view; }
   inline R_xlen_t n_sets() const { return 1; }

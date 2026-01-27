@@ -12,17 +12,15 @@ using PhintRecycled = Recycled<PhintVectorView, PhintView>;
 
 class PhintVectorView {
 private:
-  const IntegerVector& m_size;
-  const List& m_starts;
-  const List& m_ends;
+  const List& starts;
+  const List& ends;
   const int* p_size;
   const R_xlen_t n;
 
 public:
   PhintVectorView(const IntegerVector& size_, const List& starts_, const List& ends_)
-    : m_size(size_),
-      m_starts(starts_),
-      m_ends(ends_),
+    : starts(starts_),
+      ends(ends_),
       p_size(INTEGER(size_)),
       n(size_.size())
   {}
@@ -39,8 +37,8 @@ inline PhintView PhintVectorView::view(R_xlen_t i) const {
   if (size == NA_INTEGER) {
     return SetView::na_view();
   }
-  SEXP starts_i = VECTOR_ELT(m_starts, i);
-  SEXP ends_i = VECTOR_ELT(m_ends, i);
+  SEXP starts_i = VECTOR_ELT(starts, i);
+  SEXP ends_i = VECTOR_ELT(ends, i);
   return { size, REAL(starts_i), REAL(ends_i) };
 }
 

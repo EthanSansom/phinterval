@@ -12,8 +12,6 @@ using IntvlRecycled = Recycled<IntvlVectorView, IntvlView>;
 
 class IntvlVectorView {
 private:
-  const DatetimeVector& start;
-  const NumericVector& span;
   const double* p_start;
   const double* p_span;
   const R_xlen_t n;
@@ -22,11 +20,10 @@ public:
   IntvlVectorView(
     const DatetimeVector& start_,
     const NumericVector& span_
-  ) : start(start_), span(span_), p_start(REAL(start_)), p_span(REAL(span_)), n(start.size()) {}
+  ) : p_start(REAL(start_)), p_span(REAL(span_)), n(start_.size()) {}
 
   IntvlRecycled as_recycled() const;
   IntvlView view(R_xlen_t i) const;
-
   R_xlen_t n_sets() const { return n; }
 };
 

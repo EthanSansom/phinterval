@@ -67,10 +67,8 @@ List phint_operate_impl(VectorX x, VectorY y, Op op, R_xlen_t n) {
 
     // Requires C++17, skips scalar check for span vectors (e.g. IntvlVectorView)
     if constexpr (is_scalar_view<decltype(x_view)> && is_scalar_view<decltype(y_view)>) {
-      // Both vectors are scalar types (e.g. not a PhintVectorView)
       op.apply_to_span(x_view, y_view, buffer);
     } else {
-      // One of the vectors is a PhintVectorView, check for scalar set at run-time
       if (x_view.is_scalar() && y_view.is_scalar()) {
         op.apply_to_span(x_view, y_view, buffer);
       } else {

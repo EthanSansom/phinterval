@@ -12,13 +12,12 @@ using PointRecycled = Recycled<PointVectorView, PointView>;
 
 class PointVectorView {
 private:
-  const DatetimeVector& point;
   const double* p_point;
   const R_xlen_t n;
 
 public:
   PointVectorView(const DatetimeVector& point_) :
-    point(point_), p_point(REAL(point_)), n(point_.size()) {}
+    p_point(REAL(point_)), n(point_.size()) {}
 
   PointRecycled as_recycled() const;
   PointView view(R_xlen_t i) const;

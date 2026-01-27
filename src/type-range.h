@@ -12,8 +12,6 @@ using RangeRecycled = Recycled<RangeVectorView, RangeView>;
 
 class RangeVectorView {
 private:
-  const DatetimeVector& start;
-  const DatetimeVector& end;
   const double* p_start;
   const double* p_end;
   const R_xlen_t n;
@@ -22,7 +20,7 @@ public:
   RangeVectorView(
     const DatetimeVector& start_,
     const DatetimeVector& end_
-  ) : start(start_), end(end_), p_start(REAL(start_)), p_end(REAL(end_)), n(start_.size()) {}
+  ) : p_start(REAL(start_)), p_end(REAL(end_)), n(start_.size()) {}
 
   RangeRecycled as_recycled() const;
   RangeView view(R_xlen_t i) const;
