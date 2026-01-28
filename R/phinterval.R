@@ -153,7 +153,8 @@ phinterval <- function(
     tzone = tzone,
     na.rm = FALSE,
     empty_to = "empty",
-    order_by = order_by
+    order_by = order_by,
+    keep_by = FALSE
   )
 }
 

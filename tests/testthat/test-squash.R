@@ -306,6 +306,176 @@ test_that("phint_squash() with `by` and `order_by` works as expected", {
   )
 })
 
+test_that("phint_squash() with `keep_by = TRUE` works as expected", {
+  t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
+  t2 <- as.POSIXct("2021-01-01 00:05:00", tz = "UTC")
+  t3 <- as.POSIXct("2021-01-01 00:10:00", tz = "UTC")
+  t4 <- as.POSIXct("2021-01-01 00:15:00", tz = "UTC")
+  t5 <- as.POSIXct("2021-01-01 00:20:00", tz = "UTC")
+  t6 <- as.POSIXct("2021-01-01 00:25:00", tz = "UTC")
+  t_neg_inf <- as.POSIXct(-Inf, tz = "UTC")
+  t_pos_inf <- as.POSIXct(Inf, tz = "UTC")
+
+  starts <- c(t1, t2, t3, t5, t5, t_neg_inf, NA_POSIXct_)
+  ends <- c(t2, t3, t4, t5, t6, t_pos_inf, NA_POSIXct_)
+  phint <- phinterval(starts, ends)
+
+  # keep_by = TRUE errors when by = NULL
+  expect_error(phint_squash(phint, keep_by = TRUE))
+
+  # keep_by = TRUE with numeric by
+  expect_equal(
+    phint_squash(phint, by = c(8, 8, 2, 2, 2, 3, 3), keep_by = TRUE),
+    datetime_squash(starts, ends, by = c(8, 8, 2, 2, 2, 3, 3), keep_by = TRUE)
+  )
+
+  # keep_by = TRUE with order_by = TRUE
+  expect_equal(
+    phint_squash(phint, by = c(8, 8, 2, 2, 2, 3, 3), keep_by = TRUE, order_by = TRUE),
+    datetime_squash(starts, ends, by = c(8, 8, 2, 2, 2, 3, 3), keep_by = TRUE, order_by = TRUE)
+  )
+
+  # keep_by = TRUE with character by
+  expect_equal(
+    phint_squash(phint, by = c("A", "A", "B", "B", "B", "C", "C"), keep_by = TRUE),
+    datetime_squash(starts, ends, by = c("A", "A", "B", "B", "B", "C", "C"), keep_by = TRUE)
+  )
+
+  # keep_by = TRUE with data.frame by
+  by <- data.frame(
+    x = c("E", "D", "D", "C", "C", "B", "A"),
+    y = c(1, 1, 1, 2, 2, 3, 3)
+  )
+
+  expect_equal(
+    phint_squash(phint, by = by, keep_by = TRUE, order_by = FALSE),
+    datetime_squash(starts, ends, by = by, keep_by = TRUE, order_by = FALSE)
+  )
+  expect_equal(
+    phint_squash(phint, by = by, keep_by = TRUE, order_by = TRUE),
+    datetime_squash(starts, ends, by = by, keep_by = TRUE, order_by = TRUE)
+  )
+
+  # keep_by = TRUE with na.rm = FALSE
+  expect_equal(
+    phint_squash(phint, by = c(8, 8, 2, 2, 2, 3, 3), keep_by = TRUE, na.rm = FALSE),
+    datetime_squash(starts, ends, by = c(8, 8, 2, 2, 2, 3, 3), keep_by = TRUE, na.rm = FALSE)
+  )
+
+  # keep_by = FALSE returns vector (default behavior)
+  result_vector <- phint_squash(phint, by = c(8, 8, 2, 2, 2, 3, 3), keep_by = FALSE)
+  expect_s3_class(result_vector, "phinterval")
+  expect_equal(length(result_vector), 3)
+
+  result_df <- phint_squash(phint, by = c(8, 8, 2, 2, 2, 3, 3), keep_by = TRUE)
+  expect_s3_class(result_df, "data.frame")
+  expect_equal(nrow(result_df), 3)
+  expect_equal(result_vector, result_df$phint)
+
+  # With holes
+  phint <- c(phint, hole())
+  expect_equal(
+    phint_squash(phint, by = c(8, 8, 2, 2, 2, 3, 3, 1), keep_by = TRUE),
+    data.frame(
+      by = c(8, 2, 3, 1),
+      phint = c(
+        phint_squash(phint[1:2]),
+        phint_squash(phint[3:5]),
+        phint_squash(phint[6:7]),
+        hole()
+      )
+    )
+  )
+})
+
+test_that("phint_squash() with `keep_by = TRUE` handles empty inputs correctly", {
+  empty <- phinterval(tzone = "UTC")
+
+  # Empty input with length-0 by
+  expect_equal(
+    phint_squash(empty, by = character(), empty_to = "hole", keep_by = TRUE),
+    data.frame(
+      by = NA_character_,
+      phint = hole(tzone = "UTC")
+    )
+  )
+  expect_equal(
+    phint_squash(empty, by = integer(), empty_to = "na", keep_by = TRUE),
+    data.frame(
+      by = NA_integer_,
+      phint = phinterval(NA_POSIXct_, NA_POSIXct_, tzone = "UTC")
+    )
+  )
+  expect_equal(
+    phint_squash(empty, by = numeric(), empty_to = "empty", keep_by = TRUE),
+    data.frame(
+      by = numeric(),
+      phint = phinterval(tzone = "UTC")
+    )
+  )
+
+  # Empty input with length-1 by (gets sliced or kept based on empty_to)
+  expect_equal(
+    phint_squash(empty, by = "A", empty_to = "hole", keep_by = TRUE),
+    data.frame(
+      by = "A",
+      phint = hole(tzone = "UTC"),
+      stringsAsFactors = FALSE
+    )
+  )
+  expect_equal(
+    phint_squash(empty, by = 1L, empty_to = "na", keep_by = TRUE),
+    data.frame(
+      by = 1L,
+      phint = phinterval(NA_POSIXct_, NA_POSIXct_, tzone = "UTC")
+    )
+  )
+  expect_equal(
+    phint_squash(empty, by = 99, empty_to = "empty", keep_by = TRUE),
+    data.frame(
+      by = numeric(),
+      phint = phinterval(tzone = "UTC")
+    )
+  )
+
+  # Empty input with length-1 data.frame by
+  by_df <- data.frame(x = "A", y = 1)
+
+  expect_equal(
+    phint_squash(empty, by = by_df, empty_to = "hole", keep_by = TRUE),
+    data_frame(
+      by = by_df,
+      phint = hole(tzone = "UTC")
+    )
+  )
+  expect_equal(
+    phint_squash(empty, by = by_df, empty_to = "empty", keep_by = TRUE),
+    data_frame(
+      by = by_df[0, ],
+      phint = phinterval(tzone = "UTC"),
+      row.names = NULL
+    )
+  )
+
+  # Empty input with length-0 data.frame by
+  by_df_empty <- data.frame(x = character(), y = integer())
+
+  expect_equal(
+    phint_squash(empty, by = by_df_empty, empty_to = "hole", keep_by = TRUE),
+    data_frame(
+      by = data.frame(x = NA_character_, y = NA_integer_),
+      phint = hole(tzone = "UTC")
+    )
+  )
+  expect_equal(
+    phint_squash(empty, by = by_df_empty, empty_to = "empty", keep_by = TRUE),
+    data_frame(
+      by = by_df_empty,
+      phint = phinterval(tzone = "UTC")
+    )
+  )
+})
+
 test_that("phint_squash() with `order_by = TRUE` matches dplyr::group_by() order", {
   skip_on_cran() # Skipping as {dplyr} is just a Suggest
 
@@ -614,6 +784,211 @@ test_that("datetime_squash() with `by` and `order_by` works as expected", {
       phint_squash(phint[4:5]), # C2
       phint_squash(phint[2:3]), # D1
       phint_squash(phint[1])    # E1
+    )
+  )
+})
+
+test_that("datetime_squash() with `keep_by = TRUE` works as expected", {
+  t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
+  t2 <- as.POSIXct("2021-01-01 00:05:00", tz = "UTC")
+  t3 <- as.POSIXct("2021-01-01 00:10:00", tz = "UTC")
+  t4 <- as.POSIXct("2021-01-01 00:15:00", tz = "UTC")
+  t5 <- as.POSIXct("2021-01-01 00:20:00", tz = "UTC")
+  t6 <- as.POSIXct("2021-01-01 00:25:00", tz = "UTC")
+  t_neg_inf <- as.POSIXct(-Inf, tz = "UTC")
+  t_pos_inf <- as.POSIXct(Inf, tz = "UTC")
+
+  starts <- c(t1, t2, t3, t5, t5, t_neg_inf, NA_POSIXct_)
+  ends <- c(t2, t3, t4, t5, t6, t_pos_inf, NA_POSIXct_)
+  phint <- phinterval(starts, ends)
+
+  # keep_by = TRUE errors when by = NULL
+  expect_error(datetime_squash(starts, ends, keep_by = TRUE))
+
+  # keep_by = TRUE with numeric by
+  expect_equal(
+    datetime_squash(starts, ends, by = c(8, 8, 2, 2, 2, 3, 3), keep_by = TRUE),
+    data.frame(
+      by = c(8, 2, 3),
+      phint = c(
+        phint_squash(phint[1:2]),
+        phint_squash(phint[3:5]),
+        phint_squash(phint[6:7])
+      )
+    )
+  )
+
+  # keep_by = TRUE with order_by = TRUE
+  expect_equal(
+    datetime_squash(starts, ends, by = c(8, 8, 2, 2, 2, 3, 3), keep_by = TRUE, order_by = TRUE),
+    data.frame(
+      by = c(2, 3, 8),
+      phint = c(
+        phint_squash(phint[3:5]), # by = 2
+        phint_squash(phint[6:7]), # by = 3
+        phint_squash(phint[1:2])  # by = 8
+      )
+    )
+  )
+
+  # keep_by = TRUE with character by
+  expect_equal(
+    datetime_squash(starts, ends, by = c("A", "A", "B", "B", "B", "C", "C"), keep_by = TRUE),
+    data.frame(
+      by = c("A", "B", "C"),
+      phint = c(
+        phint_squash(phint[1:2]),
+        phint_squash(phint[3:5]),
+        phint_squash(phint[6:7])
+      ),
+      stringsAsFactors = FALSE
+    )
+  )
+
+  # keep_by = TRUE with data.frame by
+  by <- data.frame(
+    x = c("E", "D", "D", "C", "C", "B", "A"),
+    y = c(1, 1, 1, 2, 2, 3, 3)
+  )
+  set_rownames <- function(x, nms) {
+    rownames(x) <- nms
+    x
+  }
+
+  expect_equal(
+    datetime_squash(starts, ends, by = by, keep_by = TRUE, order_by = FALSE),
+    data_frame(
+      by = set_rownames(by[c(1, 2, 4, 6, 7), ], 1:5),
+      phint = c(
+        phint_squash(phint[1]),   # E1
+        phint_squash(phint[2:3]), # D1
+        phint_squash(phint[4:5]), # C2
+        phint_squash(phint[6]),   # B3
+        phint_squash(phint[7])    # A3
+      )
+    )
+  )
+
+  expect_equal(
+    datetime_squash(starts, ends, by = by, keep_by = TRUE, order_by = TRUE),
+    data_frame(
+      by = set_rownames(by[c(7, 6, 4, 2, 1), ], 1:5),
+      phint = c(
+        phint_squash(phint[7]),   # A3
+        phint_squash(phint[6]),   # B3
+        phint_squash(phint[4:5]), # C2
+        phint_squash(phint[2:3]), # D1
+        phint_squash(phint[1])    # E1
+      )
+    )
+  )
+
+  # keep_by = TRUE with na.rm = FALSE
+  expect_equal(
+    datetime_squash(starts, ends, by = c(8, 8, 2, 2, 2, 3, 3), keep_by = TRUE, na.rm = FALSE),
+    data.frame(
+      by = c(8, 2, 3),
+      phint = c(
+        phint_squash(phint[1:2], na.rm = FALSE),
+        phint_squash(phint[3:5], na.rm = FALSE),
+        phint_squash(phint[6:7], na.rm = FALSE)
+      )
+    )
+  )
+
+  # keep_by = FALSE returns vector (default behavior)
+  result_vector <- datetime_squash(starts, ends, by = c(8, 8, 2, 2, 2, 3, 3), keep_by = FALSE)
+  expect_s3_class(result_vector, "phinterval")
+  expect_equal(length(result_vector), 3)
+
+  result_df <- datetime_squash(starts, ends, by = c(8, 8, 2, 2, 2, 3, 3), keep_by = TRUE)
+  expect_s3_class(result_df, "data.frame")
+  expect_equal(nrow(result_df), 3)
+  expect_equal(result_vector, result_df$phint)
+})
+
+test_that("datetime_squash() with `keep_by = TRUE` handles empty inputs correctly", {
+  # Empty input with length-0 by
+  expect_equal(
+    datetime_squash(POSIXct(), POSIXct(), by = character(), empty_to = "hole", keep_by = TRUE),
+    data.frame(
+      by = NA_character_,
+      phint = hole(tzone = "UTC")
+    )
+  )
+  expect_equal(
+    datetime_squash(POSIXct(), POSIXct(), by = integer(), empty_to = "na", keep_by = TRUE),
+    data.frame(
+      by = NA_integer_,
+      phint = phinterval(NA_POSIXct_, NA_POSIXct_, tzone = "UTC")
+    )
+  )
+  expect_equal(
+    datetime_squash(POSIXct(), POSIXct(), by = numeric(), empty_to = "empty", keep_by = TRUE),
+    data.frame(
+      by = numeric(),
+      phint = phinterval(tzone = "UTC")
+    )
+  )
+
+  # Empty input with length-1 by (gets sliced or kept based on empty_to)
+  expect_equal(
+    datetime_squash(POSIXct(), POSIXct(), by = "A", empty_to = "hole", keep_by = TRUE),
+    data.frame(
+      by = "A",
+      phint = hole(tzone = "UTC"),
+      stringsAsFactors = FALSE
+    )
+  )
+  expect_equal(
+    datetime_squash(POSIXct(), POSIXct(), by = 1L, empty_to = "na", keep_by = TRUE),
+    data.frame(
+      by = 1L,
+      phint = phinterval(NA_POSIXct_, NA_POSIXct_, tzone = "UTC")
+    )
+  )
+  expect_equal(
+    datetime_squash(POSIXct(), POSIXct(), by = 99, empty_to = "empty", keep_by = TRUE),
+    data.frame(
+      by = numeric(),
+      phint = phinterval(tzone = "UTC")
+    )
+  )
+
+  # Empty input with length-1 data.frame by
+  by_df <- data.frame(x = "A", y = 1)
+
+  expect_equal(
+    datetime_squash(POSIXct(), POSIXct(), by = by_df, empty_to = "hole", keep_by = TRUE),
+    data_frame(
+      by = by_df,
+      phint = hole(tzone = "UTC")
+    )
+  )
+  expect_equal(
+    datetime_squash(POSIXct(), POSIXct(), by = by_df, empty_to = "empty", keep_by = TRUE),
+    data_frame(
+      by = by_df[0, ],
+      phint = phinterval(tzone = "UTC"),
+      row.names = NULL
+    )
+  )
+
+  # Empty input with length-0 data.frame by
+  by_df_empty <- data.frame(x = character(), y = integer())
+
+  expect_equal(
+    datetime_squash(POSIXct(), POSIXct(), by = by_df_empty, empty_to = "hole", keep_by = TRUE),
+    data_frame(
+      by = data.frame(x = NA_character_, y = NA_integer_),
+      phint = hole(tzone = "UTC")
+    )
+  )
+  expect_equal(
+    datetime_squash(POSIXct(), POSIXct(), by = by_df_empty, empty_to = "empty", keep_by = TRUE),
+    data_frame(
+      by = by_df_empty,
+      phint = phinterval(tzone = "UTC")
     )
   )
 })

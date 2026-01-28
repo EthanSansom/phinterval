@@ -55,7 +55,6 @@
 #'
 #' @name phinterval-set-operations
 NULL
-NULL
 
 #' @rdname phinterval-set-operations
 #' @export
