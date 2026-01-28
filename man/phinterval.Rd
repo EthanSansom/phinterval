@@ -24,7 +24,7 @@ A vector of end times. Must be recyclable with \code{start}.}
 \item{tzone}{\verb{[character(1)]}
 
 A time zone to display the \verb{<phinterval>} in. If \code{tzone} is \code{NULL}
-(the default), then the timezone is taken from that of \code{start}.
+(the default), then the time zone is taken from that of \code{start}.
 
 \code{tzone} can be any non-\code{NA} string, but unrecognized time zones (see
 \code{\link[=is_recognized_tzone]{is_recognized_tzone()}}) will be formatted using \code{"UTC"} with a warning.}
@@ -105,7 +105,7 @@ phinterval(
 # Empty phinterval
 phinterval()
 
-# Specify timezone
+# Specify time zone
 phinterval(
   start = as.Date("2000-01-01"),
   end = as.Date("2000-02-01"),

@@ -38,7 +38,7 @@ A data frame with columns:
 \itemize{
 \item \code{key}:
 \itemize{
-\item If \code{key = NULL}: Numeric identifying the index of the phinterval element
+\item If \code{key = NULL}: A numeric vector identifying the index of the phinterval element
 \item Otherwise: The element of \code{key} corresponding to the phinterval element
 }
 \item \code{start}: POSIXct start time of the span

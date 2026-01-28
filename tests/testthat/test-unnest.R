@@ -332,7 +332,7 @@ test_that("phint_unnest() handles infinite bounds", {
   )
 })
 
-test_that("phint_unnest() preserves timezone", {
+test_that("phint_unnest() preserves time zone", {
   t1_utc <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
   t2_utc <- as.POSIXct("2021-01-01 00:05:00", tz = "UTC")
 

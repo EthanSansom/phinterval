@@ -4,7 +4,7 @@
 # - https://github.com/tidyverse/lubridate/blob/69034a5d933b53b9d8815f954c877c539aff868a/R/vctrs.R#L212
 
 # `get_tzone()` coerces non-string input to "UTC" for non-phinterval inputs
-# - POSIXct can have NA_character_ timezone
+# - POSIXct can have NA_character_ time zone
 # - Don't bother trying to stop `attr(x, "tzone")<-` for an extant <phinterval>
 get_tzone <- function(x) {
   UseMethod("get_tzone")

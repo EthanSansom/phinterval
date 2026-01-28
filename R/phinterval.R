@@ -6,7 +6,7 @@
 # - Add lubridate quirks that come with phinterval to Getting Started
 # - Add time zone treatment to getting started
 #
-# TODO: Pick "time zone" or "timezone" and stick to it!
+# TODO: Pick "time zone" or "time zone" and stick to it!
 
 # TODO: CRAN
 # - Look into all of the edge-case CRAN checks and run (see RPackages book)
@@ -60,7 +60,7 @@ setOldClass(c("phinterval", "list", "vctrs_rcrd"))
 #' @param tzone `[character(1)]`
 #'
 #' A time zone to display the `<phinterval>` in. If `tzone` is `NULL`
-#' (the default), then the timezone is taken from that of `start`.
+#' (the default), then the time zone is taken from that of `start`.
 #'
 #' `tzone` can be any non-`NA` string, but unrecognized time zones (see
 #' [is_recognized_tzone()]) will be formatted using `"UTC"` with a warning.
@@ -116,7 +116,7 @@ setOldClass(c("phinterval", "list", "vctrs_rcrd"))
 #' # Empty phinterval
 #' phinterval()
 #'
-#' # Specify timezone
+#' # Specify time zone
 #' phinterval(
 #'   start = as.Date("2000-01-01"),
 #'   end = as.Date("2000-02-01"),
@@ -196,7 +196,7 @@ phinterval <- function(
 #' # Create multiple holes
 #' hole(3)
 #'
-#' # Specify timezone
+#' # Specify time zone
 #' hole(tzone = "UTC")
 #'
 #' # Holes can be combined with other phintervals
@@ -369,7 +369,7 @@ is_phintish <- function(x) {
 #'
 #' @param x An object to test.
 #'
-#' @return `TRUE` if `x` is a recognized timezone, `FALSE` otherwise.
+#' @return `TRUE` if `x` is a recognized time zone, `FALSE` otherwise.
 #'
 #' @examples
 #' is_recognized_tzone("UTC")

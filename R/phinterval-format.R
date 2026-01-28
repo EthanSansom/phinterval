@@ -112,13 +112,13 @@ after_format <- function(out, size, style = FALSE) {
 # helpers ----------------------------------------------------------------------
 
 # As <phinterval> is a "superclass" of <Interval>, we accept any <Interval>
-# vector, including those with an invalid timezone. The consequences:
+# vector, including those with an invalid time zone. The consequences:
 # format.phinterval() calls format.POSIXct() on *every element* of the `starts`
 # and `ends` lists. On an invalid `tzone`, each of those calls emits a warning.
 #
 # To avoid this, we instead emit one warning at the top of format.phinterval()
-# and then convert invalid timezone to "UTC" prior to format.POSIXct(). The
-# invalid timezone will still be displayed by vec_ptype_full(), e.g.
+# and then convert invalid time zone to "UTC" prior to format.POSIXct(). The
+# invalid time zone will still be displayed by vec_ptype_full(), e.g.
 #
 # > as_phinterval(as.POSIXct(0, "unknown_zone"))
 # <phinterval<unknown_zone>[1]>
@@ -129,14 +129,14 @@ validate_format_tzone <- function(tzone, call = caller_env()) {
   }
 
   if (is_string(tzone)) {
-    a <- paste("an unrecognized timezone:", str_encode(tzone))
+    a <- paste("an unrecognized time zone:", str_encode(tzone))
   } else {
     a <- obj_type_friendly(tzone)
   }
   warn(
     c(
       x = paste0('`attr(x, "tzone")` is ', a, "."),
-      i = 'Unrecognized timezones are formatted using the timezone: "UTC".',
+      i = 'Unrecognized timezones are formatted using the time zone: "UTC".',
       i = "Run `tzdb_names()` to see recognized timezones."
     ),
     call = call,

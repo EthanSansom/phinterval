@@ -92,8 +92,8 @@ test_that("phinterval() standardizes mixed timezones", {
   expect_equal(get_tzone(phint_utc), "UTC")
   expect_equal(get_tzone(phint_lcl), "")
 
-  # First timezone is used by default, unless the timezone is "local", in which
-  # case the non-local timezone is used.
+  # First time zone is used by default, unless the time zone is "local", in which
+  # case the non-local time zone is used.
   expect_equal(phinterval(t_est, t_utc), phint_est)
   expect_equal(phinterval(t_lcl, t_utc), phint_utc)
   expect_equal(phinterval(t_utc, t_lcl), phint_utc)
@@ -262,7 +262,7 @@ test_that("Coercion via c() works as expected", {
   phint_est <- phinterval(t1, t2, tzone = "EST")
   phint_lcl <- phinterval(t1, t2, tzone = "")
 
-  # Coercion should take first timezone, unless "local". Note, not touching
+  # Coercion should take first time zone, unless "local". Note, not touching
   # lubridate:::c.Interval, so `c(<Interval>, <phinterval>)` is an error.
   expect_equal(c(phint_utc, phint_est), c(phint_utc, phint_utc))
   expect_equal(c(phint_lcl, phint_est), c(phint_est, phint_est))
@@ -286,7 +286,7 @@ test_that("vec_cast() works as expected", {
   phint_est <- phinterval(t1, t2, tzone = "EST")
   phint_lcl <- phinterval(t1, t2, tzone = "")
 
-  # Casting always takes the timezone from `to` (including "local" time)
+  # Casting always takes the time zone from `to` (including "local" time)
   expect_equal(vctrs::vec_cast(phint_utc, to = phint_utc), phint_utc)
   expect_equal(vctrs::vec_cast(phint_utc, to = phint_est), phint_est)
   expect_equal(vctrs::vec_cast(phint_utc, to = phint_lcl), phint_lcl)
@@ -348,7 +348,7 @@ test_that("print() and pillar_shaft() work as expected", {
   expect_snapshot(print(phint_tib))
 })
 
-test_that("print() and pillar_shaft() emit warning on unrecognized timezone", {
+test_that("print() and pillar_shaft() emit warning on unrecognized time zone", {
   skip_on_cran()
 
   phint <- phinterval(as.Date(1), as.Date(2), tzone = "badzone")

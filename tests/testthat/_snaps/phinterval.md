@@ -115,7 +115,7 @@
       6 <hole>      
       7 <NA>        
 
-# print() and pillar_shaft() emit warning on unrecognized timezone
+# print() and pillar_shaft() emit warning on unrecognized time zone
 
     Code
       print(phint)
@@ -123,8 +123,8 @@
       <phinterval<badzone>[1]>
     Condition <rlang_warning>
       Warning in `obj_print_data()`:
-      x `attr(x, "tzone")` is an unrecognized timezone: "badzone".
-      i Unrecognized timezones are formatted using the timezone: "UTC".
+      x `attr(x, "tzone")` is an unrecognized time zone: "badzone".
+      i Unrecognized timezones are formatted using the time zone: "UTC".
       i Run `tzdb_names()` to see recognized timezones.
       This warning is displayed once per session.
     Output
@@ -146,8 +146,8 @@
       # A tibble: 1 x 1
     Condition <rlang_warning>
       Warning in `format()`:
-      x `attr(x, "tzone")` is an unrecognized timezone: "badzone".
-      i Unrecognized timezones are formatted using the timezone: "UTC".
+      x `attr(x, "tzone")` is an unrecognized time zone: "badzone".
+      i Unrecognized timezones are formatted using the time zone: "UTC".
       i Run `tzdb_names()` to see recognized timezones.
       This warning is displayed once per session.
     Output

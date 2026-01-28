@@ -34,7 +34,7 @@ hole()
 # Create multiple holes
 hole(3)
 
-# Specify timezone
+# Specify time zone
 hole(tzone = "UTC")
 
 # Holes can be combined with other phintervals

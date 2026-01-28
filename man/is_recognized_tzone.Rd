@@ -10,7 +10,7 @@ is_recognized_tzone(x)
 \item{x}{An object to test.}
 }
 \value{
-\code{TRUE} if \code{x} is a recognized timezone, \code{FALSE} otherwise.
+\code{TRUE} if \code{x} is a recognized time zone, \code{FALSE} otherwise.
 }
 \description{
 \code{is_recognized_tzone()} returns \code{TRUE} for strings that are recognized IANA

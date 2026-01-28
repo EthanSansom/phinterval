@@ -126,7 +126,7 @@ datetime_squash(
 x <- 1:10
 bench::mark(is_string(x), anyNA(x))
 
-# timezone ---------------------------------------------------------------------
+# time zone ---------------------------------------------------------------------
 
 phint <- phinterval(as.POSIXct(c(1, 10, 20)), as.POSIXct(c(5, 13, 25)))
 attr(phint, "tzone") <- NA_character_
