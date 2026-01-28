@@ -416,3 +416,141 @@ test_that("phint_unnest() with keep_size shows correct size for all rows", {
     )
   )
 })
+
+test_that("phint_unnest() works with `key` as expected", {
+  t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
+  t2 <- as.POSIXct("2021-01-01 00:05:00", tz = "UTC")
+  t3 <- as.POSIXct("2021-01-01 00:10:00", tz = "UTC")
+  t4 <- as.POSIXct("2021-01-01 00:15:00", tz = "UTC")
+  t5 <- as.POSIXct("2021-01-01 00:20:00", tz = "UTC")
+  t6 <- as.POSIXct("2021-01-01 00:25:00", tz = "UTC")
+
+  int12 <- phinterval(t1, t2)
+  int34 <- phinterval(t3, t4)
+  int56 <- phinterval(t5, t6)
+
+  phint12_34 <- phinterval(c(t1, t3), c(t2, t4), by = 1)
+  phint12_34_56 <- phinterval(c(t1, t3, t5), c(t2, t4, t6), by = 1)
+
+  hole <- hole(tzone = "UTC")
+  na_phint <- phinterval(NA_POSIXct_, NA_POSIXct_, tzone = "UTC")
+
+  # key with scalar phintervals
+  expect_equal(
+    phint_unnest(c(int12, int34, int56), key = c("A", "B", "C")),
+    data_frame(
+      key = c("A", "B", "C"),
+      start = c(t1, t3, t5),
+      end = c(t2, t4, t6)
+    )
+  )
+
+  # key with multi-span phintervals
+  expect_equal(
+    phint_unnest(c(int12, phint12_34, int56), key = c("A", "B", "C")),
+    data_frame(
+      key = c("A", "B", "B", "C"),
+      start = c(t1, t1, t3, t5),
+      end = c(t2, t2, t4, t6)
+    )
+  )
+  expect_equal(
+    phint_unnest(c(phint12_34, int56, phint12_34_56), key = 1:3),
+    data_frame(
+      key = c(1, 1, 2, 3, 3, 3),
+      start = c(t1, t3, t5, t1, t3, t5),
+      end = c(t2, t4, t6, t2, t4, t6)
+    )
+  )
+
+  # key with holes (drop)
+  expect_equal(
+    phint_unnest(c(int12, hole, int34), key = c("A", "B", "C"), hole_to = "drop"),
+    data_frame(
+      key = c("A", "C"),
+      start = c(t1, t3),
+      end = c(t2, t4)
+    )
+  )
+  expect_equal(
+    phint_unnest(c(hole, phint12_34, hole), key = c("A", "B", "C"), hole_to = "drop"),
+    data_frame(
+      key = c("B", "B"),
+      start = c(t1, t3),
+      end = c(t2, t4)
+    )
+  )
+
+  # key with holes (na)
+  expect_equal(
+    phint_unnest(c(int12, hole, int34), key = c("A", "B", "C"), hole_to = "na"),
+    data_frame(
+      key = c("A", "B", "C"),
+      start = c(t1, NA_POSIXct_, t3),
+      end = c(t2, NA_POSIXct_, t4)
+    )
+  )
+  expect_equal(
+    phint_unnest(c(phint12_34, hole, int56), key = c("A", "B", "C"), hole_to = "na"),
+    data_frame(
+      key = c("A", "A", "B", "C"),
+      start = c(t1, t3, NA_POSIXct_, t5),
+      end = c(t2, t4, NA_POSIXct_, t6)
+    )
+  )
+
+  # key with keep_size = TRUE
+  expect_equal(
+    phint_unnest(c(int12, phint12_34, int56), key = c("A", "B", "C"), keep_size = TRUE),
+    data_frame(
+      key = c("A", "B", "B", "C"),
+      start = c(t1, t1, t3, t5),
+      end = c(t2, t2, t4, t6),
+      size = c(1L, 2L, 2L, 1L)
+    )
+  )
+
+  # key with factor
+  expect_equal(
+    phint_unnest(c(int12, int34, int56), key = factor(c("A", "B", "A"))),
+    data_frame(
+      key = factor(c("A", "B", "A"), levels = c("A", "B")),
+      start = c(t1, t3, t5),
+      end = c(t2, t4, t6)
+    )
+  )
+
+  # key with data.frame
+  key <- data.frame(x = c("A", "B"), y = 1:2)
+  set_rownames <- function(x, nms) {
+    rownames(x) <- nms
+    x
+  }
+  expect_equal(
+    phint_unnest(c(int12, phint12_34), key = key),
+    data_frame(
+      key = set_rownames(key[c(1, 2, 2), ], 1:3),
+      start = c(t1, t1, t3),
+      end = c(t2, t2, t4)
+    )
+  )
+
+  # key = NULL returns default behavior (row indices)
+  expect_equal(
+    phint_unnest(c(int12, phint12_34), key = NULL),
+    phint_unnest(c(int12, phint12_34))
+  )
+
+  # key with empty phinterval
+  expect_equal(
+    phint_unnest(phinterval(tzone = "UTC"), key = character()),
+    data_frame(
+      key = character(),
+      start = as.POSIXct(numeric(), tz = "UTC"),
+      end = as.POSIXct(numeric(), tz = "UTC")
+    )
+  )
+
+  # key errors when length doesn't match
+  expect_error(phint_unnest(c(int12, int34), key = c("A", "B", "C")))
+})

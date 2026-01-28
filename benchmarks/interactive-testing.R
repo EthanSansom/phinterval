@@ -29,6 +29,9 @@ employment |>
   reframe(periods = phint_unnest(employed)) |>
   unnest(periods)
 
+employment |>
+  reframe(phint_unnest(employed, key = name))
+
 # basics -----------------------------------------------------------------------
 
 opts <- options("phinterval.print_max_width")

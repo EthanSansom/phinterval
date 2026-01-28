@@ -84,6 +84,28 @@ check_vector <- function(x, allow_null = TRUE, arg = caller_arg(x), call = calle
   )
 }
 
+check_same_size <- function(
+    x,
+    y,
+    x_arg = caller_arg(x),
+    y_arg = caller_arg(y),
+    call = caller_env()
+) {
+  x_size <- vec_size(x)
+  y_size <- vec_size(y)
+  if (x_size == y_size) {
+    return(invisible(NULL))
+  }
+
+  abort(
+    sprintf(
+      "`%s` (size %i) and `%s` (size %i) must be the same size.",
+      x_arg, x_size, y_arg, y_size
+    ),
+    call = call
+  )
+}
+
 check_recycleable <- function(
     x,
     y,

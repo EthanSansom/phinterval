@@ -223,9 +223,7 @@ which converts each `<phinterval>` element into separate rows:
 
 ```{r}
 employment |>
-  mutate(periods = phint_unnest(employed)) |>
-  unnest(periods) |>
-  select(-employed)
+  reframe(phint_unnest(employed, key = name))
 ```
 
 The resulting tidy format integrates well with [{dplyr}](https://dplyr.tidyverse.org/) and
