@@ -1,23 +1,24 @@
-' Get the gaps in a phinterval as time spans
+#' Get the gaps in a phinterval as time spans
 #'
 #' @description
 #'
-#' `phint_invert()` returns the gaps in a phinterval as a `<phinterval>` vector.
-#' Contiguous time spans (e.g. [lubridate::interval()] vectors) are inverted to
-#' `<hole>` time spans.
+#' `phint_invert()` returns the gaps within a phinterval as a `<phinterval>` vector.
+#' For phintervals with multiple disjoint spans, the gaps between those spans are
+#' returned. Contiguous time spans (e.g., [lubridate::interval()] vectors) have no
+#' gaps and are inverted to holes.
 #'
-#' `phint_invert()` is similar to `phint_complement()`, except that the time occurring
-#' outside the extent of `phint` (i.e. before its earliest start or after its
-#' latest end) is not included in the result.
+#' `phint_invert()` is similar to `phint_complement()`, except that time occurring
+#' outside the extent of `phint` (before its earliest start or after its latest
+#' end) is not included in the result.
 #'
 #' @inheritParams params
 #'
 #' @param hole_to `["hole" / "inf" / "na"]`
 #'
-#' What to turn `<hole>` (i.e. empty) time spans into.
-#' - If `hole_to = "hole"` (the default), `<hole>` spans remain as `<hole>` elements.
-#' - If `"inf"`, they are returned as a time span from `-Inf` to `Inf`.
-#' - If `"na"`, they are returned as a missing (`NA`) span.
+#' How to handle holes (empty phinterval elements):
+#' - `"hole"` (default): Holes remain as holes
+#' - `"inf"`: Return a span from `-Inf` to `Inf` (all time)
+#' - `"na"`: Return an `NA` phinterval
 #'
 #' @return
 #'
@@ -28,21 +29,22 @@
 #' friday <- interval(as.Date("2025-11-14"), as.Date("2025-11-15"))
 #' sunday <- interval(as.Date("2025-11-16"), as.Date("2025-11-17"))
 #'
-#' # Contiguous intervals are inverted to holes,
-#' # disjoint intervals to spans
+#' # Contiguous intervals have no gaps (inverted to holes)
 #' phint_invert(monday)
+#'
+#' # Disjoint intervals: gaps between spans are returned
 #' phint_invert(phint_squash(c(monday, friday, sunday)))
 #'
+#' # The gap between Monday and Friday is Tuesday through Thursday
 #' tues_to_thurs <- interval(as.Date("2025-11-11"), as.Date("2025-11-14"))
 #' phint_invert(phint_union(monday, friday)) == tues_to_thurs
 #'
-#' # The time before `monday` and after `friday` is included
-#' # in the complement, but not the inversion
+#' # Invert vs complement: time before and after is excluded from invert
 #' mon_and_fri <- phint_union(monday, friday)
 #' phint_invert(mon_and_fri)
 #' phint_complement(mon_and_fri)
 #'
-#' # Specify how to invert empty time spans
+#' # How to invert holes
 #' hole <- phint_intersect(monday, friday)
 #' phint_invert(hole, hole_to = "hole")
 #' phint_invert(hole, hole_to = "inf")
@@ -57,7 +59,7 @@ phint_invert <- function(phint, hole_to = c("hole", "inf", "na")) {
       phint = phint_invert_cpp,
       intvl = intvl_invert_cpp
     ),
-    hole_to = arg_match(hole_to)
+    hole_to = arg_match0(hole_to, c("hole", "inf", "na"))
   )
   new_phinterval_bare(out, tzone = get_tzone(phint))
 }
@@ -66,10 +68,12 @@ phint_invert <- function(phint, hole_to = c("hole", "inf", "na")) {
 #'
 #' @description
 #'
-#' `phint_sift()` removes instants (i.e. spans of 0 seconds in duration) from
-#' elements of a phinterval.
+#' `phint_sift()` removes instantaneous spans (spans with 0 duration) from
+#' phinterval elements. If all spans in an element are instantaneous, the result
+#' is a hole.
 #'
 #' @inheritParams params
+#'
 #' @return A `<phinterval>` vector the same length as `phint`.
 #'
 #' @examples
@@ -77,13 +81,15 @@ phint_invert <- function(phint, hole_to = c("hole", "inf", "na")) {
 #' y2021 <- interval(as.Date("2021-01-01"), as.Date("2022-01-01"))
 #' y2022 <- interval(as.Date("2022-01-01"), as.Date("2023-01-01"))
 #'
-#' # The intersection of two adjacent intervals is an instant.
-#' # phint_sift() is useful for removing these instants.
-#' (new_years_2021 <- phint_intersect(y2020, y2021))
+#' # The intersection of two adjacent intervals is instantaneous
+#' new_years_2021 <- phint_intersect(y2020, y2021)
+#' new_years_2021
 #' phint_sift(new_years_2021)
 #'
-#' (y2022_and_new_years_2021 <- phint_union(y2022, new_years_2021))
-#' phint_sift(y2022_and_new_years_2021)
+#' # phint_sift() removes instants while keeping non-instantaneous spans
+#' y2022_and_new_years <- phint_union(y2022, new_years_2021)
+#' y2022_and_new_years
+#' phint_sift(y2022_and_new_years)
 #'
 #' @export
 phint_sift <- function(phint) {

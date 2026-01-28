@@ -16,10 +16,11 @@ length 1. Inputs of length 1 are recycled.}
 A logical vector.
 }
 \description{
-\code{phint_overlaps()} tests whether the i-th element of \code{phint1} overlaps
-with the i-th element of \code{phint2}, returning a logical vector. Adjacent
-intervals are considered overlapping. \code{phint1} and \code{phint2} are recycled to
-their common length using vctrs-style recycling rules.
+\code{phint_overlaps()} tests whether the i-th element of \code{phint1} overlaps with
+the i-th element of \code{phint2}, returning a logical vector. Adjacent intervals
+(where one ends exactly when the other begins) are considered overlapping.
+\code{phint1} and \code{phint2} are recycled to their common length using vctrs-style
+recycling rules.
 }
 \examples{
 monday <- interval(as.Date("2025-11-10"), as.Date("2025-11-11"))
@@ -32,8 +33,8 @@ phint_overlaps(c(monday, monday, friday), c(mon_and_fri, friday, NA))
 # Adjacent intervals are considered overlapping
 phint_overlaps(monday, tuesday)
 
-# Holes are always considered non-overlapping
-hole <- phinterval(interval())
+# Holes never overlap with anything (including other holes)
+hole <- hole()
 phint_overlaps(c(hole, monday), c(hole, hole))
 
 }

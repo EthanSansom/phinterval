@@ -15,16 +15,15 @@ A \verb{<phinterval>} or \verb{<Interval>} vector.}
 A logical vector the same length as \code{phint}.
 }
 \description{
-\code{is_hole()} checks for \verb{<hole>} (i.e. empty) time spans in \code{phint}.
+\code{is_hole()} checks for \verb{<hole>} (empty) time spans in \code{phint}.
 }
 \examples{
+# Detect holes
 y2000 <- interval(as.Date("2000-01-01"), as.Date("2001-01-01"))
 y2025 <- interval(as.Date("2025-01-01"), as.Date("2025-01-01"))
+is_hole(c(hole(), y2000, hole(), y2025, NA))
 
 # The intersection of disjoint intervals is a hole
-is_hole(c(
- phint_intersect(y2000, y2025),
- y2000, y2025
-))
+is_hole(phint_intersect(y2000, y2025))
 
 }

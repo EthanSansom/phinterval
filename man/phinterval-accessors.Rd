@@ -61,17 +61,18 @@ A \verb{<phinterval>} or \verb{<Interval>} vector.}
 For \code{phint_start()} and \code{phint_end()}, a \verb{<POSIXct>} vector the same length
 as \code{phint}.
 
-For \code{phint_start()} and \code{phint_ends()}, a list of \verb{<POSIXct>} vectors the
+For \code{phint_starts()} and \code{phint_ends()}, a list of \verb{<POSIXct>} vectors the
 same length as \code{phint}.
 }
 \description{
 \code{phint_start()} and \code{phint_end()} return the earliest and latest endpoint
-of a phinterval respectively. Empty (i.e. \verb{<hole>}) time spans are coerced
-to \code{NA} datetimes.
+of each phinterval element, respectively. Holes (empty time spans) are
+returned as \code{NA}.
 
-\code{phint_starts()} and \code{phint_ends()} return a list of starts and ends of a
-phinterval respectively. Empty time spans are returned as length 0
-\verb{<POSIXct>} elements.
+\code{phint_starts()} and \code{phint_ends()} return lists of all start and end points
+for each phinterval element, respectively. For phintervals with multiple
+disjoint spans, each span's endpoint is included. Holes are returned as
+length-0 \verb{<POSIXct>} vectors.
 }
 \examples{
 int1 <- interval(as.Date("2020-01-10"), as.Date("2020-02-01"))
@@ -80,8 +81,7 @@ int2 <- interval(as.Date("2023-05-02"), as.Date("2023-06-03"))
 phint_start(int1)
 phint_end(int1)
 
-# Empty <hole> times spans have no start or end date. Time spans containing
-# gaps have multiple starts and ends.
+# Holes have no endpoints; disjoint phintervals have multiple endpoints
 hole <- phint_intersect(int1, int2)
 disjoint <- phint_union(int1, int2)
 
@@ -92,7 +92,7 @@ phint_end(c(hole, disjoint))
 phint_ends(c(hole, disjoint))
 
 # phint_start() and phint_end() return the minimum and maximum endpoints
-negative <- interval(as.Date("1980-01-01"), as.Date("1980-01-01") - 5)
+negative <- interval(as.Date("1980-01-01"), as.Date("1979-12-27"))
 phint_start(negative)
 phint_end(negative)
 }

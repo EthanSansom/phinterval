@@ -2,13 +2,12 @@
 % Please edit documentation in R/phinterval-package.R
 \docType{package}
 \name{phinterval-package}
-\alias{phinterval}
 \alias{phinterval-package}
 \title{phinterval: Set Operations for Time Intervals}
 \description{
 \if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
 
-Implements the phinterval vector class for representing time spans that may contain gaps (disjoint intervals) or be empty. This class generalizes the 'lubridate' package's interval class to support vectorized set operations (intersection, union, difference, complement) that always return a valid time span, even when gaps or empty sets are created.
+Implements the phinterval vector class for representing time spans that may contain gaps (disjoint intervals) or be empty. This class generalizes the 'lubridate' package's interval class to support vectorized set operations (intersection, union, difference, complement) that always return a valid time span, even when disjoint or empty intervals are created.
 }
 \seealso{
 Useful links:

@@ -4,7 +4,7 @@
 \alias{as_phinterval}
 \alias{as_phinterval.default}
 \alias{as_phinterval.Interval}
-\title{Convert an interval vector into a phinterval}
+\title{Convert an interval or datetime vector into a phinterval}
 \usage{
 as_phinterval(x, ...)
 
@@ -13,32 +13,47 @@ as_phinterval(x, ...)
 \method{as_phinterval}{Interval}(x, ...)
 }
 \arguments{
-\item{x}{An object to convert.}
+\item{x}{\verb{[Interval / Date / POSIXct / POSIXlt]}
 
-\item{...}{Parameters passed to other methods. Currently unused.}
+An object to convert.}
+
+\item{...}{Additional arguments passed to methods. Currently unused.}
 }
 \value{
 A \verb{<phinterval>} vector the same length as \code{x}.
 }
 \description{
-\code{as_phinterval()} changes a \code{\link[lubridate:interval]{lubridate::interval()}} vector into the equivalent
-\verb{<phinterval>} vector. Negative intervals are flipped to positive (i.e.
-via \code{\link[lubridate:interval]{lubridate::int_standardize()}}).
+\code{as_phinterval()} converts a \code{\link[lubridate:interval]{lubridate::interval()}}, Date, POSIXct, or POSIXlt
+vector into an equivalent \verb{<phinterval>} vector.
+}
+\details{
+Negative intervals (where start > end) are standardized to positive intervals
+via \code{\link[lubridate:interval]{lubridate::int_standardize()}}.
+
+Datetime vectors (Date, POSIXct, POSIXlt) are converted into instantaneous
+intervals where the start and end are identical.
+
+Spans with partially missing endpoints (e.g., \code{interval(NA, end)} or
+\code{interval(start, NA)}) are converted to a fully \code{NA} element.
 }
 \examples{
+# Convert Interval vector
 years <- interval(
   start = as.Date(c("2021-01-01", "2023-01-01")),
-  end =  as.Date(c("2022-01-01", "2024-01-01"))
+  end = as.Date(c("2022-01-01", "2024-01-01"))
 )
 as_phinterval(years)
 
 # Negative intervals are standardized
-(negative <- interval(as.Date("2000-10-11"), as.Date("2000-10-11") - 10))
+negative <- interval(as.Date("2000-10-11"), as.Date("2000-10-01"))
 as_phinterval(negative)
 
-# A <phinterval> cannot have partially missing endpoints
-(partial_na <- interval(NA, as.Date("1999-08-02")))
+# Partially missing endpoints become fully NA
+partial_na <- interval(NA, as.Date("1999-08-02"))
 as_phinterval(partial_na)
+
+# Datetime vectors become instantaneous intervals
+as_phinterval(as.Date(c("2000-10-11", "2001-05-03")))
 
 }
 \seealso{

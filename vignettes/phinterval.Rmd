@@ -56,9 +56,9 @@ This section illustrates several such edge cases using the months of
 January and November 2025, along with the full calendar year.
 
 ```{r}
-jan <- interval(ymd("2025-01-01"), ymd("2025-01-01") + months(1))
-nov <- interval(ymd("2025-11-01"), ymd("2025-11-01") + months(1))
-full_2025 <- interval(ymd("2025-01-01"), ymd("2025-01-01") + years(1))
+jan <- interval(ymd("2025-01-01"), ymd("2025-02-01"))
+nov <- interval(ymd("2025-11-01"), ymd("2025-12-01"))
+full_2025 <- interval(ymd("2025-01-01"), ymd("2026-01-01"))
 ```
 
 ### Empty Intersections
@@ -218,18 +218,13 @@ Notice that:
     which `phint_squash()` correctly merges into a single contiguous
     span.
 
-To return the dataset to a one-row-per-span format, we can extract the
-start and end points of each `<phinterval>` element using
-`phint_starts()` and `phint_ends()`. These functions return lists of
-start and end dates, which can then be unnested back into separate rows:
+To return the dataset to a one-row-per-span format, use `phint_unnest()`,
+which converts each `<phinterval>` element into separate rows:
 
 ```{r}
 employment |>
-  mutate(
-    start = phint_starts(employed), 
-    end = phint_ends(employed)
-  ) |>
-  unnest(cols = c(start, end)) |>
+  mutate(periods = phint_unnest(employed)) |>
+  unnest(periods) |>
   select(-employed)
 ```
 

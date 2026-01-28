@@ -14,7 +14,6 @@ and queried using \code{\link[=getOption]{getOption()}}.
 \itemize{
 \item \code{phinterval.print_max_width}: Character width at which a printed or
 formatted \verb{<phinterval>} element is truncated for display, default: \code{90}.
-Set to \code{1} to always truncate formatted \verb{<phinterval>} vectors.
 }
 }
 

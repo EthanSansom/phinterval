@@ -2,6 +2,33 @@
 
 load_all()
 
+# docs -------------------------------------------------------------------------
+
+library(dplyr, warn.conflicts = FALSE)
+library(tidyr)
+
+jobs <- tibble::tribble(
+  ~name,   ~job_title,             ~start,        ~end,
+  "Greg",  "Mascot",               "2018-01-01",  "2018-06-03",
+  "Greg",  "Executive Assistant",  "2018-06-10",  "2020-04-01",
+  "Greg",  "Chief of Staff",       "2020-03-01",  "2020-11-28",
+  "Tom",   "Chairman",             "2019-05-01",  "2020-11-10",
+  "Tom",   "CEO",                  "2020-11-10",  "2020-12-31",
+  "Shiv",  "Political Consultant", "2017-01-01",  "2019-04-01"
+)
+
+employment <- jobs |>
+  dplyr::mutate(span = interval(start, end)) |>
+  dplyr::group_by(name) |>
+  dplyr::summarize(employed = phint_squash(span))
+
+employment
+
+employment |>
+  group_by(name) |>
+  reframe(periods = phint_unnest(employed)) |>
+  unnest(periods)
+
 # basics -----------------------------------------------------------------------
 
 opts <- options("phinterval.print_max_width")

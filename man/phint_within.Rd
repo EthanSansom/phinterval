@@ -2,13 +2,14 @@
 % Please edit documentation in R/set-relations.R
 \name{phint_within}
 \alias{phint_within}
-\title{Test whether a date, time, or phinterval is within another phinterval}
+\title{Test whether a datetime or phinterval is within another phinterval}
 \usage{
 phint_within(x, phint)
 }
 \arguments{
-\item{x}{A \verb{<POSIXct>}, \verb{<POSIXlt>}, \verb{<Date>}, \verb{<Interval>} or \verb{<phinterval>}
-vector to test.}
+\item{x}{\verb{[phinterval / Interval / Date / POSIXct / POSIXlt]}
+
+The object to test.}
 
 \item{phint}{\verb{[phinterval / Interval]}
 
@@ -19,16 +20,17 @@ A logical vector.
 }
 \description{
 \code{phint_within()} tests whether the i-th element of \code{x} is contained within
-the i-th element of \code{phint}, returning a logical vector. \code{x} may be a date or
-time, while \code{phint} must be a phinterval. \code{x} and \code{phint} are recycled to
-their common length using vctrs-style recycling rules.
+the i-th element of \code{phint}, returning a logical vector. \code{x} may be a datetime
+(Date, POSIXct, POSIXlt), \code{\link[lubridate:interval]{lubridate::interval()}}, or \code{\link[=phinterval]{phinterval()}}, while
+\code{phint} must be a \code{\link[lubridate:interval]{lubridate::interval()}} or \code{\link[=phinterval]{phinterval()}}. \code{x} and \code{phint}
+are recycled to their common length using vctrs-style recycling rules.
 
-Dates and times on an endpoint of an interval are considered to be within
-the interval. An interval is considered to be within itself.
+Datetimes on an endpoint of an interval are considered to be within the
+interval. An interval is considered to be within itself.
 }
 \examples{
 jan_1_to_5 <- interval(as.Date("2000-01-01"), as.Date("2000-01-05"))
-jan_2_to_4 <- interval(as.Date("2000-01-03"), as.Date("2000-01-09"))
+jan_2_to_4 <- interval(as.Date("2000-01-02"), as.Date("2000-01-04"))
 jan_3_to_9 <- interval(as.Date("2000-01-03"), as.Date("2000-01-09"))
 
 phint_within(
@@ -41,11 +43,11 @@ phint_within(as.Date(c("2000-01-06", "2000-01-20")), jan_3_to_9)
 # Intervals are within themselves
 phint_within(jan_1_to_5, jan_1_to_5)
 
-# Interval endpoints are considered to be within the interval
+# Interval endpoints are considered within
 phint_within(as.Date("2000-01-01"), jan_1_to_5)
 
-# Holes are never considered to be within an interval
-hole <- phinterval(interval())
+# Holes are never within any interval (including other holes)
+hole <- hole()
 phint_within(c(hole, hole), c(hole, jan_1_to_5))
 
 }

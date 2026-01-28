@@ -42,31 +42,35 @@ operation. All functions follow vctrs-style recycling rules.
 }
 }
 \examples{
-monday  <- interval(as.Date("2025-11-10"), as.Date("2025-11-11"))
+monday <- interval(as.Date("2025-11-10"), as.Date("2025-11-11"))
 tuesday <- interval(as.Date("2025-11-11"), as.Date("2025-11-12"))
-friday  <- interval(as.Date("2025-11-14"), as.Date("2025-11-15"))
+friday <- interval(as.Date("2025-11-14"), as.Date("2025-11-15"))
 jan_1_to_5 <- interval(as.Date("2000-01-01"), as.Date("2000-01-05"))
 jan_3_to_9 <- interval(as.Date("2000-01-03"), as.Date("2000-01-09"))
 
+# Complement
 phint_complement(jan_1_to_5)
 
-# The complement of a <hole> is an infinite span covering all dates
-hole <- phinterval(interval())
+# The complement of a hole is an infinite span covering all time
+hole <- hole()
 phint_complement(hole)
 
+# Union
 phint_union(c(monday, monday, monday), c(tuesday, friday, NA))
 
 # Elements of length 1 are recycled
 phint_union(monday, c(tuesday, friday, NA))
 
+# Intersection
 phint_intersect(jan_1_to_5, jan_3_to_9)
 
-# The intersection of non-overlapping intervals is a <hole>
+# The intersection of non-overlapping intervals is a hole
 phint_intersect(monday, friday)
 
-# The intersection of adjacent intervals is an instant
+# The intersection of adjacent intervals is instantaneous
 phint_intersect(monday, tuesday)
 
+# Set difference
 phint_setdiff(jan_1_to_5, jan_3_to_9)
 phint_setdiff(jan_3_to_9, jan_1_to_5)
 

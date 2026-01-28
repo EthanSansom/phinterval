@@ -1,21 +1,122 @@
 # todos ------------------------------------------------------------------------
 
-# TODO: Revise unit tests to use the new structure!
-
-# TODO: Fix private field not used warnings
-# - type-interval.h warning: private field 'span' is not used [-Wunused-private-field]
-
 # TODO: New documentation
 # - Remove all references to `phint_to_spans()`
 # - Show speed of phint_squash(by) vs. group_by(by) |> mutate(phint_squash)
 # - Document lubridate quirks that come with phinterval (e.g. setdiff with instants)
 # - Explicitly document full treatment of timezones!
 
+# TODO: Pick "time zone" or "timezone" and stick to it!
+
 # constructors -----------------------------------------------------------------
 
 setOldClass(c("phinterval", "list", "vctrs_rcrd"))
 
-# TODO: Documentation
+#' Create a new phinterval
+#'
+#' @description
+#'
+#' `phinterval()` creates a new `<phinterval>` vector from start and end times.
+#' A phinterval (think "potentially holey interval") is a span of time which may
+#' contain gaps.
+#'
+#' @details
+#'
+#' The `<phinterval>` class is designed as a generalization of the
+#' [lubridate::interval()]. While an `<Interval>` element represents a
+#' single contiguous span between two fixed times, a `<phinterval>` element can
+#' represent a time span that may be empty, contiguous, or disjoint (i.e. containing
+#' gaps). Each element of a `<phinterval>` is stored as a (possibly empty) set of
+#' non-overlapping and non-abutting time spans.
+#'
+#' When `by = NULL` (the default), `phinterval()` creates scalar phinterval
+#' elements, where each element contains a single time span from `start[i]` to
+#' `end[i]`. This is equivilant to [lubridate::interval()]:
+#'
+#' ```
+#' interval(start, end, tzone = tzone)   # <Interval> vector
+#' phinterval(start, end, tzone = tzone) # <phinterval> vector
+#' ```
+#'
+#' When `by` is provided, `phinterval()` groups the `start`/`end` pairs by the
+#' values in `by`, creating phinterval elements that may contain multiple disjoint
+#' time spans. Overlapping or abutting spans within each group are automatically
+#' merged.
+#'
+#' @param start `[POSIXct / POSIXlt / Date]`
+#'
+#' A vector of start times. Must be recyclable with `end`.
+#'
+#' @param end `[POSIXct / POSIXlt / Date]`
+#'
+#' A vector of end times. Must be recyclable with `start`.
+#'
+#' @param tzone `[character(1)]`
+#'
+#' A time zone to display the `<phinterval>` in. If `tzone` is `NULL`
+#' (the default), then the timezone is taken from that of `start`.
+#'
+#' `tzone` can be any non-`NA` string, but unrecognized time zones (see
+#' [is_recognized_tzone()]) will be formatted using `"UTC"` with a warning.
+#'
+#' @param by `[vector / data.frame / NULL]`
+#'
+#' An optional grouping vector or data frame. When provided, `start[i]` and
+#' `end[i]` pairs are grouped by `by[i]`, creating one phinterval element per
+#' unique value of `by`. Overlapping or abutting spans within each group are
+#' merged. If `NULL` (the default), each `start`/`end` pair creates a separate
+#' phinterval element. `by` is recycled to match the common length of `start`
+#' and `end`.
+#'
+#' `by` must be a vector in the vctrs sense. See `[vctrs::obj_is_vector()]`
+#' for details.
+#'
+#' @param order_by `[TRUE / FALSE]`
+#'
+#' Should the output be ordered by the values in `by`? If `FALSE` (the default),
+#' the output order matches the first appearance of each group in `by`. If `TRUE`,
+#' the output is sorted by the unique values of `by`. Only used when `by` is not
+#' `NULL`.
+#'
+#' @return
+#'
+#' When `by = NULL`, a `<phinterval>` vector the same length as the recycled
+#' length of `start` and `end`.
+#'
+#' When `by` is provided, a `<phinterval>` vector with one element per unique
+#' value of `by`.
+#'
+#' @examples
+#' # Scalar phintervals (equivalent to interval())
+#' phinterval(
+#'   start = as.Date(c("2000-01-01", "2000-02-01")),
+#'   end = as.Date(c("2000-02-01", "2000-03-01"))
+#' )
+#'
+#' # Grouped phintervals with multiple spans per element
+#' phinterval(
+#'   start = as.Date(c("2000-01-01", "2000-03-01", "2000-02-01")),
+#'   end = as.Date(c("2000-02-01", "2000-04-01", "2000-03-01")),
+#'   by = c(1, 1, 2)
+#' )
+#'
+#' # Overlapping spans are merged within groups
+#' phinterval(
+#'   start = as.Date(c("2000-01-01", "2000-01-15")),
+#'   end = as.Date(c("2000-02-01", "2000-02-15")),
+#'   by = 1
+#' )
+#'
+#' # Empty phinterval
+#' phinterval()
+#'
+#' # Specify timezone
+#' phinterval(
+#'   start = as.Date("2000-01-01"),
+#'   end = as.Date("2000-02-01"),
+#'   tzone = "America/New_York"
+#' )
+#'
 #' @export
 phinterval <- function(
     start = POSIXct(),
@@ -51,12 +152,50 @@ phinterval <- function(
     by = by,
     tzone = tzone,
     na.rm = FALSE,
-    empty_to = empty_to,
+    empty_to = "empty",
     order_by = order_by
   )
 }
 
-# TODO: Document
+#' Create a hole phinterval
+#'
+#' @description
+#'
+#' `hole()` creates a `<phinterval>` vector where each element is a hole (an
+#' empty set of time spans).
+#'
+#' @details
+#'
+#' A hole is a phinterval element with zero time spans, representing an empty
+#' interval. Holes are useful as placeholders or for representing the absence
+#' of time periods in interval algebra operations.
+#'
+#' @param n `[integerish(1)]`
+#'
+#' The number of hole elements to create. Must be a positive whole number.
+#'
+#' @param tzone `[character(1)]`
+#'
+#' A time zone to display the `<phinterval>` in. Defaults to `""`.
+#'
+#' @return
+#'
+#' A `<phinterval>` vector of length `n` where each element is a `<hole>`.
+#'
+#' @examples
+#' # Create a single hole
+#' hole()
+#'
+#' # Create multiple holes
+#' hole(3)
+#'
+#' # Specify timezone
+#' hole(tzone = "UTC")
+#'
+#' # Holes can be combined with other phintervals
+#' jan <- phinterval(as.Date("2000-01-01"), as.Date("2000-02-01"))
+#' c(jan, hole(), jan)
+#'
 #' @export
 hole <- function(n = 1L, tzone = "") {
   check_number_whole(n, min = 1)
@@ -163,7 +302,7 @@ is.na.phinterval <- function(x) {
 }
 
 #' @export
-anyNA.phinterval <- function(x) {
+anyNA.phinterval <- function(x, recursive = FALSE) {
   anyNA(field(x, "size"))
 }
 
@@ -206,41 +345,83 @@ is_phintish <- function(x) {
   is_phinterval(x) || lubridate::is.interval(x)
 }
 
-# TODO: Document
+#' Test if the object is a recognized time zone
+#'
+#' @description
+#'
+#' `is_recognized_tzone()` returns `TRUE` for strings that are recognized IANA
+#' time zone names, and `FALSE` otherwise.
+#'
+#' @details
+#'
+#' Recognized time zones are those listed in [tzdb::tzdb_names()], which
+#' provides an up-to-date copy of time zones from the IANA time zone database.
+#'
+#' `<phinterval>` vectors with an unrecognized time zone are formatted using
+#' the `"UTC"` time zone with a warning.
+#'
+#' @param x An object to test.
+#'
+#' @return `TRUE` if `x` is a recognized timezone, `FALSE` otherwise.
+#'
+#' @examples
+#' is_recognized_tzone("UTC")
+#' is_recognized_tzone("America/New_York")
+#' is_recognized_tzone("")
+#' is_recognized_tzone("badzone")
+#' is_recognized_tzone(10L)
+#'
 #' @export
 is_recognized_tzone <- function(x) {
   is_string(x) && tzone_is_valid_cpp(x)
 }
 
-# TODO: Document the instant case!
-#' Convert an interval vector into a phinterval
+#' Convert an interval or datetime vector into a phinterval
 #'
 #' @description
 #'
-#' `as_phinterval()` changes a [lubridate::interval()] vector into the equivalent
-#' `<phinterval>` vector. Negative intervals are flipped to positive (i.e.
-#' via [lubridate::int_standardize()]).
+#' `as_phinterval()` converts a [lubridate::interval()], Date, POSIXct, or POSIXlt
+#' vector into an equivalent `<phinterval>` vector.
 #'
-#' @param x An object to convert.
-#' @param ... Parameters passed to other methods. Currently unused.
+#' @details
+#'
+#' Negative intervals (where start > end) are standardized to positive intervals
+#' via [lubridate::int_standardize()].
+#'
+#' Datetime vectors (Date, POSIXct, POSIXlt) are converted into instantaneous
+#' intervals where the start and end are identical.
+#'
+#' Spans with partially missing endpoints (e.g., `interval(NA, end)` or
+#' `interval(start, NA)`) are converted to a fully `NA` element.
+#'
+#' @param x `[Interval / Date / POSIXct / POSIXlt]`
+#'
+#' An object to convert.
+#'
+#' @param ... Additional arguments passed to methods. Currently unused.
+#'
 #' @return A `<phinterval>` vector the same length as `x`.
 #'
 #' @seealso [phinterval()]
 #'
 #' @examples
+#' # Convert Interval vector
 #' years <- interval(
 #'   start = as.Date(c("2021-01-01", "2023-01-01")),
-#'   end =  as.Date(c("2022-01-01", "2024-01-01"))
+#'   end = as.Date(c("2022-01-01", "2024-01-01"))
 #' )
 #' as_phinterval(years)
 #'
 #' # Negative intervals are standardized
-#' (negative <- interval(as.Date("2000-10-11"), as.Date("2000-10-11") - 10))
+#' negative <- interval(as.Date("2000-10-11"), as.Date("2000-10-01"))
 #' as_phinterval(negative)
 #'
-#' # A <phinterval> cannot have partially missing endpoints
-#' (partial_na <- interval(NA, as.Date("1999-08-02")))
+#' # Partially missing endpoints become fully NA
+#' partial_na <- interval(NA, as.Date("1999-08-02"))
 #' as_phinterval(partial_na)
+#'
+#' # Datetime vectors become instantaneous intervals
+#' as_phinterval(as.Date(c("2000-10-11", "2001-05-03")))
 #'
 #' @export
 as_phinterval <- function(x, ...) {
@@ -301,9 +482,11 @@ vec_arith.phinterval.Duration <- function(op, x, y, ...) {
 #' `phint`.
 #'
 #' @inheritParams params
+#'
 #' @return An integer vector the same length as `phint`.
 #'
 #' @examples
+#' # Count spans
 #' y2000 <- interval(as.Date("2000-01-01"), as.Date("2001-01-01"))
 #' y2025 <- interval(as.Date("2025-01-01"), as.Date("2025-01-01"))
 #'
@@ -342,20 +525,20 @@ n_spans.phinterval <- function(phint) {
 #'
 #' @description
 #'
-#' `is_hole()` checks for `<hole>` (i.e. empty) time spans in `phint`.
+#' `is_hole()` checks for `<hole>` (empty) time spans in `phint`.
 #'
 #' @inheritParams params
+#'
 #' @return A logical vector the same length as `phint`.
 #'
 #' @examples
+#' # Detect holes
 #' y2000 <- interval(as.Date("2000-01-01"), as.Date("2001-01-01"))
 #' y2025 <- interval(as.Date("2025-01-01"), as.Date("2025-01-01"))
+#' is_hole(c(hole(), y2000, hole(), y2025, NA))
 #'
 #' # The intersection of disjoint intervals is a hole
-#' is_hole(c(
-#'  phint_intersect(y2000, y2025),
-#'  y2000, y2025
-#' ))
+#' is_hole(phint_intersect(y2000, y2025))
 #'
 #' @export
 is_hole <- function(phint) {
@@ -367,12 +550,13 @@ is_hole <- function(phint) {
 #' @description
 #'
 #' `phint_start()` and `phint_end()` return the earliest and latest endpoint
-#' of a phinterval respectively. Empty (i.e. `<hole>`) time spans are coerced
-#' to `NA` datetimes.
+#' of each phinterval element, respectively. Holes (empty time spans) are
+#' returned as `NA`.
 #'
-#' `phint_starts()` and `phint_ends()` return a list of starts and ends of a
-#' phinterval respectively. Empty time spans are returned as length 0
-#' `<POSIXct>` elements.
+#' `phint_starts()` and `phint_ends()` return lists of all start and end points
+#' for each phinterval element, respectively. For phintervals with multiple
+#' disjoint spans, each span's endpoint is included. Holes are returned as
+#' length-0 `<POSIXct>` vectors.
 #'
 #' @inheritParams params
 #'
@@ -381,7 +565,7 @@ is_hole <- function(phint) {
 #' For `phint_start()` and `phint_end()`, a `<POSIXct>` vector the same length
 #' as `phint`.
 #'
-#' For `phint_start()` and `phint_ends()`, a list of `<POSIXct>` vectors the
+#' For `phint_starts()` and `phint_ends()`, a list of `<POSIXct>` vectors the
 #' same length as `phint`.
 #'
 #' @name phinterval-accessors
@@ -393,8 +577,7 @@ is_hole <- function(phint) {
 #' phint_start(int1)
 #' phint_end(int1)
 #'
-#' # Empty <hole> times spans have no start or end date. Time spans containing
-#' # gaps have multiple starts and ends.
+#' # Holes have no endpoints; disjoint phintervals have multiple endpoints
 #' hole <- phint_intersect(int1, int2)
 #' disjoint <- phint_union(int1, int2)
 #'
@@ -405,7 +588,7 @@ is_hole <- function(phint) {
 #' phint_ends(c(hole, disjoint))
 #'
 #' # phint_start() and phint_end() return the minimum and maximum endpoints
-#' negative <- interval(as.Date("1980-01-01"), as.Date("1980-01-01") - 5)
+#' negative <- interval(as.Date("1980-01-01"), as.Date("1979-12-27"))
 #' phint_start(negative)
 #' phint_end(negative)
 NULL
@@ -532,13 +715,14 @@ phint_ends.phinterval <- function(phint) {
 
 #' Compute the length of a phinterval in seconds
 #'
-#' @details
+#' @description
 #'
-#' `phint_length()` calculates the total length of time spans within a
-#' phinterval. Instantaneous and empty time spans are 0 seconds long.
+#' `phint_length()` calculates the total length of all time spans within each
+#' phinterval element in seconds. For phintervals with multiple disjoint spans,
+#' the lengths are summed. Instantaneous intervals and holes have length 0.
 #'
-#' `phint_lengths()` calculates the length in seconds of each time span
-#' in a phinterval.
+#' `phint_lengths()` returns the individual length in seconds of each time span
+#' within each phinterval element.
 #'
 #' @inheritParams params
 #'
@@ -617,7 +801,77 @@ phint_lengths.phinterval <- function(phint) {
   )
 }
 
-# TODO: Document
+#' Unnest a phinterval into a data frame
+#'
+#' @description
+#'
+#' `phint_unnest()` converts a `<phinterval>` vector into a data frame where
+#' each time span becomes a row.
+#'
+#' @details
+#'
+#' `phint_unnest()` expands each phinterval element into its constituent time
+#' spans, creating one row per span. The resulting data frame contains a `key`
+#' column identifying which phinterval element each span came from, along with
+#' `start` and `end` columns for the span boundaries.
+#'
+#' For phinterval elements containing multiple disjoint spans, all spans are
+#' included with the same `key` value. Scalar phinterval elements (single spans)
+#' produce a single row.
+#'
+#' @param phint `[phinterval / Interval]`
+#'
+#' A `<phinterval>` or `<Interval>` vector to unnest.
+#'
+#' @param hole_to `[character(1)]`
+#'
+#' How to handle hole elements (phintervals with zero spans). If `"drop"`
+#' (the default), holes are excluded from the output. If `"na"`, a row with
+#' `NA` start and end times is included for each hole.
+#'
+#' @param keep_size `[TRUE / FALSE]`
+#'
+#' Should a `size` column be included in the output? If `TRUE`, the output
+#' includes a `size` column containing the number of spans in the original
+#' phinterval element. If `FALSE` (the default), only `key`, `start`, and
+#' `end` columns are returned.
+#'
+#' @return
+#'
+#' A data frame with columns:
+#' - `key`: Numeric identifying the index of the phinterval element
+#' - `start`: POSIXct start time of the span
+#' - `end`: POSIXct end time of the span
+#' - `size`: (if `keep_size = TRUE`) Integer count of spans in the phinterval element
+#'
+#' @examples
+#' # Unnest scalar phintervals
+#' phint <- phinterval(
+#'   start = as.Date(c("2000-01-01", "2000-02-01")),
+#'   end = as.Date(c("2000-01-15", "2000-02-15"))
+#' )
+#' phint_unnest(phint)
+#'
+#' # Unnest multi-span phinterval
+#' phint <- phinterval(
+#'   start = as.Date(c("2000-01-01", "2000-03-01")),
+#'   end = as.Date(c("2000-01-15", "2000-03-15")),
+#'   by = 1
+#' )
+#' phint_unnest(phint)
+#'
+#' # Handle holes
+#' phint <- c(
+#'   phinterval(as.Date("2000-01-01"), as.Date("2000-01-15")),
+#'   hole(),
+#'   phinterval(as.Date("2000-02-01"), as.Date("2000-02-15"))
+#' )
+#' phint_unnest(phint, hole_to = "drop")
+#' phint_unnest(phint, hole_to = "na")
+#'
+#' # Include size column
+#' phint_unnest(phint, keep_size = TRUE, hole_to = "na")
+#'
 #' @export
 phint_unnest <- function(phint, hole_to = c("drop", "na"), keep_size = FALSE) {
   UseMethod("phint_unnest")
@@ -659,14 +913,18 @@ phint_unnest.phinterval <- function(phint, hole_to = c("drop", "na"), keep_size 
 #'
 #' @description
 #'
-#' `as_duration()` changes [lubridate::interval()] and `<phinterval>` vectors
-#' into [lubridate::duration()] vectors. The resulting duration measures the
+#' `as_duration()` converts a [lubridate::interval()] or [phinterval()] vector
+#' into a [lubridate::duration()] vector. The resulting duration measures the
 #' length of time in seconds within each element of the interval or phinterval.
 #'
 #' `as_duration()` is a wrapper around [lubridate::as.duration()].
 #'
-#' @param x An object to convert.
+#' @param x `[phinterval / Interval]`
+#'
+#' An object to convert.
+#'
 #' @param ... Parameters passed to other methods. Currently unused.
+#'
 #' @return A `<Duration>` vector the same length as `x`.
 #'
 #' @examples
