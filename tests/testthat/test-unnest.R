@@ -21,6 +21,14 @@ test_that("phint_unnest() respects hole_to argument", {
     )
   )
   expect_equal(
+    phint_unnest(c(hole, phint, hole), hole_to = "drop"),
+    data.frame(
+      key = c(2, 4),
+      start = c(t1, t3),
+      end = c(t2, t4)
+    )
+  )
+  expect_equal(
     phint_unnest(phint, hole_to = "na"),
     data.frame(
       key = c(1, 2, 3),
@@ -392,6 +400,19 @@ test_that("phint_unnest() with keep_size shows correct size for all rows", {
       start = c(t1, t3, t5, t_na, t_neg_inf, t_neg_inf, t2, t_na),
       end = c(t2, t4, t5, t_na, t_pos_inf, t1, t_pos_inf, t_na),
       size = c(1L, 2L, 2L, 0L, 1L, 2L, 2L, NA_integer_)
+    )
+  )
+  expect_equal(
+    phint_unnest(
+      c(int12, phint34_55, hole, phint_inf1, phint_inf2, phint_na),
+      keep_size = TRUE,
+      hole_to = "drop"
+    ),
+    data.frame(
+      key = c(1, 2, 2, 4, 5, 5, 6),
+      start = c(t1, t3, t5, t_neg_inf, t_neg_inf, t2, t_na),
+      end = c(t2, t4, t5, t_pos_inf, t1, t_pos_inf, t_na),
+      size = c(1L, 2L, 2L, 1L, 2L, 2L, NA_integer_)
     )
   )
 })
