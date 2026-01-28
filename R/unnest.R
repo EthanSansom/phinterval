@@ -46,7 +46,7 @@
 #'
 #' A data frame with columns:
 #' - `key`:
-#'    - If `key = NULL`: Numeric identifying the index of the phinterval element
+#'    - If `key = NULL`: A numeric vector identifying the index of the phinterval element
 #'    - Otherwise: The element of `key` corresponding to the phinterval element
 #' - `start`: POSIXct start time of the span
 #' - `end`: POSIXct end time of the span

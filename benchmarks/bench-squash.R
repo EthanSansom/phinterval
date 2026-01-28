@@ -112,6 +112,19 @@ local({
 #
 # - Reasonable speed decrease with `by`
 
+local({
+  by_2 <- seq(1000*1000) %% 2
+  by_4 <- seq(1000*1000) %% 4
+  bench::mark(
+    phint_squash = phint_squash(phint_1M),
+    phint_squash_by_2 = phint_squash(phint_1M, by = by_2, keep_by = TRUE),
+    phint_squash_by_4 = phint_squash(phint_1M, by = by_4, keep_by = TRUE),
+    check = FALSE,
+    relative = FALSE,
+    iterations = 10
+  )[1:6]
+})
+
 bench::mark(
   phint_squash_20 = phint_squash(phint_g20),
   phint_squash_2K = phint_squash(phint_g2K),

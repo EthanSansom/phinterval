@@ -1,12 +1,18 @@
 # todos ------------------------------------------------------------------------
 
-# TODO: New documentation
-# - Remove all references to `phint_to_spans()`
-# - Show speed of phint_squash(by) vs. group_by(by) |> mutate(phint_squash)
-# - Document lubridate quirks that come with phinterval (e.g. setdiff with instants)
-# - Explicitly document full treatment of timezones!
-
+# TODO: Documentation
+# - Update README for new interface / functionality
+# - Create a phinterval and dplyr vignette, show speed of `by` vs. `group_by()`
+# - Add lubridate quirks that come with phinterval to Getting Started
+# - Add time zone treatment to getting started
+#
 # TODO: Pick "time zone" or "timezone" and stick to it!
+
+# TODO: CRAN
+# - Look into all of the edge-case CRAN checks and run (see RPackages book)
+
+# TODO: JOSS
+# - Review paper and update to use new interface!
 
 # constructors -----------------------------------------------------------------
 
