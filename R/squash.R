@@ -39,6 +39,9 @@
 #' For `datetime_squash()`, `by` must be recyclable with the recycled length
 #' of `start` and `end`.
 #'
+#' `by` may be any vector in the vctrs sense. See `[vctrs::obj_is_vector()]`
+#' for details.
+#'
 #' @param na.rm `[TRUE / FALSE]]`
 #'
 #' Should `NA` elements be removed before squashing? If `FALSE` and any `NA`
