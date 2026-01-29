@@ -56,9 +56,9 @@ This section illustrates several such edge cases using the months of
 January and November 2025, along with the full calendar year.
 
 ```{r}
-jan <- interval(ymd("2025-01-01"), ymd("2025-01-01") + months(1))
-nov <- interval(ymd("2025-11-01"), ymd("2025-11-01") + months(1))
-full_2025 <- interval(ymd("2025-01-01"), ymd("2025-01-01") + years(1))
+jan <- interval(ymd("2025-01-01"), ymd("2025-02-01"))
+nov <- interval(ymd("2025-11-01"), ymd("2025-12-01"))
+full_2025 <- interval(ymd("2025-01-01"), ymd("2026-01-01"))
 ```
 
 ### Empty Intersections
@@ -178,12 +178,11 @@ Handling this correctly is surprisingly involved. One option is to split
 Shiv’s job into two rows (one pre-vacation and one post-vacation),
 breaking the one-row-per-job structure of the data. Another is to
 represent each job as a list of intervals, complicating downstream
-analysis. The main purpose of phinterval is to avoid these
-workarounds, by providing drop-in replacements for lubridate
-interval functions. Because phinterval functions accept either
-`<Interval>` or `<phinterval>` inputs, existing code can typically be
-adapted by simply replacing a lubridate function with its
-phinterval counterpart.
+analysis. 
+
+The main purpose of phinterval is to avoid these workarounds, by providing drop-in replacements for lubridate interval functions. Because phinterval functions accept 
+either `<Interval>` or `<phinterval>` inputs, existing code can typically be
+adapted by simply replacing a lubridate function with its phinterval counterpart.
 
 ```{r}
 jobs |>
@@ -218,23 +217,31 @@ Notice that:
     which `phint_squash()` correctly merges into a single contiguous
     span.
 
-To return the dataset to a one-row-per-span format, we can extract the
-start and end points of each `<phinterval>` element using
-`phint_starts()` and `phint_ends()`. These functions return lists of
-start and end dates, which can then be unnested back into separate rows:
+The `by` argument of `phint_squash()` and `datetime_squash()` (which takes 
+`start` and `end` times directly) can be used in place of `dplyr::group_by()`.
+The example below is equivalent to the previous code but is usually several 
+times faster.
+
+```{r}
+datetime_squash(
+  start = ymd(jobs$start),
+  end = ymd(jobs$end),
+  by = jobs$name,
+  keep_by = TRUE,
+  order_by = TRUE
+) |> as_tibble()
+```
+
+As in `dplyr::summarize()`, the `by` argument can be a vector or data frame 
+to support multiple grouping columns.
+
+To return the dataset to a one-row-per-span format, use `phint_unnest()`,
+which converts each `<phinterval>` element into separate rows:
 
 ```{r}
 employment |>
-  mutate(
-    start = phint_starts(employed), 
-    end = phint_ends(employed)
-  ) |>
-  unnest(cols = c(start, end)) |>
-  select(-employed)
+  reframe(phint_unnest(employed, key = name))
 ```
-
-The resulting tidy format integrates well with [{dplyr}](https://dplyr.tidyverse.org/) and
-lubridate workflows.
 
 ### Finding Gaps
 
@@ -259,3 +266,152 @@ unemployment
 Greg was unemployed for 7 days between his time as a Mascot and his role
 as Executive Assistant. Tom and Shiv have no gaps within their
 respective employment timelines, represented by a `<hole>`.
+
+# Edge Cases and Gotchas
+
+## Abutting Intervals and Intersection
+
+Manipulating abutting intervals (intervals that share an endpoint) can produce
+sometimes unexpected results. To demonstrate, consider the time within
+a Monday and Tuesday in November 2025.
+
+```{r}
+monday <- interval(ymd("2025-11-10"), ymd("2025-11-11"))
+tuesday <- interval(ymd("2025-11-11"), ymd("2025-11-12"))
+```
+
+By default, intervals in `<phinterval>` and `<Interval>` vectors have inclusive
+endpoints, meaning that midnight on Monday, November 11th, 2025 falls within
+both `monday` and `tuesday`:
+
+```{r}
+midnight_monday <- ymd_hms("2025-11-11 00:00:00")
+phint_within(midnight_monday, monday)
+phint_within(midnight_monday, tuesday)
+```
+
+As a result, the intersection of `monday` and `tuesday` is an instantaneous
+interval at `midnight_monday`.
+
+```{r}
+phint_intersect(monday, tuesday) == midnight_monday
+```
+
+Perhaps surprisingly, this also means that the intersection of `monday` and its
+complement is not empty, but consists of the two endpoints of `monday`.
+
+```{r}
+not_monday <- phint_complement(monday)
+not_monday
+
+phint_intersect(monday, not_monday)
+```
+
+The bounds argument in `phint_overlaps()`, `phint_within()`, and
+`phint_intersect()` controls this behavior. When `bounds = "()"`, endpoints are
+treated as exclusive:
+
+```{r}
+phint_overlaps(monday, tuesday, bounds = "()")
+phint_intersect(monday, tuesday, bounds = "()")
+```
+
+With exclusive endpoints, `monday` and `tuesday` no longer overlap, and their
+intersection is empty.
+
+An instantaneous interval `(point, point)` with open bounds is mathematically
+undefined, but for convenience we allow these points to exist. With `bounds = "()"`,
+instants on the endpoint of an interval are outside of the interval, while
+instants in the middle of an interval are considered to be within it:
+
+```{r}
+monday_at_9AM <- as_phinterval(ymd_hms("2025-11-10 00:09:00"))
+phint_within(monday_at_9AM, monday, bounds = "()")
+phint_within(midnight_monday, monday, bounds = "()")
+```
+
+To consider instantaneous intervals as empty, use `phint_sift()` to remove all 
+instants from an interval vector:
+
+```{r}
+phint <- phint_squash(c(monday_at_9AM, tuesday))
+phint
+
+phint_sift(phint)
+```
+
+## Instantaneous Intervals and Set Difference
+
+Because phinterval elements are composed of non-overlapping, non-adjacent spans,
+"punching" an instantaneous hole into an interval using `phint_setdiff()` has no 
+effect on the interval. While removing a single point from an interval `[start, end]` 
+would theoretically split it into `[start, point)` and `(point, end]`, in practice
+these adjacent pieces are immediately merged back together:
+
+```{r}
+monday_noon <- as_phinterval(ymd_hms("2025-11-10 12:00:00"))
+monday_lunch_break <- interval(
+  ymd_hms("2025-11-10 12:00:00"), 
+  ymd_hms("2025-11-10 13:00:00")
+)
+
+phint_setdiff(monday, monday_lunch_break) # Removes a non-zero interval
+phint_setdiff(monday, monday_noon)        # Instantaneous - no effect
+```
+
+To create gaps, you must remove an interval with non-zero duration.
+
+## Time Zones
+
+To ensure that any `<Interval>` vector can be represented as an equivalent
+`<phinterval>` vector, the `phinterval()` constructor accepts any time zone
+permitted by `interval()`, including unrecognized zones.
+
+```{r}
+intvl <- interval(ymd("2020-01-01"), ymd("2020-01-02"), tzone = "nozone")
+phint <- phinterval(ymd("2020-01-01"), ymd("2020-01-02"), tzone = "nozone")
+intvl == phint
+```
+
+When a `<phinterval>` with an unrecognized time zone is formatted, its time points
+are displayed using the UTC time zone:
+
+```{r, include = FALSE}
+rlang::reset_warning_verbosity("phinterval_warning_unrecognized_tzone")
+```
+
+```{r}
+print(phint)
+```
+
+The `is_recognized_tzone()` function can be used to check whether a time zone is
+recognized:
+
+```{r}
+is_recognized_tzone("America/New_York")
+is_recognized_tzone("nozone")
+is_recognized_tzone(NA_character_)
+```
+
+Some datetime vectors, such as `<POSIXct>`, are allowed to have an `NA` time zone.
+When converted to a `<phinterval>`, the missing time zone is silently replaced
+with UTC:
+
+```{r}
+na_zoned <- as.POSIXct("2021-01-01", tz = NA_character_)
+as_phinterval(na_zoned)
+```
+
+Operations that combine two or more interval vectors, such as `phint_union()`,
+use the time zone of the first argument. If the first argument's time zone is 
+`""` (the user's local time zone), the second argument's time zone is used instead.
+
+```{r}
+int_est <- interval(ymd("2020-01-01"), ymd("2020-01-02"), tzone = "EST")
+int_utc <- interval(ymd("2020-01-01"), ymd("2020-01-02"), tzone = "UTC")
+int_lcl <- interval(ymd("2020-01-01"), ymd("2020-01-02"), tzone = "")
+
+phint_union(int_est, int_utc)
+phint_union(int_utc, int_est)
+phint_union(int_lcl, int_est)
+```

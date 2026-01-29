@@ -4,49 +4,112 @@
 \alias{phinterval}
 \title{Create a new phinterval}
 \usage{
-phinterval(intervals = list(), tzone = NULL)
+phinterval(
+  start = POSIXct(),
+  end = POSIXct(),
+  tzone = NULL,
+  by = NULL,
+  order_by = FALSE
+)
 }
 \arguments{
-\item{intervals}{\verb{[list of Interval]}
+\item{start}{\verb{[POSIXct / POSIXlt / Date]}
 
-A list of \code{\link[lubridate:interval]{lubridate::interval()}} vectors. Each interval vector is merged
-into a set of non-overlapping and non-adjacent time spans. Empty (length 0)
-interval vectors are returned as an empty set of time spans (i.e. a \verb{<hole>}).}
+A vector of start times. Must be recyclable with \code{end}.}
+
+\item{end}{\verb{[POSIXct / POSIXlt / Date]}
+
+A vector of end times. Must be recyclable with \code{start}.}
 
 \item{tzone}{\verb{[character(1)]}
 
-A recognized timezone to display the \verb{<phinterval>} in. If \code{tzone} is \code{NULL}
-(the default), then the timezone of the first element of \code{intervals} is used.}
+A time zone to display the \verb{<phinterval>} in. If \code{tzone} is \code{NULL}
+(the default), then the time zone is taken from that of \code{start}.
+
+\code{tzone} can be any non-\code{NA} string, but unrecognized time zones (see
+\code{\link[=is_recognized_tzone]{is_recognized_tzone()}}) will be formatted using \code{"UTC"} with a warning.}
+
+\item{by}{\verb{[vector / data.frame / NULL]}
+
+An optional grouping vector or data frame. When provided, \code{start[i]} and
+\code{end[i]} pairs are grouped by \code{by[i]}, creating one phinterval element per
+unique value of \code{by}. Overlapping or abutting spans within each group are
+merged. If \code{NULL} (the default), each \code{start}/\code{end} pair creates a separate
+phinterval element. \code{by} is recycled to match the common length of \code{start}
+and \code{end}.
+
+\code{by} must be a vector in the vctrs sense. See \verb{[vctrs::obj_is_vector()]}
+for details.}
+
+\item{order_by}{\verb{[TRUE / FALSE]}
+
+Should the output be ordered by the values in \code{by}? If \code{FALSE} (the default),
+the output order matches the first appearance of each group in \code{by}. If \code{TRUE},
+the output is sorted by the unique values of \code{by}. Only used when \code{by} is not
+\code{NULL}.}
 }
 \value{
-A \verb{<phinterval>} vector.
+When \code{by = NULL}, a \verb{<phinterval>} vector the same length as the recycled
+length of \code{start} and \code{end}.
+
+When \code{by} is provided, a \verb{<phinterval>} vector with one element per unique
+value of \code{by}.
 }
 \description{
-\code{phinterval()} creates a new \verb{<phinterval>} vector from a list of
-\code{\link[lubridate:interval]{lubridate::interval()}} vectors. A phinterval (think "potentially holey interval")
-is a span of time which may contain gaps.
+\code{phinterval()} creates a new \verb{<phinterval>} vector from start and end times.
+A phinterval (think "potentially holey interval") is a span of time which may
+contain gaps.
 }
 \details{
 The \verb{<phinterval>} class is designed as a generalization of the
-\link[lubridate:Interval-class]{lubridate::Interval}. While an \verb{<Interval>} element represents a
+\code{\link[lubridate:interval]{lubridate::interval()}}. While an \verb{<Interval>} element represents a
 single contiguous span between two fixed times, a \verb{<phinterval>} element can
 represent a time span that may be empty, contiguous, or disjoint (i.e. containing
 gaps). Each element of a \verb{<phinterval>} is stored as a (possibly empty) set of
 non-overlapping and non-abutting time spans.
+
+When \code{by = NULL} (the default), \code{phinterval()} creates scalar phinterval
+elements, where each element contains a single time span from \code{start[i]} to
+\code{end[i]}. This is equivilant to \code{\link[lubridate:interval]{lubridate::interval()}}:
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{interval(start, end, tzone = tzone)   # <Interval> vector
+phinterval(start, end, tzone = tzone) # <phinterval> vector
+}\if{html}{\out{</div>}}
+
+When \code{by} is provided, \code{phinterval()} groups the \code{start}/\code{end} pairs by the
+values in \code{by}, creating phinterval elements that may contain multiple disjoint
+time spans. Overlapping or abutting spans within each group are automatically
+merged.
 }
 \examples{
-jan <- interval(as.Date("2000-01-01"), as.Date("2000-02-01"), tz = "UTC")
-feb <- interval(as.Date("2000-02-01"), as.Date("2000-03-01"), tz = "UTC")
-nov <- interval(as.Date("2000-11-01"), as.Date("2000-12-01"), tz = "UTC")
+# Scalar phintervals (equivalent to interval())
+phinterval(
+  start = as.Date(c("2000-01-01", "2000-02-01")),
+  end = as.Date(c("2000-02-01", "2000-03-01"))
+)
 
-phinterval(list(jan, c(feb, nov)))
-phinterval(list(jan), tzone = "EST")
+# Grouped phintervals with multiple spans per element
+phinterval(
+  start = as.Date(c("2000-01-01", "2000-03-01", "2000-02-01")),
+  end = as.Date(c("2000-02-01", "2000-04-01", "2000-03-01")),
+  by = c(1, 1, 2)
+)
+
+# Overlapping spans are merged within groups
+phinterval(
+  start = as.Date(c("2000-01-01", "2000-01-15")),
+  end = as.Date(c("2000-02-01", "2000-02-15")),
+  by = 1
+)
+
+# Empty phinterval
 phinterval()
 
-# Empty (length 0) intervals can be used to create <hole> elements
-phinterval(list(interval()))
-
-# Abutting or overlapping intervals are merged into one span
-phinterval(list(c(jan, feb)))
+# Specify time zone
+phinterval(
+  start = as.Date("2000-01-01"),
+  end = as.Date("2000-02-01"),
+  tzone = "America/New_York"
+)
 
 }

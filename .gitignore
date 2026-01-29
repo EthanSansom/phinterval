@@ -4,7 +4,6 @@
 .httr-oauth
 .DS_Store
 .quarto
-R/under_construction/
 inst/doc
 docs
 /doc/

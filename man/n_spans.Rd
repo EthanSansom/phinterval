@@ -28,6 +28,7 @@ An integer vector the same length as \code{phint}.
 \code{phint}.
 }
 \examples{
+# Count spans
 y2000 <- interval(as.Date("2000-01-01"), as.Date("2001-01-01"))
 y2025 <- interval(as.Date("2025-01-01"), as.Date("2025-01-01"))
 

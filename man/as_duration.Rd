@@ -13,7 +13,9 @@ as_duration(x, ...)
 \method{as_duration}{phinterval}(x, ...)
 }
 \arguments{
-\item{x}{An object to convert.}
+\item{x}{\verb{[phinterval / Interval]}
+
+An object to convert.}
 
 \item{...}{Parameters passed to other methods. Currently unused.}
 }
@@ -21,8 +23,8 @@ as_duration(x, ...)
 A \verb{<Duration>} vector the same length as \code{x}.
 }
 \description{
-\code{as_duration()} changes \code{\link[lubridate:interval]{lubridate::interval()}} and \verb{<phinterval>} vectors
-into \code{\link[lubridate:duration]{lubridate::duration()}} vectors. The resulting duration measures the
+\code{as_duration()} converts a \code{\link[lubridate:interval]{lubridate::interval()}} or \code{\link[=phinterval]{phinterval()}} vector
+into a \code{\link[lubridate:duration]{lubridate::duration()}} vector. The resulting duration measures the
 length of time in seconds within each element of the interval or phinterval.
 
 \code{as_duration()} is a wrapper around \code{\link[lubridate:as.duration]{lubridate::as.duration()}}.

@@ -38,14 +38,12 @@ For \code{phint_length()}, a numeric vector the same length as \code{phint}.
 For \code{phint_lengths()}, a list of numeric vectors the same length as \code{phint}.
 }
 \description{
-Compute the length of a phinterval in seconds
-}
-\details{
-\code{phint_length()} calculates the total length of time spans within a
-phinterval. Instantaneous and empty time spans are 0 seconds long.
+\code{phint_length()} calculates the total length of all time spans within each
+phinterval element in seconds. For phintervals with multiple disjoint spans,
+the lengths are summed. Instantaneous intervals and holes have length 0.
 
-\code{phint_lengths()} calculates the length in seconds of each time span
-in a phinterval.
+\code{phint_lengths()} returns the individual length in seconds of each time span
+within each phinterval element.
 }
 \examples{
 monday <- interval(as.Date("2025-11-10"), as.Date("2025-11-11"))
