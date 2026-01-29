@@ -47,3 +47,12 @@ reference:
   - title: Package Options
     contents:
       - phinterval_options
+
+  - title: Re-Exports
+    contents:
+      - interval
+      - duration
+      - POSIXct
+      - NA_POSIXct_
+      - tzdb_names
+      - tzdb_version
