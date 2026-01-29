@@ -7,41 +7,48 @@ reference:
     contents:
       - phinterval
       - interval
+      - hole
       - duration
+      - POSIXct
+      - NA_POSIXct_
       - as_phinterval
       - as_duration
 
-  - title: Set Operations
+  - title: Set Operations and Modifications
     contents:
       - phint_union
       - phint_intersect
       - phint_setdiff
       - phint_complement
-
-  - title: Other Operations
-    contents:
-      - phint_squash
       - phint_invert
       - phint_sift
+      - phint_squash
+      - datetime_squash
 
-  - title: Predicates and Comparisons
+  - title: Relations and Predicates
     contents:
       - phint_overlaps
       - phint_within
       - is_hole
-      - n_spans
       - is_phinterval
       - is_phintish
 
   - title: Accessors
     contents:
+      - phint_unnest
       - phint_start
       - phint_end
       - phint_starts
       - phint_ends
-      - phint_to_spans
       - phint_length
       - phint_lengths
+      - n_spans
+
+  - title: Time Zones
+    contents:
+    - is_recognized_tzone
+    - tzdb_names
+    - tzdb_version
 
   - title: Package Options
     contents:
