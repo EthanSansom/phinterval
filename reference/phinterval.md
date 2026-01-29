@@ -22,8 +22,9 @@ phinterval(
 
   `[POSIXct / POSIXlt / Date]`
 
-  A pair of start and end datetime vectors. `start` and `end` are
-  recycled to a common length using vctrs-style recycling rules.
+  A pair of datetime vectors to represent the endpoints of the spans.
+  `start` and `end` are recycled to a common length using vctrs-style
+  recycling rules.
 
 - tzone:
 

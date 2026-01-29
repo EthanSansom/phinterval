@@ -312,6 +312,17 @@ package documentation.
 - [`phinterval_options`](https://ethansansom.github.io/phinterval/reference/phinterval_options.md)
   : Package options
 
+## Re-Exports
+
+- [`reexports`](https://ethansansom.github.io/phinterval/reference/reexports.md)
+  [`interval`](https://ethansansom.github.io/phinterval/reference/reexports.md)
+  [`duration`](https://ethansansom.github.io/phinterval/reference/reexports.md)
+  [`POSIXct`](https://ethansansom.github.io/phinterval/reference/reexports.md)
+  [`NA_POSIXct_`](https://ethansansom.github.io/phinterval/reference/reexports.md)
+  [`tzdb_names`](https://ethansansom.github.io/phinterval/reference/reexports.md)
+  [`tzdb_version`](https://ethansansom.github.io/phinterval/reference/reexports.md)
+  : Objects exported from other packages
+
 # Articles
 
 ### All vignettes

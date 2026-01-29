@@ -343,9 +343,8 @@ As a result, the intersection of `monday` and `tuesday` is an
 instantaneous interval at `midnight_monday`.
 
 ``` r
-phint_intersect(monday, tuesday) == midnight_monday
-#>   size starts   ends 
-#>  FALSE     NA     NA
+phint_intersect(monday, tuesday) == as_phinterval(midnight_monday)
+#> [1] TRUE
 ```
 
 Perhaps surprisingly, this also means that the intersection of `monday`
@@ -508,4 +507,28 @@ phint_union(int_utc, int_est)
 phint_union(int_lcl, int_est)
 #> <phinterval<EST>[1]>
 #> [1] {2019-12-31 19:00:00--2020-01-01 19:00:00}
+```
+
+### Comparison with Datetime Vectors
+
+Comparison operators (`<=`, `<`, `>`, `>=`, `==`) work in unexpected
+ways when comparing datetime vectors (`<Date>`, `<POSIXct>`,
+`<POSIXlt>`) to `<phinterval>` or `<Interval>` vectors. For example:
+
+``` r
+span <- phinterval(ymd("2000-08-05"), ymd("2000-11-29"))
+date <- ymd("2021-01-01")
+
+span == date
+#>   size starts   ends 
+#>  FALSE     NA     NA
+```
+
+For the intended behavior, use
+[`as_phinterval()`](https://ethansansom.github.io/phinterval/reference/as_phinterval.md)
+to convert datetime vectors into an equivalent `<phinterval>` first.
+
+``` r
+span == as_phinterval(date)
+#> [1] FALSE
 ```
