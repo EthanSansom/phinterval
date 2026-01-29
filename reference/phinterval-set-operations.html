@@ -66,7 +66,7 @@ operation. All functions follow vctrs-style recycling rules.</p><ul><li><p><code
 <span></span>
 <span><span class="fu">phint_union</span><span class="op">(</span><span class="va">phint1</span>, <span class="va">phint2</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">phint_intersect</span><span class="op">(</span><span class="va">phint1</span>, <span class="va">phint2</span><span class="op">)</span></span>
+<span><span class="fu">phint_intersect</span><span class="op">(</span><span class="va">phint1</span>, <span class="va">phint2</span>, bounds <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"[]"</span>, <span class="st">"()"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">phint_setdiff</span><span class="op">(</span><span class="va">phint1</span>, <span class="va">phint2</span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -82,8 +82,18 @@ operation. All functions follow vctrs-style recycling rules.</p><ul><li><p><code
 
 <dt id="arg-phint-phint-">phint1, phint2<a class="anchor" aria-label="anchor" href="#arg-phint-phint-"></a></dt>
 <dd><p><code>[phinterval / Interval]</code></p>
-<p>A pair of <code>&lt;phinterval&gt;</code> or <code>&lt;Interval&gt;</code> vectors of the same length or of
-length 1. Inputs of length 1 are recycled.</p></dd>
+<p>A pair of <code>&lt;phinterval&gt;</code> or <code>&lt;Interval&gt;</code> vectors. <code>phint1</code> and <code>phint2</code>
+are recycled to a common length using vctrs-style recycling.</p></dd>
+
+
+<dt id="arg-bounds">bounds<a class="anchor" aria-label="anchor" href="#arg-bounds"></a></dt>
+<dd><p><code>["[]" / "()"]</code></p>
+<p>For <code>phint_intersect()</code> only, whether span endpoints are inclusive or exclusive:</p><ul><li><p><code>"[]"</code> (default): Closed intervals - both endpoints are included</p></li>
+<li><p><code>"()"</code>: Open intervals - both endpoints are excluded</p></li>
+</ul><p>This affects adjacency and overlap detection. For example, with <code>bounds = "[]"</code>,
+the intervals <code>[1, 5]</code> and <code>[5, 10]</code> are considered adjacent (they share the
+endpoint 5), while with <code>bounds = "()"</code>, <code>(1, 5)</code> and <code>(5, 10)</code> are disjoint
+(neither includes 5).</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -93,22 +103,24 @@ length 1. Inputs of length 1 are recycled.</p></dd>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">monday</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2025-11-10"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2025-11-11"</span><span class="op">)</span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">monday</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2025-11-10"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2025-11-11"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">tuesday</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2025-11-11"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2025-11-12"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">friday</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2025-11-14"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2025-11-15"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">friday</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2025-11-14"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2025-11-15"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">jan_1_to_5</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2000-01-01"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2000-01-05"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">jan_3_to_9</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2000-01-03"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2000-01-09"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Complement</span></span></span>
 <span class="r-in"><span><span class="fu">phint_complement</span><span class="op">(</span><span class="va">jan_1_to_5</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;phinterval&lt;UTC&gt;[1]&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] {-Inf--2000-01-01, 2000-01-05--Inf}</span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># The complement of a &lt;hole&gt; is an infinite span covering all dates</span></span></span>
-<span class="r-in"><span><span class="va">hole</span> <span class="op">&lt;-</span> <span class="fu"><a href="phinterval.html">phinterval</a></span><span class="op">(</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># The complement of a hole is an infinite span covering all time</span></span></span>
+<span class="r-in"><span><span class="va">hole</span> <span class="op">&lt;-</span> <span class="fu"><a href="hole.html">hole</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">phint_complement</span><span class="op">(</span><span class="va">hole</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;phinterval&lt;UTC&gt;[1]&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;phinterval&lt;local&gt;[1]&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] {-Inf--Inf}</span>
 <span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Union</span></span></span>
 <span class="r-in"><span><span class="fu">phint_union</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">monday</span>, <span class="va">monday</span>, <span class="va">monday</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">tuesday</span>, <span class="va">friday</span>, <span class="cn">NA</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;phinterval&lt;UTC&gt;[3]&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] {2025-11-10--2025-11-12}                        </span>
@@ -122,20 +134,27 @@ length 1. Inputs of length 1 are recycled.</p></dd>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [2] {2025-11-10--2025-11-11, 2025-11-14--2025-11-15}</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [3] &lt;NA&gt;                                            </span>
 <span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Intersection</span></span></span>
 <span class="r-in"><span><span class="fu">phint_intersect</span><span class="op">(</span><span class="va">jan_1_to_5</span>, <span class="va">jan_3_to_9</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;phinterval&lt;UTC&gt;[1]&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] {2000-01-03--2000-01-05}</span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># The intersection of non-overlapping intervals is a &lt;hole&gt;</span></span></span>
+<span class="r-in"><span><span class="co"># The intersection of non-overlapping intervals is a hole</span></span></span>
 <span class="r-in"><span><span class="fu">phint_intersect</span><span class="op">(</span><span class="va">monday</span>, <span class="va">friday</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;phinterval&lt;UTC&gt;[1]&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] &lt;hole&gt;</span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># The intersection of adjacent intervals is an instant</span></span></span>
+<span class="r-in"><span><span class="co"># By default, the intersection of adjacent intervals is instantaneous</span></span></span>
 <span class="r-in"><span><span class="fu">phint_intersect</span><span class="op">(</span><span class="va">monday</span>, <span class="va">tuesday</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;phinterval&lt;UTC&gt;[1]&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] {2025-11-11--2025-11-11}</span>
 <span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Use bounds to set the intersection of adjacent intervals to a hole</span></span></span>
+<span class="r-in"><span><span class="fu">phint_intersect</span><span class="op">(</span><span class="va">monday</span>, <span class="va">tuesday</span>, bounds <span class="op">=</span> <span class="st">"()"</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;phinterval&lt;UTC&gt;[1]&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] &lt;hole&gt;</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Set difference</span></span></span>
 <span class="r-in"><span><span class="fu">phint_setdiff</span><span class="op">(</span><span class="va">jan_1_to_5</span>, <span class="va">jan_3_to_9</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;phinterval&lt;UTC&gt;[1]&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] {2000-01-01--2000-01-03}</span>

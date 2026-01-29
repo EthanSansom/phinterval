@@ -1,10 +1,12 @@
 # Convert a phinterval to a duration
 
-`as_duration()` changes
+`as_duration()` converts a
 [`lubridate::interval()`](https://lubridate.tidyverse.org/reference/interval.html)
-and `<phinterval>` vectors into
+or
+[`phinterval()`](https://ethansansom.github.io/phinterval/reference/phinterval.md)
+vector into a
 [`lubridate::duration()`](https://lubridate.tidyverse.org/reference/duration.html)
-vectors. The resulting duration measures the length of time in seconds
+vector. The resulting duration measures the length of time in seconds
 within each element of the interval or phinterval.
 
 `as_duration()` is a wrapper around
@@ -25,6 +27,8 @@ as_duration(x, ...)
 ## Arguments
 
 - x:
+
+  `[phinterval / Interval]`
 
   An object to convert.
 

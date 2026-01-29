@@ -1,6 +1,12 @@
 # Compute the length of a phinterval in seconds
 
-Compute the length of a phinterval in seconds
+`phint_length()` calculates the total length of all time spans within
+each phinterval element in seconds. For phintervals with multiple
+disjoint spans, the lengths are summed. Instantaneous intervals and
+holes have length 0.
+
+`phint_lengths()` returns the individual length in seconds of each time
+span within each phinterval element.
 
 ## Usage
 
@@ -42,14 +48,6 @@ For `phint_length()`, a numeric vector the same length as `phint`.
 
 For `phint_lengths()`, a list of numeric vectors the same length as
 `phint`.
-
-## Details
-
-`phint_length()` calculates the total length of time spans within a
-phinterval. Instantaneous and empty time spans are 0 seconds long.
-
-`phint_lengths()` calculates the length in seconds of each time span in
-a phinterval.
 
 ## Examples
 

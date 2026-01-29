@@ -46,13 +46,23 @@ functions.</p>
 
 <dl><dt id="arg-phint-phint-">phint1, phint2<a class="anchor" aria-label="anchor" href="#arg-phint-phint-"></a></dt>
 <dd><p><code>[phinterval / Interval]</code></p>
-<p>A pair of <code>&lt;phinterval&gt;</code> or <code>&lt;Interval&gt;</code> vectors of the same length or of
-length 1. Inputs of length 1 are recycled.</p></dd>
+<p>A pair of <code>&lt;phinterval&gt;</code> or <code>&lt;Interval&gt;</code> vectors. <code>phint1</code> and <code>phint2</code>
+are recycled to a common length using vctrs-style recycling.</p></dd>
 
 
 <dt id="arg-phint">phint<a class="anchor" aria-label="anchor" href="#arg-phint"></a></dt>
 <dd><p><code>[phinterval / Interval]</code></p>
 <p>A <code>&lt;phinterval&gt;</code> or <code>&lt;Interval&gt;</code> vector.</p></dd>
+
+
+<dt id="arg-bounds">bounds<a class="anchor" aria-label="anchor" href="#arg-bounds"></a></dt>
+<dd><p><code>["[]" / "()"]</code></p>
+<p>Whether span endpoints are inclusive or exclusive:</p><ul><li><p><code>"[]"</code> (default): Closed intervals - both endpoints are included</p></li>
+<li><p><code>"()"</code>: Open intervals - both endpoints are excluded</p></li>
+</ul><p>This affects adjacency and overlap detection. For example, with <code>bounds = "[]"</code>,
+the intervals <code>[1, 5]</code> and <code>[5, 10]</code> are considered adjacent (they share the
+endpoint 5), while with <code>bounds = "()"</code>, <code>(1, 5)</code> and <code>(5, 10)</code> are disjoint
+(neither includes 5).</p></dd>
 
 </dl></div>
     <div class="section level2">

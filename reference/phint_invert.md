@@ -1,28 +1,19 @@
 # Get the gaps in a phinterval as time spans
 
-`phint_invert()` returns the gaps in a phinterval as a `<phinterval>`
-vector. Contiguous time spans (e.g.
+`phint_invert()` returns the gaps within a phinterval as a
+`<phinterval>` vector. For phintervals with multiple disjoint spans, the
+gaps between those spans are returned. Contiguous time spans (e.g.,
 [`lubridate::interval()`](https://lubridate.tidyverse.org/reference/interval.html)
-vectors) are inverted to `<hole>` time spans.
+vectors) have no gaps and are inverted to holes.
 
 `phint_invert()` is similar to
 [`phint_complement()`](https://ethansansom.github.io/phinterval/reference/phinterval-set-operations.md),
-except that the time occurring outside the extent of `phint` (i.e.
-before its earliest start or after its latest end) is not included in
-the result.
+except that time occurring outside the extent of `phint` (before its
+earliest start or after its latest end) is not included in the result.
 
 ## Usage
 
 ``` r
-phint_invert(phint, hole_to = c("hole", "inf", "na"))
-
-# Default S3 method
-phint_invert(phint, hole_to = c("hole", "inf", "na"))
-
-# S3 method for class 'Interval'
-phint_invert(phint, hole_to = c("hole", "inf", "na"))
-
-# S3 method for class 'phinterval'
 phint_invert(phint, hole_to = c("hole", "inf", "na"))
 ```
 
@@ -38,14 +29,13 @@ phint_invert(phint, hole_to = c("hole", "inf", "na"))
 
   `["hole" / "inf" / "na"]`
 
-  What to turn `<hole>` (i.e. empty) time spans into.
+  How to handle holes (empty phinterval elements):
 
-  - If `hole_to = "hole"` (the default), `<hole>` spans remain as
-    `<hole>` elements.
+  - `"hole"` (default): Holes remain as holes
 
-  - If `"inf"`, they are returned as a time span from `-Inf` to `Inf`.
+  - `"inf"`: Return a span from `-Inf` to `Inf` (all time)
 
-  - If `"na"`, they are returned as a missing (`NA`) span.
+  - `"na"`: Return an `NA` phinterval
 
 ## Value
 
@@ -58,30 +48,31 @@ monday <- interval(as.Date("2025-11-10"), as.Date("2025-11-11"))
 friday <- interval(as.Date("2025-11-14"), as.Date("2025-11-15"))
 sunday <- interval(as.Date("2025-11-16"), as.Date("2025-11-17"))
 
-# Contiguous intervals are inverted to holes,
-# disjoint intervals to spans
+# Contiguous intervals have no gaps (inverted to holes)
 phint_invert(monday)
 #> <phinterval<UTC>[1]>
 #> [1] <hole>
+
+# Disjoint intervals: gaps between spans are returned
 phint_invert(phint_squash(c(monday, friday, sunday)))
 #> <phinterval<UTC>[1]>
 #> [1] {2025-11-11--2025-11-14, 2025-11-15--2025-11-16}
 
+# The gap between Monday and Friday is Tuesday through Thursday
 tues_to_thurs <- interval(as.Date("2025-11-11"), as.Date("2025-11-14"))
 phint_invert(phint_union(monday, friday)) == tues_to_thurs
 #> [1] TRUE
 
-# The time before `monday` and after `friday` is included
-# in the complement, but not the inversion
+# Invert vs complement: time before and after is excluded from invert
 mon_and_fri <- phint_union(monday, friday)
 phint_invert(mon_and_fri)
 #> <phinterval<UTC>[1]>
 #> [1] {2025-11-11--2025-11-14}
 phint_complement(mon_and_fri)
 #> <phinterval<UTC>[1]>
-#> [1] {-Inf--2025-11-10, 2025-11-11--2025-11-14, 2025-11-15--Inf}
+#> [1] {-Inf-[3]-Inf}
 
-# Specify how to invert empty time spans
+# How to invert holes
 hole <- phint_intersect(monday, friday)
 phint_invert(hole, hole_to = "hole")
 #> <phinterval<UTC>[1]>

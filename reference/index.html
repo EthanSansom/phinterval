@@ -49,17 +49,24 @@
 
         <dt>
 
-          <code><a href="reexports.html">reexports</a></code> <code><a href="reexports.html">interval</a></code> <code><a href="reexports.html">duration</a></code>
+          <code><a href="reexports.html">reexports</a></code> <code><a href="reexports.html">interval</a></code> <code><a href="reexports.html">duration</a></code> <code><a href="reexports.html">POSIXct</a></code> <code><a href="reexports.html">NA_POSIXct_</a></code> <code><a href="reexports.html">tzdb_names</a></code> <code><a href="reexports.html">tzdb_version</a></code>
 
         </dt>
         <dd>Objects exported from other packages</dd>
 
         <dt>
 
+          <code><a href="hole.html">hole()</a></code>
+
+        </dt>
+        <dd>Create a hole phinterval</dd>
+
+        <dt>
+
           <code><a href="as_phinterval.html">as_phinterval()</a></code>
 
         </dt>
-        <dd>Convert an interval vector into a phinterval</dd>
+        <dd>Convert an interval or datetime vector into a phinterval</dd>
 
         <dt>
 
@@ -68,7 +75,7 @@
         </dt>
         <dd>Convert a phinterval to a duration</dd>
       </dl></div><div class="section level2">
-      <h2 id="set-operations">Set Operations<a class="anchor" aria-label="anchor" href="#set-operations"></a></h2>
+      <h2 id="set-operations-and-modifications">Set Operations and Modifications<a class="anchor" aria-label="anchor" href="#set-operations-and-modifications"></a></h2>
 
 
 
@@ -83,22 +90,6 @@
 
         </dt>
         <dd>Vectorized set operations</dd>
-      </dl></div><div class="section level2">
-      <h2 id="other-operations">Other Operations<a class="anchor" aria-label="anchor" href="#other-operations"></a></h2>
-
-
-
-      <dl></dl></div><div class="section level2">
-
-
-
-
-      <dl><dt>
-
-          <code><a href="phint_squash.html">phint_squash()</a></code>
-
-        </dt>
-        <dd>Flatten a phinterval</dd>
 
         <dt>
 
@@ -113,8 +104,15 @@
 
         </dt>
         <dd>Remove instantaneous time spans from a phinterval</dd>
+
+        <dt>
+
+          <code><a href="squash.html">phint_squash()</a></code> <code><a href="squash.html">datetime_squash()</a></code>
+
+        </dt>
+        <dd>Squash overlapping intervals into non-overlapping spans</dd>
       </dl></div><div class="section level2">
-      <h2 id="predicates-and-comparisons">Predicates and Comparisons<a class="anchor" aria-label="anchor" href="#predicates-and-comparisons"></a></h2>
+      <h2 id="relations-and-predicates">Relations and Predicates<a class="anchor" aria-label="anchor" href="#relations-and-predicates"></a></h2>
 
 
 
@@ -135,7 +133,7 @@
           <code><a href="phint_within.html">phint_within()</a></code>
 
         </dt>
-        <dd>Test whether a date, time, or phinterval is within another phinterval</dd>
+        <dd>Test whether a datetime or phinterval is within another phinterval</dd>
 
         <dt>
 
@@ -143,13 +141,6 @@
 
         </dt>
         <dd>Test for empty intervals</dd>
-
-        <dt>
-
-          <code><a href="n_spans.html">n_spans()</a></code>
-
-        </dt>
-        <dd>Count the number of spans in a phinterval</dd>
 
         <dt>
 
@@ -176,6 +167,13 @@
 
       <dl><dt>
 
+          <code><a href="phint_unnest.html">phint_unnest()</a></code>
+
+        </dt>
+        <dd>Unnest a phinterval into a data frame</dd>
+
+        <dt>
+
           <code><a href="phinterval-accessors.html">phint_start()</a></code> <code><a href="phinterval-accessors.html">phint_end()</a></code> <code><a href="phinterval-accessors.html">phint_starts()</a></code> <code><a href="phinterval-accessors.html">phint_ends()</a></code>
 
         </dt>
@@ -183,17 +181,40 @@
 
         <dt>
 
-          <code><a href="phint_to_spans.html">phint_to_spans()</a></code>
-
-        </dt>
-        <dd>Convert a phinterval into a list of intervals</dd>
-
-        <dt>
-
           <code><a href="phint_length.html">phint_length()</a></code> <code><a href="phint_length.html">phint_lengths()</a></code>
 
         </dt>
         <dd>Compute the length of a phinterval in seconds</dd>
+
+        <dt>
+
+          <code><a href="n_spans.html">n_spans()</a></code>
+
+        </dt>
+        <dd>Count the number of spans in a phinterval</dd>
+      </dl></div><div class="section level2">
+      <h2 id="time-zones">Time Zones<a class="anchor" aria-label="anchor" href="#time-zones"></a></h2>
+
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="is_recognized_tzone.html">is_recognized_tzone()</a></code>
+
+        </dt>
+        <dd>Test if the object is a recognized time zone</dd>
+
+        <dt>
+
+          <code><a href="reexports.html">reexports</a></code> <code><a href="reexports.html">interval</a></code> <code><a href="reexports.html">duration</a></code> <code><a href="reexports.html">POSIXct</a></code> <code><a href="reexports.html">NA_POSIXct_</a></code> <code><a href="reexports.html">tzdb_names</a></code> <code><a href="reexports.html">tzdb_version</a></code>
+
+        </dt>
+        <dd>Objects exported from other packages</dd>
       </dl></div><div class="section level2">
       <h2 id="package-options">Package Options<a class="anchor" aria-label="anchor" href="#package-options"></a></h2>
 

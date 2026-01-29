@@ -68,9 +68,9 @@
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://lubridate.tidyverse.org" class="external-link">lubridate</a></span>, warn.conflicts <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span>, warn.conflicts <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyr.tidyverse.org" class="external-link">tidyr</a></span>, warn.conflicts <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
-<div class="section level2">
-<h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
-</h2>
+<div class="section level3">
+<h3 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
+</h3>
 <p>The phinterval package extends <a href="https://lubridate.tidyverse.org/" class="external-link">{lubridate}</a> to support
 disjoint (“holey”) and empty time spans. It implements the
 <code>&lt;phinterval&gt;</code> vector class, a generalization of the
@@ -95,21 +95,21 @@ an equivalent <code>&lt;phinterval&gt;</code> vector using
 <code>&lt;Interval&gt;</code> or <code>&lt;phinterval&gt;</code>
 inputs.</p>
 </div>
-<div class="section level2">
-<h2 id="when-time-isnt-continuous">When Time Isn’t Continuous<a class="anchor" aria-label="anchor" href="#when-time-isnt-continuous"></a>
-</h2>
+<div class="section level3">
+<h3 id="when-time-isnt-continuous">When Time Isn’t Continuous<a class="anchor" aria-label="anchor" href="#when-time-isnt-continuous"></a>
+</h3>
 <p>Certain set operations on time spans naturally produce empty or
 disjoint results, which are difficult to represent using a standard
 interval. This section illustrates several such edge cases using the
 months of January and November 2025, along with the full calendar
 year.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">jan</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval</a></span><span class="op">(</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2025-01-01"</span><span class="op">)</span>, <span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2025-01-01"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/weekday.POSIXt.html" class="external-link">months</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">nov</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval</a></span><span class="op">(</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2025-11-01"</span><span class="op">)</span>, <span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2025-11-01"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/weekday.POSIXt.html" class="external-link">months</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">full_2025</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval</a></span><span class="op">(</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2025-01-01"</span><span class="op">)</span>, <span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2025-01-01"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/period.html" class="external-link">years</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<div class="section level3">
-<h3 id="empty-intersections">Empty Intersections<a class="anchor" aria-label="anchor" href="#empty-intersections"></a>
-</h3>
+<code class="sourceCode R"><span><span class="va">jan</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval</a></span><span class="op">(</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2025-01-01"</span><span class="op">)</span>, <span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2025-02-01"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">nov</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval</a></span><span class="op">(</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2025-11-01"</span><span class="op">)</span>, <span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2025-12-01"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">full_2025</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval</a></span><span class="op">(</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2025-01-01"</span><span class="op">)</span>, <span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2026-01-01"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<div class="section level4">
+<h4 id="empty-intersections">Empty Intersections<a class="anchor" aria-label="anchor" href="#empty-intersections"></a>
+</h4>
 <p>Because January and November do not overlap, their intersection
 should contain no time.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
@@ -132,9 +132,9 @@ November:</p>
 <span><span class="fu"><a href="../reference/phinterval-set-operations.html">phint_intersect</a></span><span class="op">(</span><span class="va">jan</span>, <span class="va">nov</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/duration.html" class="external-link">duration</a></span><span class="op">(</span>days <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 0</span></span></code></pre></div>
 </div>
-<div class="section level3">
-<h3 id="punching-holes-in-intervals">Punching Holes in Intervals<a class="anchor" aria-label="anchor" href="#punching-holes-in-intervals"></a>
-</h3>
+<div class="section level4">
+<h4 id="punching-holes-in-intervals">Punching Holes in Intervals<a class="anchor" aria-label="anchor" href="#punching-holes-in-intervals"></a>
+</h4>
 <p>Next, consider subtracting the month of November from the full year
 of 2025.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
@@ -150,9 +150,9 @@ December, which can’t be represented by a single interval. As a result,
 lubridate raises an error. In phinterval, the disjoint span is
 represented as a single object with an explicit gap.</p>
 </div>
-<div class="section level3">
-<h3 id="unions-of-non-overlapping-spans">Unions of Non-Overlapping Spans<a class="anchor" aria-label="anchor" href="#unions-of-non-overlapping-spans"></a>
-</h3>
+<div class="section level4">
+<h4 id="unions-of-non-overlapping-spans">Unions of Non-Overlapping Spans<a class="anchor" aria-label="anchor" href="#unions-of-non-overlapping-spans"></a>
+</h4>
 <p>Similarly, the union of January and November contains a gap from
 February to October.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
@@ -166,9 +166,9 @@ February to October.</p>
 to the end of November, implicitly filling in the gap. The two disjoint
 months are represented explicitly using phinterval.</p>
 </div>
-<div class="section level3">
-<h3 id="subtracting-an-interval-from-itself">Subtracting an Interval from Itself<a class="anchor" aria-label="anchor" href="#subtracting-an-interval-from-itself"></a>
-</h3>
+<div class="section level4">
+<h4 id="subtracting-an-interval-from-itself">Subtracting an Interval from Itself<a class="anchor" aria-label="anchor" href="#subtracting-an-interval-from-itself"></a>
+</h4>
 <p>Finally, consider subtracting an interval from itself. Intuitively,
 this should result in an empty time span.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
@@ -182,9 +182,9 @@ this should result in an empty time span.</p>
 phinterval returns a <code>&lt;hole&gt;</code>.</p>
 </div>
 </div>
-<div class="section level2">
-<h2 id="case-study-employment-history">Case Study: Employment History<a class="anchor" aria-label="anchor" href="#case-study-employment-history"></a>
-</h2>
+<div class="section level3">
+<h3 id="case-study-employment-history">Case Study: Employment History<a class="anchor" aria-label="anchor" href="#case-study-employment-history"></a>
+</h3>
 <p>The phinterval package is most useful when working with tabular data
 and vectorized workflows. To illustrate this, we’ll consider an abridged
 employment history for several characters from the television show
@@ -225,11 +225,12 @@ Consultant role.</p>
 split Shiv’s job into two rows (one pre-vacation and one post-vacation),
 breaking the one-row-per-job structure of the data. Another is to
 represent each job as a list of intervals, complicating downstream
-analysis. The main purpose of phinterval is to avoid these workarounds,
-by providing drop-in replacements for lubridate interval functions.
-Because phinterval functions accept either <code>&lt;Interval&gt;</code>
-or <code>&lt;phinterval&gt;</code> inputs, existing code can typically
-be adapted by simply replacing a lubridate function with its phinterval
+analysis.</p>
+<p>The main purpose of phinterval is to avoid these workarounds, by
+providing drop-in replacements for lubridate interval functions. Because
+phinterval functions accept either <code>&lt;Interval&gt;</code> or
+<code>&lt;phinterval&gt;</code> inputs, existing code can typically be
+adapted by simply replacing a lubridate function with its phinterval
 counterpart.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">jobs</span> <span class="op">|&gt;</span></span>
@@ -239,35 +240,35 @@ counterpart.</p>
 <span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">name</span>, <span class="va">job_title</span>, <span class="va">span</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 6 × 3</span></span></span>
-<span><span class="co">#&gt;   name  job_title                                                        span</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                                                    <span style="color: #949494; font-style: italic;">&lt;phint&lt;UTC&gt;&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> Greg  Mascot                                       {2018-01-01--2018-06-03}</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> Greg  Executive Assistant                          {2018-06-10--2020-04-01}</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> Greg  Chief of Staff                               {2020-03-01--2020-11-28}</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> Tom   Chairman                                     {2019-05-01--2020-11-10}</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> Tom   CEO                                          {2020-11-10--2020-12-31}</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> Shiv  Political Consultant {2017-01-01--2017-12-23, 2017-12-29--2019-04-01}</span></span></code></pre></div>
-<div class="section level3">
-<h3 id="merging-intervals">Merging Intervals<a class="anchor" aria-label="anchor" href="#merging-intervals"></a>
-</h3>
+<span><span class="co">#&gt;   name  job_title            span                       </span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                <span style="color: #949494; font-style: italic;">&lt;phint&lt;UTC&gt;&gt;</span>               </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> Greg  Mascot               {2018-01-01--2018-06-03}   </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> Greg  Executive Assistant  {2018-06-10--2020-04-01}   </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> Greg  Chief of Staff       {2020-03-01--2020-11-28}   </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> Tom   Chairman             {2019-05-01--2020-11-10}   </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> Tom   CEO                  {2020-11-10--2020-12-31}   </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> Shiv  Political Consultant {2017-01-01-[2]-2019-04-01}</span></span></code></pre></div>
+<div class="section level4">
+<h4 id="merging-intervals">Merging Intervals<a class="anchor" aria-label="anchor" href="#merging-intervals"></a>
+</h4>
 <p>Suppose we want to analyze only the total time each character spent
 employed, without distinguishing between individual jobs. This can be
-done using <code><a href="../reference/phint_squash.html">phint_squash()</a></code>, which aggregates a vector of
+done using <code><a href="../reference/squash.html">phint_squash()</a></code>, which aggregates a vector of
 intervals into a minimal set of non-overlapping spans within a scalar
 <code>&lt;phinterval&gt;</code>.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">employment</span> <span class="op">&lt;-</span> <span class="va">jobs</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>span <span class="op">=</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval</a></span><span class="op">(</span><span class="va">start</span>, <span class="va">end</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">name</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarize</a></span><span class="op">(</span>employed <span class="op">=</span> <span class="fu"><a href="../reference/phint_squash.html">phint_squash</a></span><span class="op">(</span><span class="va">span</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarize</a></span><span class="op">(</span>employed <span class="op">=</span> <span class="fu"><a href="../reference/squash.html">phint_squash</a></span><span class="op">(</span><span class="va">span</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">employment</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 3 × 2</span></span></span>
-<span><span class="co">#&gt;   name                                          employed</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                                     <span style="color: #949494; font-style: italic;">&lt;phint&lt;UTC&gt;&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> Greg  {2018-01-01--2018-06-03, 2018-06-10--2020-11-28}</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> Shiv                          {2017-01-01--2019-04-01}</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> Tom                           {2019-05-01--2020-12-31}</span></span></code></pre></div>
+<span><span class="co">#&gt;   name  employed                   </span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;phint&lt;UTC&gt;&gt;</span>               </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> Greg  {2018-01-01-[2]-2020-11-28}</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> Shiv  {2017-01-01--2019-04-01}   </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> Tom   {2019-05-01--2020-12-31}</span></span></code></pre></div>
 <p>Notice that:</p>
 <ul>
 <li>
@@ -276,39 +277,51 @@ preserved as separate spans within a single
 <code>&lt;phinterval&gt;</code> element.</li>
 <li>
 <em>Tom</em> held two back-to-back positions (Chairman followed by
-CEO), which <code><a href="../reference/phint_squash.html">phint_squash()</a></code> correctly merges into a single
+CEO), which <code><a href="../reference/squash.html">phint_squash()</a></code> correctly merges into a single
 contiguous span.</li>
 </ul>
-<p>To return the dataset to a one-row-per-span format, we can extract
-the start and end points of each <code>&lt;phinterval&gt;</code> element
-using <code><a href="../reference/phinterval-accessors.html">phint_starts()</a></code> and <code><a href="../reference/phinterval-accessors.html">phint_ends()</a></code>. These
-functions return lists of start and end dates, which can then be
-unnested back into separate rows:</p>
+<p>The <code>by</code> argument of <code><a href="../reference/squash.html">phint_squash()</a></code> and
+<code><a href="../reference/squash.html">datetime_squash()</a></code> (which takes <code>start</code> and
+<code>end</code> times directly) can be used in place of
+<code><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">dplyr::group_by()</a></code>. The example below is equivalent to the
+previous code but is usually several times faster.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/squash.html">datetime_squash</a></span><span class="op">(</span></span>
+<span>  start <span class="op">=</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="va">jobs</span><span class="op">$</span><span class="va">start</span><span class="op">)</span>,</span>
+<span>  end <span class="op">=</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="va">jobs</span><span class="op">$</span><span class="va">end</span><span class="op">)</span>,</span>
+<span>  by <span class="op">=</span> <span class="va">jobs</span><span class="op">$</span><span class="va">name</span>,</span>
+<span>  keep_by <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  order_by <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/as_tibble.html" class="external-link">as_tibble</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 3 × 2</span></span></span>
+<span><span class="co">#&gt;   by    phint                      </span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;phint&lt;UTC&gt;&gt;</span>               </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> Greg  {2018-01-01-[2]-2020-11-28}</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> Shiv  {2017-01-01--2019-04-01}   </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> Tom   {2019-05-01--2020-12-31}</span></span></code></pre></div>
+<p>As in <code><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">dplyr::summarize()</a></code>, the <code>by</code> argument
+can be a vector or data frame to support multiple grouping columns.</p>
+<p>To return the dataset to a one-row-per-span format, use
+<code><a href="../reference/phint_unnest.html">phint_unnest()</a></code>, which converts each
+<code>&lt;phinterval&gt;</code> element into separate rows:</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">employment</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span></span>
-<span>    start <span class="op">=</span> <span class="fu"><a href="../reference/phinterval-accessors.html">phint_starts</a></span><span class="op">(</span><span class="va">employed</span><span class="op">)</span>, </span>
-<span>    end <span class="op">=</span> <span class="fu"><a href="../reference/phinterval-accessors.html">phint_ends</a></span><span class="op">(</span><span class="va">employed</span><span class="op">)</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/unnest.html" class="external-link">unnest</a></span><span class="op">(</span>cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">start</span>, <span class="va">end</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">employed</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/reframe.html" class="external-link">reframe</a></span><span class="op">(</span><span class="fu"><a href="../reference/phint_unnest.html">phint_unnest</a></span><span class="op">(</span><span class="va">employed</span>, key <span class="op">=</span> <span class="va">name</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 4 × 3</span></span></span>
-<span><span class="co">#&gt;   name  start               end                </span></span>
+<span><span class="co">#&gt;   key   start               end                </span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dttm&gt;</span>              <span style="color: #949494; font-style: italic;">&lt;dttm&gt;</span>             </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> Greg  2018-01-01 <span style="color: #949494;">00:00:00</span> 2018-06-03 <span style="color: #949494;">00:00:00</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> Greg  2018-06-10 <span style="color: #949494;">00:00:00</span> 2020-11-28 <span style="color: #949494;">00:00:00</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> Shiv  2017-01-01 <span style="color: #949494;">00:00:00</span> 2019-04-01 <span style="color: #949494;">00:00:00</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> Tom   2019-05-01 <span style="color: #949494;">00:00:00</span> 2020-12-31 <span style="color: #949494;">00:00:00</span></span></span></code></pre></div>
-<p>The resulting tidy format integrates well with <a href="https://dplyr.tidyverse.org/" class="external-link">{dplyr}</a> and lubridate
-workflows.</p>
 </div>
-<div class="section level3">
-<h3 id="finding-gaps">Finding Gaps<a class="anchor" aria-label="anchor" href="#finding-gaps"></a>
-</h3>
+<div class="section level4">
+<h4 id="finding-gaps">Finding Gaps<a class="anchor" aria-label="anchor" href="#finding-gaps"></a>
+</h4>
 <p>To analyze periods of unemployment, we need to identify the gaps
 between employment intervals. The <code><a href="../reference/phint_invert.html">phint_invert()</a></code> function
 returns the gaps between spans in a <code>&lt;phinterval&gt;</code>.</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">unemployment</span> <span class="op">&lt;-</span> <span class="va">employment</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span></span>
 <span>    <span class="co"># Find the gaps between jobs</span></span>
@@ -321,15 +334,175 @@ returns the gaps between spans in a <code>&lt;phinterval&gt;</code>.</p>
 <span></span>
 <span><span class="va">unemployment</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 3 × 3</span></span></span>
-<span><span class="co">#&gt;   name                unemployed days_unemployed</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>             <span style="color: #949494; font-style: italic;">&lt;phint&lt;UTC&gt;&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt;   name  unemployed               days_unemployed</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;phint&lt;UTC&gt;&gt;</span>                       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> Greg  {2018-06-03--2018-06-10}               7</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> Shiv                    &lt;hole&gt;               0</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> Tom                     &lt;hole&gt;               0</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> Shiv  &lt;hole&gt;                                 0</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> Tom   &lt;hole&gt;                                 0</span></span></code></pre></div>
 <p>Greg was unemployed for 7 days between his time as a Mascot and his
 role as Executive Assistant. Tom and Shiv have no gaps within their
 respective employment timelines, represented by a
 <code>&lt;hole&gt;</code>.</p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="edge-cases-and-gotchas">Edge Cases and Gotchas<a class="anchor" aria-label="anchor" href="#edge-cases-and-gotchas"></a>
+</h2>
+<div class="section level3">
+<h3 id="abutting-intervals-and-intersection">Abutting Intervals and Intersection<a class="anchor" aria-label="anchor" href="#abutting-intervals-and-intersection"></a>
+</h3>
+<p>Manipulating abutting intervals (intervals that share an endpoint)
+can produce sometimes unexpected results. To demonstrate, consider the
+time within a Monday and Tuesday in November 2025.</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">monday</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval</a></span><span class="op">(</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2025-11-10"</span><span class="op">)</span>, <span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2025-11-11"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">tuesday</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval</a></span><span class="op">(</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2025-11-11"</span><span class="op">)</span>, <span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2025-11-12"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>By default, intervals in <code>&lt;phinterval&gt;</code> and
+<code>&lt;Interval&gt;</code> vectors have inclusive endpoints, meaning
+that midnight on Monday, November 11th, 2025 falls within both
+<code>monday</code> and <code>tuesday</code>:</p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">midnight_monday</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd_hms.html" class="external-link">ymd_hms</a></span><span class="op">(</span><span class="st">"2025-11-11 00:00:00"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/phint_within.html">phint_within</a></span><span class="op">(</span><span class="va">midnight_monday</span>, <span class="va">monday</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span>
+<span><span class="fu"><a href="../reference/phint_within.html">phint_within</a></span><span class="op">(</span><span class="va">midnight_monday</span>, <span class="va">tuesday</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+<p>As a result, the intersection of <code>monday</code> and
+<code>tuesday</code> is an instantaneous interval at
+<code>midnight_monday</code>.</p>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/phinterval-set-operations.html">phint_intersect</a></span><span class="op">(</span><span class="va">monday</span>, <span class="va">tuesday</span><span class="op">)</span> <span class="op">==</span> <span class="va">midnight_monday</span></span>
+<span><span class="co">#&gt;   size starts   ends </span></span>
+<span><span class="co">#&gt;  FALSE     NA     NA</span></span></code></pre></div>
+<p>Perhaps surprisingly, this also means that the intersection of
+<code>monday</code> and its complement is not empty, but consists of the
+two endpoints of <code>monday</code>.</p>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">not_monday</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/phinterval-set-operations.html">phint_complement</a></span><span class="op">(</span><span class="va">monday</span><span class="op">)</span></span>
+<span><span class="va">not_monday</span></span>
+<span><span class="co">#&gt; &lt;phinterval&lt;UTC&gt;[1]&gt;</span></span>
+<span><span class="co">#&gt; [1] {-Inf--2025-11-10, 2025-11-11--Inf}</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/phinterval-set-operations.html">phint_intersect</a></span><span class="op">(</span><span class="va">monday</span>, <span class="va">not_monday</span><span class="op">)</span></span>
+<span><span class="co">#&gt; &lt;phinterval&lt;UTC&gt;[1]&gt;</span></span>
+<span><span class="co">#&gt; [1] {2025-11-10--2025-11-10, 2025-11-11--2025-11-11}</span></span></code></pre></div>
+<p>The bounds argument in <code><a href="../reference/phint_overlaps.html">phint_overlaps()</a></code>,
+<code><a href="../reference/phint_within.html">phint_within()</a></code>, and <code><a href="../reference/phinterval-set-operations.html">phint_intersect()</a></code> controls
+this behavior. When <code>bounds = "()"</code>, endpoints are treated as
+exclusive:</p>
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/phint_overlaps.html">phint_overlaps</a></span><span class="op">(</span><span class="va">monday</span>, <span class="va">tuesday</span>, bounds <span class="op">=</span> <span class="st">"()"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] FALSE</span></span>
+<span><span class="fu"><a href="../reference/phinterval-set-operations.html">phint_intersect</a></span><span class="op">(</span><span class="va">monday</span>, <span class="va">tuesday</span>, bounds <span class="op">=</span> <span class="st">"()"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; &lt;phinterval&lt;UTC&gt;[1]&gt;</span></span>
+<span><span class="co">#&gt; [1] &lt;hole&gt;</span></span></code></pre></div>
+<p>With exclusive endpoints, <code>monday</code> and
+<code>tuesday</code> no longer overlap, and their intersection is
+empty.</p>
+<p>An instantaneous interval <code>(point, point)</code> with open
+bounds is mathematically undefined, but for convenience we allow these
+points to exist. With <code>bounds = "()"</code>, instants on the
+endpoint of an interval are outside of the interval, while instants in
+the middle of an interval are considered to be within it:</p>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">monday_at_9AM</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/as_phinterval.html">as_phinterval</a></span><span class="op">(</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd_hms.html" class="external-link">ymd_hms</a></span><span class="op">(</span><span class="st">"2025-11-10 00:09:00"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/phint_within.html">phint_within</a></span><span class="op">(</span><span class="va">monday_at_9AM</span>, <span class="va">monday</span>, bounds <span class="op">=</span> <span class="st">"()"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span>
+<span><span class="fu"><a href="../reference/phint_within.html">phint_within</a></span><span class="op">(</span><span class="va">midnight_monday</span>, <span class="va">monday</span>, bounds <span class="op">=</span> <span class="st">"()"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] FALSE</span></span></code></pre></div>
+<p>To consider instantaneous intervals as empty, use
+<code><a href="../reference/phint_sift.html">phint_sift()</a></code> to remove all instants from an interval
+vector:</p>
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">phint</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/squash.html">phint_squash</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">monday_at_9AM</span>, <span class="va">tuesday</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">phint</span></span>
+<span><span class="co">#&gt; &lt;phinterval&lt;UTC&gt;[1]&gt;</span></span>
+<span><span class="co">#&gt; [1] {2025-11-10 00:09:00--2025-11-10 00:09:00, 2025-11-11 00:00:00--2025-11-12 00:00:00}</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/phint_sift.html">phint_sift</a></span><span class="op">(</span><span class="va">phint</span><span class="op">)</span></span>
+<span><span class="co">#&gt; &lt;phinterval&lt;UTC&gt;[1]&gt;</span></span>
+<span><span class="co">#&gt; [1] {2025-11-11--2025-11-12}</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="instantaneous-intervals-and-set-difference">Instantaneous Intervals and Set Difference<a class="anchor" aria-label="anchor" href="#instantaneous-intervals-and-set-difference"></a>
+</h3>
+<p>Because phinterval elements are composed of non-overlapping,
+non-adjacent spans, “punching” an instantaneous hole into an interval
+using <code><a href="../reference/phinterval-set-operations.html">phint_setdiff()</a></code> has no effect on the interval. While
+removing a single point from an interval <code>[start, end]</code> would
+theoretically split it into <code>[start, point)</code> and
+<code>(point, end]</code>, in practice these adjacent pieces are
+immediately merged back together:</p>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">monday_noon</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/as_phinterval.html">as_phinterval</a></span><span class="op">(</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd_hms.html" class="external-link">ymd_hms</a></span><span class="op">(</span><span class="st">"2025-11-10 12:00:00"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">monday_lunch_break</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd_hms.html" class="external-link">ymd_hms</a></span><span class="op">(</span><span class="st">"2025-11-10 12:00:00"</span><span class="op">)</span>, </span>
+<span>  <span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd_hms.html" class="external-link">ymd_hms</a></span><span class="op">(</span><span class="st">"2025-11-10 13:00:00"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/phinterval-set-operations.html">phint_setdiff</a></span><span class="op">(</span><span class="va">monday</span>, <span class="va">monday_lunch_break</span><span class="op">)</span> <span class="co"># Removes a non-zero interval</span></span>
+<span><span class="co">#&gt; &lt;phinterval&lt;UTC&gt;[1]&gt;</span></span>
+<span><span class="co">#&gt; [1] {2025-11-10 00:00:00--2025-11-10 12:00:00, 2025-11-10 13:00:00--2025-11-11 00:00:00}</span></span>
+<span><span class="fu"><a href="../reference/phinterval-set-operations.html">phint_setdiff</a></span><span class="op">(</span><span class="va">monday</span>, <span class="va">monday_noon</span><span class="op">)</span>        <span class="co"># Instantaneous - no effect</span></span>
+<span><span class="co">#&gt; &lt;phinterval&lt;UTC&gt;[1]&gt;</span></span>
+<span><span class="co">#&gt; [1] {2025-11-10--2025-11-11}</span></span></code></pre></div>
+<p>To create gaps, you must remove an interval with non-zero
+duration.</p>
+</div>
+<div class="section level3">
+<h3 id="time-zones">Time Zones<a class="anchor" aria-label="anchor" href="#time-zones"></a>
+</h3>
+<p>To ensure that any <code>&lt;Interval&gt;</code> vector can be
+represented as an equivalent <code>&lt;phinterval&gt;</code> vector, the
+<code><a href="../reference/phinterval.html">phinterval()</a></code> constructor accepts any time zone permitted by
+<code><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval()</a></code>, including unrecognized zones.</p>
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">intvl</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval</a></span><span class="op">(</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2020-01-01"</span><span class="op">)</span>, <span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2020-01-02"</span><span class="op">)</span>, tzone <span class="op">=</span> <span class="st">"nozone"</span><span class="op">)</span></span>
+<span><span class="va">phint</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/phinterval.html">phinterval</a></span><span class="op">(</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2020-01-01"</span><span class="op">)</span>, <span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2020-01-02"</span><span class="op">)</span>, tzone <span class="op">=</span> <span class="st">"nozone"</span><span class="op">)</span></span>
+<span><span class="va">intvl</span> <span class="op">==</span> <span class="va">phint</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+<p>When a <code>&lt;phinterval&gt;</code> with an unrecognized time zone
+is formatted, its time points are displayed using the UTC time zone:</p>
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">phint</span><span class="op">)</span></span>
+<span><span class="co">#&gt; &lt;phinterval&lt;nozone&gt;[1]&gt;</span></span>
+<span><span class="co">#&gt; [1] {2020-01-01--2020-01-02}</span></span></code></pre></div>
+<p>The <code><a href="../reference/is_recognized_tzone.html">is_recognized_tzone()</a></code> function can be used to check
+whether a time zone is recognized:</p>
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/is_recognized_tzone.html">is_recognized_tzone</a></span><span class="op">(</span><span class="st">"America/New_York"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span>
+<span><span class="fu"><a href="../reference/is_recognized_tzone.html">is_recognized_tzone</a></span><span class="op">(</span><span class="st">"nozone"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] FALSE</span></span>
+<span><span class="fu"><a href="../reference/is_recognized_tzone.html">is_recognized_tzone</a></span><span class="op">(</span><span class="cn">NA_character_</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] FALSE</span></span></code></pre></div>
+<p>Some datetime vectors, such as <code>&lt;POSIXct&gt;</code>, are
+allowed to have an <code>NA</code> time zone. When converted to a
+<code>&lt;phinterval&gt;</code>, the missing time zone is silently
+replaced with UTC:</p>
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">na_zoned</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.POSIXlt.html" class="external-link">as.POSIXct</a></span><span class="op">(</span><span class="st">"2021-01-01"</span>, tz <span class="op">=</span> <span class="cn">NA_character_</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/as_phinterval.html">as_phinterval</a></span><span class="op">(</span><span class="va">na_zoned</span><span class="op">)</span></span>
+<span><span class="co">#&gt; &lt;phinterval&lt;UTC&gt;[1]&gt;</span></span>
+<span><span class="co">#&gt; [1] {2021-01-01--2021-01-01}</span></span></code></pre></div>
+<p>Operations that combine two or more interval vectors, such as
+<code><a href="../reference/phinterval-set-operations.html">phint_union()</a></code>, use the time zone of the first argument. If
+the first argument’s time zone is <code>""</code> (the user’s local time
+zone), the second argument’s time zone is used instead.</p>
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">int_est</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval</a></span><span class="op">(</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2020-01-01"</span><span class="op">)</span>, <span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2020-01-02"</span><span class="op">)</span>, tzone <span class="op">=</span> <span class="st">"EST"</span><span class="op">)</span></span>
+<span><span class="va">int_utc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval</a></span><span class="op">(</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2020-01-01"</span><span class="op">)</span>, <span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2020-01-02"</span><span class="op">)</span>, tzone <span class="op">=</span> <span class="st">"UTC"</span><span class="op">)</span></span>
+<span><span class="va">int_lcl</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval</a></span><span class="op">(</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2020-01-01"</span><span class="op">)</span>, <span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2020-01-02"</span><span class="op">)</span>, tzone <span class="op">=</span> <span class="st">""</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/phinterval-set-operations.html">phint_union</a></span><span class="op">(</span><span class="va">int_est</span>, <span class="va">int_utc</span><span class="op">)</span></span>
+<span><span class="co">#&gt; &lt;phinterval&lt;EST&gt;[1]&gt;</span></span>
+<span><span class="co">#&gt; [1] {2019-12-31 19:00:00--2020-01-01 19:00:00}</span></span>
+<span><span class="fu"><a href="../reference/phinterval-set-operations.html">phint_union</a></span><span class="op">(</span><span class="va">int_utc</span>, <span class="va">int_est</span><span class="op">)</span></span>
+<span><span class="co">#&gt; &lt;phinterval&lt;UTC&gt;[1]&gt;</span></span>
+<span><span class="co">#&gt; [1] {2020-01-01--2020-01-02}</span></span>
+<span><span class="fu"><a href="../reference/phinterval-set-operations.html">phint_union</a></span><span class="op">(</span><span class="va">int_lcl</span>, <span class="va">int_est</span><span class="op">)</span></span>
+<span><span class="co">#&gt; &lt;phinterval&lt;EST&gt;[1]&gt;</span></span>
+<span><span class="co">#&gt; [1] {2019-12-31 19:00:00--2020-01-01 19:00:00}</span></span></code></pre></div>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

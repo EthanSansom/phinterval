@@ -16,8 +16,8 @@
 <script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Set Operations for Time Intervals">
-<meta name="description" content="Implements the phinterval vector class for representing time spans that may contain gaps (disjoint intervals) or be empty. This class generalizes the lubridate package's interval class to support vectorized set operations (intersection, union, difference, complement) that always return a valid time span, even when gaps or empty sets are created.">
-<meta property="og:description" content="Implements the phinterval vector class for representing time spans that may contain gaps (disjoint intervals) or be empty. This class generalizes the lubridate package's interval class to support vectorized set operations (intersection, union, difference, complement) that always return a valid time span, even when gaps or empty sets are created.">
+<meta name="description" content="Implements the phinterval vector class for representing time spans that may contain gaps (disjoint intervals) or be empty. This class generalizes the lubridate package's interval class to support vectorized set operations (intersection, union, difference, complement) that always return a valid time span, even when disjoint or empty intervals are created.">
+<meta property="og:description" content="Implements the phinterval vector class for representing time spans that may contain gaps (disjoint intervals) or be empty. This class generalizes the lubridate package's interval class to support vectorized set operations (intersection, union, difference, complement) that always return a valid time span, even when disjoint or empty intervals are created.">
 <meta property="og:image" content="https://ethansansom.github.io/phinterval/logo.png">
 </head>
 <body>
@@ -77,21 +77,25 @@
 <div class="section level2">
 <h2 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
 </h2>
-<p>Each element of a <code>&lt;phinterval&gt;</code> vector is a set of non-overlapping and non-adjacent intervals. A <code>&lt;phinterval&gt;</code> can be created using a list of <code>&lt;Interval&gt;</code> vectors:</p>
+<p>Each element of a <code>&lt;phinterval&gt;</code> vector is a set of non-overlapping and non-adjacent intervals. For scalar intervals (one span per element), <code><a href="reference/phinterval.html">phinterval()</a></code> works like <code><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">lubridate::interval()</a></code>:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/EthanSansom/phinterval" class="external-link">phinterval</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://lubridate.tidyverse.org" class="external-link">lubridate</a></span>, warn.conflicts <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">jan_1_to_2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval</a></span><span class="op">(</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2000-01-01"</span><span class="op">)</span>, <span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2000-01-02"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">jan_3_to_5</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval</a></span><span class="op">(</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2000-01-03"</span><span class="op">)</span>, <span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2000-01-05"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">jan_4_to_9</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval</a></span><span class="op">(</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2000-01-04"</span><span class="op">)</span>, <span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2000-01-09"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">jan_1_to_9</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval</a></span><span class="op">(</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2000-01-01"</span><span class="op">)</span>, <span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2000-01-09"</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
+<span><span class="co"># Create scalar phintervals (equivalent to interval())</span></span>
+<span><span class="fu"><a href="reference/phinterval.html">phinterval</a></span><span class="op">(</span></span>
+<span>  start <span class="op">=</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"2000-01-01"</span>, <span class="st">"2000-01-03"</span>, <span class="st">"2000-01-04"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  end <span class="op">=</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"2000-01-02"</span>, <span class="st">"2000-01-05"</span>, <span class="st">"2000-01-09"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; &lt;phinterval&lt;UTC&gt;[3]&gt;</span></span>
+<span><span class="co">#&gt; [1] {2000-01-01--2000-01-02} {2000-01-03--2000-01-05} {2000-01-04--2000-01-09}</span></span></code></pre></div>
+<p>To create phintervals with multiple disjoint spans per element, use the <code>by</code> argument to group intervals. Overlapping or adjacent spans within each group are automatically merged:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Create a phinterval with disjoint spans using the by argument</span></span>
 <span><span class="va">phint</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/phinterval.html">phinterval</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>    <span class="va">jan_3_to_5</span>,</span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">jan_1_to_2</span>, <span class="va">jan_4_to_9</span><span class="op">)</span></span>
-<span>  <span class="op">)</span></span>
+<span>  start <span class="op">=</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"2000-01-03"</span>, <span class="st">"2000-01-01"</span>, <span class="st">"2000-01-04"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  end <span class="op">=</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"2000-01-05"</span>, <span class="st">"2000-01-02"</span>, <span class="st">"2000-01-09"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">2</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">phint</span></span>
 <span><span class="co">#&gt; &lt;phinterval&lt;UTC&gt;[2]&gt;</span></span>
@@ -99,10 +103,15 @@
 <span><span class="co">#&gt; [2] {2000-01-01--2000-01-02, 2000-01-04--2000-01-09}</span></span></code></pre></div>
 <p>Graphically, the elements of <code>phint</code> are represented as:</p>
 <p><img src="reference/figures/README-/phinterval.svg" width="100%"></p>
-<p>In most cases, a <code>&lt;phinterval&gt;</code> vector will appear as the result of manipulating <code>&lt;Interval&gt;</code> vectors. For example, <code><a href="reference/phint_squash.html">phint_squash()</a></code> flattens a vector of time spans into a scalar <code>&lt;phinterval&gt;</code>.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">ints</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">jan_1_to_2</span>, <span class="va">jan_3_to_5</span>, <span class="va">jan_4_to_9</span><span class="op">)</span></span>
-<span><span class="fu"><a href="reference/phint_squash.html">phint_squash</a></span><span class="op">(</span><span class="va">ints</span><span class="op">)</span></span>
+<p>In most cases, a <code>&lt;phinterval&gt;</code> vector will appear as the result of manipulating <code>&lt;Interval&gt;</code> vectors. For example, <code><a href="reference/squash.html">phint_squash()</a></code> flattens a vector of time spans into a scalar <code>&lt;phinterval&gt;</code>.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">jan_1_to_9</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval</a></span><span class="op">(</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2000-01-01"</span><span class="op">)</span>, <span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2000-01-09"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">jan_1_to_2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval</a></span><span class="op">(</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2000-01-01"</span><span class="op">)</span>, <span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2000-01-02"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">jan_3_to_5</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval</a></span><span class="op">(</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2000-01-03"</span><span class="op">)</span>, <span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2000-01-05"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">jan_4_to_9</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval</a></span><span class="op">(</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2000-01-04"</span><span class="op">)</span>, <span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2000-01-09"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">ints</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">jan_1_to_2</span>, <span class="va">jan_3_to_5</span>, <span class="va">jan_4_to_9</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/squash.html">phint_squash</a></span><span class="op">(</span><span class="va">ints</span><span class="op">)</span></span>
 <span><span class="co">#&gt; &lt;phinterval&lt;UTC&gt;[1]&gt;</span></span>
 <span><span class="co">#&gt; [1] {2000-01-01--2000-01-02, 2000-01-03--2000-01-09}</span></span></code></pre></div>
 <p>The squashed intervals contain the set of time spans within <em>any</em> of the input intervals, without duplication.</p>
@@ -112,7 +121,7 @@
 <h2 id="example-employment-history">Example: Employment History<a class="anchor" aria-label="anchor" href="#example-employment-history"></a>
 </h2>
 <p>The phinterval package is most useful when working with tabular data, such as a longitudinal employment panel.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span>, warn.conflicts <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">jobs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tribble.html" class="external-link">tribble</a></span><span class="op">(</span></span>
@@ -125,28 +134,26 @@
 <span><span class="va">employment</span> <span class="op">&lt;-</span> <span class="va">jobs</span> <span class="op">|&gt;</span></span>
 <span>  <span class="co"># Squash overlapping/adjacent intervals into a single phinterval</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">name</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarize</a></span><span class="op">(</span>employed <span class="op">=</span> <span class="fu"><a href="reference/phint_squash.html">phint_squash</a></span><span class="op">(</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval</a></span><span class="op">(</span><span class="va">start</span>, <span class="va">end</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarize</a></span><span class="op">(</span>employed <span class="op">=</span> <span class="fu"><a href="reference/squash.html">datetime_squash</a></span><span class="op">(</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="va">start</span><span class="op">)</span>, <span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="va">end</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="co"># Invert the employment timeline to find gaps</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>unemployed <span class="op">=</span> <span class="fu"><a href="reference/phint_invert.html">phint_invert</a></span><span class="op">(</span><span class="va">employed</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">employment</span></span>
 <span><span class="co">#&gt; # A tibble: 2 × 3</span></span>
-<span><span class="co">#&gt;   name                                          employed</span></span>
-<span><span class="co">#&gt;   &lt;chr&gt;                                     &lt;phint&lt;UTC&gt;&gt;</span></span>
-<span><span class="co">#&gt; 1 Greg  {2018-01-01--2018-06-03, 2018-06-10--2020-04-01}</span></span>
-<span><span class="co">#&gt; 2 Shiv                          {2017-01-01--2019-04-01}</span></span>
-<span><span class="co">#&gt; # ℹ 1 more variable: unemployed &lt;phint&lt;UTC&gt;&gt;</span></span></code></pre></div>
-<p>Formatted <code>&lt;phinterval&gt;</code> elements are verbose by default, but can be truncated using the <code>phinterval.print_max_width</code> option for a narrower display.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">opts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>phinterval.print_max_width <span class="op">=</span> <span class="fl">25</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">employment</span><span class="op">)</span></span>
-<span><span class="co">#&gt; # A tibble: 2 × 3</span></span>
-<span><span class="co">#&gt;   name                  employed               unemployed</span></span>
-<span><span class="co">#&gt;   &lt;chr&gt;             &lt;phint&lt;UTC&gt;&gt;             &lt;phint&lt;UTC&gt;&gt;</span></span>
-<span><span class="co">#&gt; 1 Greg                &lt;phint[2]&gt; {2018-06-03--2018-06-10}</span></span>
-<span><span class="co">#&gt; 2 Shiv  {2017-01-01--2019-04-01}                   &lt;hole&gt;</span></span></code></pre></div>
-<p>Operations on <code>&lt;phinterval&gt;</code> vectors behave like those on standard intervals. Here, we can see that there was a 7-day gap in Greg’s employment history:</p>
+<span><span class="co">#&gt;   name  employed                    unemployed              </span></span>
+<span><span class="co">#&gt;   &lt;chr&gt; &lt;phint&lt;UTC&gt;&gt;                &lt;phint&lt;UTC&gt;&gt;            </span></span>
+<span><span class="co">#&gt; 1 Greg  {2018-01-01-[2]-2020-04-01} {2018-06-03--2018-06-10}</span></span>
+<span><span class="co">#&gt; 2 Shiv  {2017-01-01--2019-04-01}    &lt;hole&gt;</span></span></code></pre></div>
+<p><code>&lt;phinterval&gt;</code> column formatting adapts to the available console width. The <code>"[2]"</code> in Greg’s employment interval <code>"{2018-01-01-[2]-2020-04-01}"</code> indicates that his employment history is made up of two disjoint spans, with the first span beginning on 2018-01-01 and the second ending on 2020-04-01. When more space is available, every span is shown explicitly.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">employment</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">name</span>, <span class="va">employed</span><span class="op">)</span></span>
+<span><span class="co">#&gt; # A tibble: 2 × 2</span></span>
+<span><span class="co">#&gt;   name  employed                                        </span></span>
+<span><span class="co">#&gt;   &lt;chr&gt; &lt;phint&lt;UTC&gt;&gt;                                    </span></span>
+<span><span class="co">#&gt; 1 Greg  {2018-01-01--2018-06-03, 2018-06-10--2020-04-01}</span></span>
+<span><span class="co">#&gt; 2 Shiv  {2017-01-01--2019-04-01}</span></span></code></pre></div>
+<p>Operations on <code>&lt;phinterval&gt;</code> vectors behave like those on standard intervals. Here, we can see that there was a 7-day gap in Greg’s employment history:</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">employment</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span></span>
 <span>    days_employed <span class="op">=</span> <span class="va">employed</span> <span class="op">/</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/duration.html" class="external-link">ddays</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span>,</span>
@@ -165,9 +172,9 @@
 <p>The <code>&lt;phinterval&gt;</code> class is a generalization of the <code>&lt;Interval&gt;</code> class, meaning any <code>&lt;Interval&gt;</code> can be converted into an equivalent <code>&lt;phinterval&gt;</code> and all phinterval functions accept either <code>&lt;Interval&gt;</code> or <code>&lt;phinterval&gt;</code> inputs. The table below shows the lubridate functions that have drop-in phinterval replacements.</p>
 <table class="table">
 <colgroup>
-<col width="32%">
-<col width="28%">
-<col width="39%">
+<col width="33%">
+<col width="33%">
+<col width="33%">
 </colgroup>
 <thead><tr class="header">
 <th>phinterval</th>
@@ -176,53 +183,59 @@
 </tr></thead>
 <tbody>
 <tr class="odd">
+<td><code>phinterval(start, end)</code></td>
+<td><code>interval(start, end)</code></td>
+<td>Spans bounded by <code>start</code>/<code>end</code>
+</td>
+</tr>
+<tr class="even">
 <td><code>phint_intersect(x, y)</code></td>
 <td><code>intersect(x, y)</code></td>
 <td>Times in <code>x</code> and <code>y</code>
 </td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>phint_setdiff(x, y)</code></td>
 <td><code>setdiff(x, y)</code></td>
 <td>Times in <code>x</code>, but not in <code>y</code>
 </td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>phint_union(x, y)</code></td>
 <td><code>union(x, y)</code></td>
 <td>Times in <code>x</code> or <code>y</code>
 </td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>phint_start(x)</code></td>
 <td><code>int_start(x)</code></td>
 <td>The start time of <code>x</code>
 </td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>phint_end(x)</code></td>
 <td><code>int_end(x)</code></td>
 <td>The end time of <code>x</code>
 </td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>phint_length(x)</code></td>
 <td><code>int_length(x)</code></td>
 <td>The number of seconds in <code>x</code>
 </td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>phint_overlaps(x, y)</code></td>
 <td><code>int_overlaps(x, y)</code></td>
 <td>Whether <code>x</code> and <code>y</code> intersect</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>phint_within(x, y)</code></td>
 <td><code>x %within% y</code></td>
 <td>Whether <code>y</code> contains <code>x</code>
 </td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>x / duration(...)</code></td>
 <td><code>x / duration(...)</code></td>
 <td>How many durations fit in <code>x</code>
@@ -231,21 +244,21 @@
 </tbody>
 </table>
 <p>All phinterval set operations work as expected with arbitrary time spans, enabling operations that are not supported by lubridate. For example, the intersection of two non-overlapping intervals is an empty time span, called a <code>&lt;hole&gt;</code>.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">lubridate</span><span class="fu">::</span><span class="fu"><a href="https://generics.r-lib.org/reference/setops.html" class="external-link">intersect</a></span><span class="op">(</span><span class="va">jan_1_to_2</span>, <span class="va">jan_4_to_9</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] NA--NA</span></span>
 <span><span class="fu"><a href="reference/phinterval-set-operations.html">phint_intersect</a></span><span class="op">(</span><span class="va">jan_1_to_2</span>, <span class="va">jan_4_to_9</span><span class="op">)</span></span>
 <span><span class="co">#&gt; &lt;phinterval&lt;UTC&gt;[1]&gt;</span></span>
 <span><span class="co">#&gt; [1] &lt;hole&gt;</span></span></code></pre></div>
 <p>The set-difference of a time span and itself is also a <code>&lt;hole&gt;</code>.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">lubridate</span><span class="fu">::</span><span class="fu"><a href="https://generics.r-lib.org/reference/setops.html" class="external-link">setdiff</a></span><span class="op">(</span><span class="va">jan_1_to_2</span>, <span class="va">jan_1_to_2</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 2000-01-01 UTC--2000-01-02 UTC</span></span>
 <span><span class="fu"><a href="reference/phinterval-set-operations.html">phint_setdiff</a></span><span class="op">(</span><span class="va">jan_1_to_2</span>, <span class="va">jan_1_to_2</span><span class="op">)</span></span>
 <span><span class="co">#&gt; &lt;phinterval&lt;UTC&gt;[1]&gt;</span></span>
 <span><span class="co">#&gt; [1] &lt;hole&gt;</span></span></code></pre></div>
 <p>Performing a set-difference may “punch a hole” in a time span, creating a discontinuous interval.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/try.html" class="external-link">try</a></span><span class="op">(</span><span class="fu">lubridate</span><span class="fu">::</span><span class="fu"><a href="https://generics.r-lib.org/reference/setops.html" class="external-link">setdiff</a></span><span class="op">(</span><span class="va">jan_1_to_9</span>, <span class="va">jan_3_to_5</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Error in setdiff.Interval(jan_1_to_9, jan_3_to_5) : </span></span>
 <span><span class="co">#&gt;   Cases 1 result in discontinuous intervals.</span></span>
@@ -253,14 +266,14 @@
 <span><span class="co">#&gt; &lt;phinterval&lt;UTC&gt;[1]&gt;</span></span>
 <span><span class="co">#&gt; [1] {2000-01-01--2000-01-03, 2000-01-05--2000-01-09}</span></span></code></pre></div>
 <p>The union of two disjoint intervals is a single <code>&lt;phinterval&gt;</code> containing two spans.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">lubridate</span><span class="fu">::</span><span class="fu"><a href="https://generics.r-lib.org/reference/setops.html" class="external-link">union</a></span><span class="op">(</span><span class="va">jan_1_to_2</span>, <span class="va">jan_4_to_9</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 2000-01-01 UTC--2000-01-09 UTC</span></span>
 <span><span class="fu"><a href="reference/phinterval-set-operations.html">phint_union</a></span><span class="op">(</span><span class="va">jan_1_to_2</span>, <span class="va">jan_4_to_9</span><span class="op">)</span></span>
 <span><span class="co">#&gt; &lt;phinterval&lt;UTC&gt;[1]&gt;</span></span>
 <span><span class="co">#&gt; [1] {2000-01-01--2000-01-02, 2000-01-04--2000-01-09}</span></span></code></pre></div>
 <p>As with the lubridate equivalents, all phinterval set operations are vectorized.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/phinterval-set-operations.html">phint_intersect</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">jan_1_to_2</span>, <span class="va">jan_3_to_5</span>, <span class="va">jan_1_to_2</span><span class="op">)</span>,</span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">jan_1_to_9</span>, <span class="va">jan_4_to_9</span>, <span class="va">jan_4_to_9</span><span class="op">)</span></span>
@@ -271,7 +284,7 @@
 <div class="section level2">
 <h2 id="inspiration">Inspiration<a class="anchor" aria-label="anchor" href="#inspiration"></a>
 </h2>
-<p>This package is based on the <a href="https://lubridate.tidyverse.org/" class="external-link">{lubridate}</a> package’s <code>&lt;Interval&gt;</code> class for representing contiguous time spans. The data structure of the <code>&lt;phinterval&gt;</code> class (a list of matrices) and the C++ implementation of <code><a href="reference/phint_squash.html">phint_squash()</a></code> were inspired by the <a href="https://CRAN.R-project.org/package=intervals" class="external-link">{intervals}</a> package by Richard Bourgon and Edzer Pebesma. The figures used in this README and elsewhere were inspired by the documentation of Davis Vaughan’s <a href="https://davisvaughan.github.io/ivs/" class="external-link">{ivs}</a> package.</p>
+<p>This package builds on <a href="https://lubridate.tidyverse.org/" class="external-link">{lubridate}</a>’s <code>&lt;Interval&gt;</code> class for representing contiguous time spans. The prototype <code>&lt;phinterval&gt;</code> data structure (a list of matrices) and the C++ implementation of <code><a href="reference/squash.html">phint_squash()</a></code> were inspired by the <a href="https://CRAN.R-project.org/package=intervals" class="external-link">{intervals}</a> package by Richard Bourgon and Edzer Pebesma. The figures used in this README were inspired by Davis Vaughan’s <a href="https://davisvaughan.github.io/ivs/" class="external-link">{ivs}</a> package documentation.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">

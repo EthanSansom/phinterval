@@ -7,18 +7,19 @@
 <url><loc>https://ethansansom.github.io/phinterval/index.html</loc></url>
 <url><loc>https://ethansansom.github.io/phinterval/reference/as_duration.html</loc></url>
 <url><loc>https://ethansansom.github.io/phinterval/reference/as_phinterval.html</loc></url>
+<url><loc>https://ethansansom.github.io/phinterval/reference/hole.html</loc></url>
 <url><loc>https://ethansansom.github.io/phinterval/reference/index.html</loc></url>
 <url><loc>https://ethansansom.github.io/phinterval/reference/is_hole.html</loc></url>
 <url><loc>https://ethansansom.github.io/phinterval/reference/is_phinterval.html</loc></url>
 <url><loc>https://ethansansom.github.io/phinterval/reference/is_phintish.html</loc></url>
+<url><loc>https://ethansansom.github.io/phinterval/reference/is_recognized_tzone.html</loc></url>
 <url><loc>https://ethansansom.github.io/phinterval/reference/n_spans.html</loc></url>
 <url><loc>https://ethansansom.github.io/phinterval/reference/params.html</loc></url>
 <url><loc>https://ethansansom.github.io/phinterval/reference/phint_invert.html</loc></url>
 <url><loc>https://ethansansom.github.io/phinterval/reference/phint_length.html</loc></url>
 <url><loc>https://ethansansom.github.io/phinterval/reference/phint_overlaps.html</loc></url>
 <url><loc>https://ethansansom.github.io/phinterval/reference/phint_sift.html</loc></url>
-<url><loc>https://ethansansom.github.io/phinterval/reference/phint_squash.html</loc></url>
-<url><loc>https://ethansansom.github.io/phinterval/reference/phint_to_spans.html</loc></url>
+<url><loc>https://ethansansom.github.io/phinterval/reference/phint_unnest.html</loc></url>
 <url><loc>https://ethansansom.github.io/phinterval/reference/phint_within.html</loc></url>
 <url><loc>https://ethansansom.github.io/phinterval/reference/phinterval-accessors.html</loc></url>
 <url><loc>https://ethansansom.github.io/phinterval/reference/phinterval-package.html</loc></url>
@@ -26,5 +27,6 @@
 <url><loc>https://ethansansom.github.io/phinterval/reference/phinterval.html</loc></url>
 <url><loc>https://ethansansom.github.io/phinterval/reference/phinterval_options.html</loc></url>
 <url><loc>https://ethansansom.github.io/phinterval/reference/reexports.html</loc></url>
+<url><loc>https://ethansansom.github.io/phinterval/reference/squash.html</loc></url>
 </urlset>
 
