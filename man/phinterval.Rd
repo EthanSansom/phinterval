@@ -15,8 +15,8 @@ phinterval(
 \arguments{
 \item{start, end}{\verb{[POSIXct / POSIXlt / Date]}
 
-A pair of start and end datetime vectors. \code{start} and \code{end} are recycled
-to a common length using vctrs-style recycling rules.}
+A pair of datetime vectors to represent the endpoints of the spans. \code{start}
+and \code{end} are recycled to a common length using vctrs-style recycling rules.}
 
 \item{tzone}{\verb{[character(1)]}
 
