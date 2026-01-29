@@ -45,7 +45,8 @@ phint_unnest(phint, hole_to = c("drop", "na"), keep_size = FALSE, key = NULL)
   `phint`).
 
   `key` may be any vector in the vctrs sense. See
-  `[vctrs::obj_is_vector()]` for details.
+  [`vctrs::obj_is_vector()`](https://vctrs.r-lib.org/reference/vector-checks.html)
+  for details.
 
 ## Value
 

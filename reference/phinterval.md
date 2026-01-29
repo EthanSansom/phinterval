@@ -49,7 +49,8 @@ phinterval(
   the common length of `start` and `end`.
 
   `by` may be any vector in the vctrs sense. See
-  `[vctrs::obj_is_vector()]` for details.
+  [`vctrs::obj_is_vector()`](https://vctrs.r-lib.org/reference/vector-checks.html)
+  for details.
 
 - order_by:
 

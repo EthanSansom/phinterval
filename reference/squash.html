@@ -99,12 +99,12 @@ grouped by <code>by</code> and merged separately within each group. If <code>NUL
 default), all intervals are merged into a single phinterval element.</p>
 <p>For <code>datetime_squash()</code>, <code>by</code> must be recyclable with the recycled length
 of <code>start</code> and <code>end</code>.</p>
-<p><code>by</code> may be any vector in the vctrs sense. See <code>[vctrs::obj_is_vector()]</code>
+<p><code>by</code> may be any vector in the vctrs sense. See <code><a href="https://vctrs.r-lib.org/reference/vector-checks.html" class="external-link">vctrs::obj_is_vector()</a></code>
 for details.</p></dd>
 
 
 <dt id="arg-na-rm">na.rm<a class="anchor" aria-label="anchor" href="#arg-na-rm"></a></dt>
-<dd><p><code>[TRUE / FALSE]]</code></p>
+<dd><p><code>[TRUE / FALSE]</code></p>
 <p>Should <code>NA</code> elements be removed before squashing? If <code>FALSE</code> and any <code>NA</code>
 elements are present, the result for that group is <code>NA</code>. Defaults to <code>TRUE</code>.</p></dd>
 

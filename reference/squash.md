@@ -57,11 +57,12 @@ datetime_squash(
   length of `start` and `end`.
 
   `by` may be any vector in the vctrs sense. See
-  `[vctrs::obj_is_vector()]` for details.
+  [`vctrs::obj_is_vector()`](https://vctrs.r-lib.org/reference/vector-checks.html)
+  for details.
 
 - na.rm:
 
-  `[TRUE / FALSE]]`
+  `[TRUE / FALSE]`
 
   Should `NA` elements be removed before squashing? If `FALSE` and any
   `NA` elements are present, the result for that group is `NA`. Defaults

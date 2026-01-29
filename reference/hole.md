@@ -13,7 +13,7 @@ hole(n = 1L, tzone = "")
 
 - n:
 
-  `[integerish(1)]`
+  `[integer(1)]`
 
   The number of hole elements to create. Must be a positive whole
   number.
