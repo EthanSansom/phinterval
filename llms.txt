@@ -18,6 +18,13 @@ Functionality for manipulating these spans includes:
 
 ## Installation
 
+Install the released version from [CRAN](https://cran.r-project.org/)
+with:
+
+``` r
+install.packages("phinterval")
+```
+
 You can install the development version of phinterval from
 [GitHub](https://github.com/) with:
 

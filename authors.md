@@ -10,11 +10,11 @@
 Source:
 [`DESCRIPTION`](https://github.com/EthanSansom/phinterval/blob/main/DESCRIPTION)
 
-Sansom E (2026). *phinterval: Set Operations for Time Intervals*. R
+Sansom E (2026). *phinterval: Set Operations on Time Intervals*. R
 package version 0.0.0.9000, <https://github.com/EthanSansom/phinterval>.
 
     @Manual{,
-      title = {phinterval: Set Operations for Time Intervals},
+      title = {phinterval: Set Operations on Time Intervals},
       author = {Ethan Sansom},
       year = {2026},
       note = {R package version 0.0.0.9000},

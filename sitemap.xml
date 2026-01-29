@@ -1,10 +1,12 @@
 <urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
 <url><loc>https://ethansansom.github.io/phinterval/404.html</loc></url>
+<url><loc>https://ethansansom.github.io/phinterval/LICENSE-text.html</loc></url>
 <url><loc>https://ethansansom.github.io/phinterval/LICENSE.html</loc></url>
 <url><loc>https://ethansansom.github.io/phinterval/articles/index.html</loc></url>
 <url><loc>https://ethansansom.github.io/phinterval/articles/phinterval.html</loc></url>
 <url><loc>https://ethansansom.github.io/phinterval/authors.html</loc></url>
 <url><loc>https://ethansansom.github.io/phinterval/index.html</loc></url>
+<url><loc>https://ethansansom.github.io/phinterval/news/index.html</loc></url>
 <url><loc>https://ethansansom.github.io/phinterval/reference/as_duration.html</loc></url>
 <url><loc>https://ethansansom.github.io/phinterval/reference/as_phinterval.html</loc></url>
 <url><loc>https://ethansansom.github.io/phinterval/reference/hole.html</loc></url>
