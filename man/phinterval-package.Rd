@@ -3,7 +3,7 @@
 \docType{package}
 \name{phinterval-package}
 \alias{phinterval-package}
-\title{phinterval: Set Operations for Time Intervals}
+\title{phinterval: Set Operations on Time Intervals}
 \description{
 \if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
 
