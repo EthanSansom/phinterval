@@ -95,8 +95,8 @@ datetime_squash(
 
   Should the `by` values be returned alongside the result? If `FALSE`
   (the default), returns a `<phinterval>` vector. If `TRUE`, returns a
-  data frame with columns `by` and `phint`. Requires `by` to be
-  non-`NULL`.
+  [`tibble::tibble()`](https://tibble.tidyverse.org/reference/tibble.html)
+  with columns `by` and `phint`. Requires `by` to be non-`NULL`.
 
 - start:
 
@@ -122,7 +122,9 @@ When `keep_by = FALSE`:
 - If `by` is provided: A `<phinterval>` vector with one element per
   unique value of `by`
 
-When `keep_by = TRUE`: A data frame with columns `by` and `phint`.
+When `keep_by = TRUE`: A
+[`tibble::tibble()`](https://tibble.tidyverse.org/reference/tibble.html)
+with columns `by` and `phint`.
 
 ## Details
 
@@ -174,9 +176,11 @@ phint_squash(
   by = c("A", "A", "B"),
   keep_by = TRUE
 )
-#>   by                    phint
-#> 1  A {2000-01-01--2000-01-09}
-#> 2  B {2000-01-11--2000-01-12}
+#> # A tibble: 2 × 2
+#>   by    phint                   
+#>   <chr> <phint<UTC>>            
+#> 1 A     {2000-01-01--2000-01-09}
+#> 2 B     {2000-01-11--2000-01-12}
 
 # Control output order with order_by
 phint_squash(

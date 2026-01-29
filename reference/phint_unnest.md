@@ -1,6 +1,7 @@
 # Unnest a phinterval into a data frame
 
-`phint_unnest()` converts a `<phinterval>` vector into a data frame
+`phint_unnest()` converts a `<phinterval>` vector into a
+[`tibble::tibble()`](https://tibble.tidyverse.org/reference/tibble.html)
 where each time span becomes a row.
 
 ## Usage
@@ -48,7 +49,9 @@ phint_unnest(phint, hole_to = c("drop", "na"), keep_size = FALSE, key = NULL)
 
 ## Value
 
-A data frame with columns:
+A
+[`tibble::tibble()`](https://tibble.tidyverse.org/reference/tibble.html)
+with columns:
 
 - `key`:
 
@@ -85,9 +88,11 @@ phint <- phinterval(
   end = as.Date(c("2000-01-15", "2000-02-15"))
 )
 phint_unnest(phint)
-#>   key      start        end
-#> 1   1 2000-01-01 2000-01-15
-#> 2   2 2000-02-01 2000-02-15
+#> # A tibble: 2 × 3
+#>     key start               end                
+#>   <dbl> <dttm>              <dttm>             
+#> 1     1 2000-01-01 00:00:00 2000-01-15 00:00:00
+#> 2     2 2000-02-01 00:00:00 2000-02-15 00:00:00
 
 # Unnest multi-span phinterval
 phint <- phinterval(
@@ -96,9 +101,11 @@ phint <- phinterval(
   by = 1
 )
 phint_unnest(phint)
-#>   key      start        end
-#> 1   1 2000-01-01 2000-01-15
-#> 2   1 2000-03-01 2000-03-15
+#> # A tibble: 2 × 3
+#>     key start               end                
+#>   <dbl> <dttm>              <dttm>             
+#> 1     1 2000-01-01 00:00:00 2000-01-15 00:00:00
+#> 2     1 2000-03-01 00:00:00 2000-03-15 00:00:00
 
 # Handle holes
 phint <- c(
@@ -107,26 +114,34 @@ phint <- c(
   phinterval(as.Date("2000-02-01"), as.Date("2000-02-15"))
 )
 phint_unnest(phint, hole_to = "drop")
-#>   key      start        end
-#> 1   1 2000-01-01 2000-01-15
-#> 2   3 2000-02-01 2000-02-15
+#> # A tibble: 2 × 3
+#>     key start               end                
+#>   <dbl> <dttm>              <dttm>             
+#> 1     1 2000-01-01 00:00:00 2000-01-15 00:00:00
+#> 2     3 2000-02-01 00:00:00 2000-02-15 00:00:00
 phint_unnest(phint, hole_to = "na")
-#>   key      start        end
-#> 1   1 2000-01-01 2000-01-15
-#> 2   2       <NA>       <NA>
-#> 3   3 2000-02-01 2000-02-15
+#> # A tibble: 3 × 3
+#>     key start               end                
+#>   <dbl> <dttm>              <dttm>             
+#> 1     1 2000-01-01 00:00:00 2000-01-15 00:00:00
+#> 2     2 NA                  NA                 
+#> 3     3 2000-02-01 00:00:00 2000-02-15 00:00:00
 
 # Include size column
 phint_unnest(phint, keep_size = TRUE, hole_to = "na")
-#>   key      start        end size
-#> 1   1 2000-01-01 2000-01-15    1
-#> 2   2       <NA>       <NA>    0
-#> 3   3 2000-02-01 2000-02-15    1
+#> # A tibble: 3 × 4
+#>     key start               end                  size
+#>   <dbl> <dttm>              <dttm>              <int>
+#> 1     1 2000-01-01 00:00:00 2000-01-15 00:00:00     1
+#> 2     2 NA                  NA                      0
+#> 3     3 2000-02-01 00:00:00 2000-02-15 00:00:00     1
 
 # Use a custom `key`
 phint_unnest(phint, key = c("A", "B", "C"), hole_to = "na")
-#>   key      start        end
-#> 1   A 2000-01-01 2000-01-15
-#> 2   B       <NA>       <NA>
-#> 3   C 2000-02-01 2000-02-15
+#> # A tibble: 3 × 3
+#>   key   start               end                
+#>   <chr> <dttm>              <dttm>             
+#> 1 A     2000-01-01 00:00:00 2000-01-15 00:00:00
+#> 2 B     NA                  NA                 
+#> 3 C     2000-02-01 00:00:00 2000-02-15 00:00:00
 ```

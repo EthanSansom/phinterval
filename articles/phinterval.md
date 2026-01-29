@@ -7,7 +7,7 @@ library(dplyr, warn.conflicts = FALSE)
 library(tidyr, warn.conflicts = FALSE)
 ```
 
-### Introduction
+## Introduction
 
 The phinterval package extends
 [{lubridate}](https://lubridate.tidyverse.org/) to support disjoint
@@ -29,7 +29,7 @@ workflows. Any `<Interval>` vector can be converted to an equivalent
 and all phinterval functions accept either `<Interval>` or
 `<phinterval>` inputs.
 
-### When Time Isn’t Continuous
+## When Time Isn’t Continuous
 
 Certain set operations on time spans naturally produce empty or disjoint
 results, which are difficult to represent using a standard interval.
@@ -42,7 +42,7 @@ nov <- interval(ymd("2025-11-01"), ymd("2025-12-01"))
 full_2025 <- interval(ymd("2025-01-01"), ymd("2026-01-01"))
 ```
 
-#### Empty Intersections
+### Empty Intersections
 
 Because January and November do not overlap, their intersection should
 contain no time.
@@ -72,7 +72,7 @@ phint_intersect(jan, nov) / duration(days = 1)
 #> [1] 0
 ```
 
-#### Punching Holes in Intervals
+### Punching Holes in Intervals
 
 Next, consider subtracting the month of November from the full year of
 2025.
@@ -92,7 +92,7 @@ which can’t be represented by a single interval. As a result, lubridate
 raises an error. In phinterval, the disjoint span is represented as a
 single object with an explicit gap.
 
-#### Unions of Non-Overlapping Spans
+### Unions of Non-Overlapping Spans
 
 Similarly, the union of January and November contains a gap from
 February to October.
@@ -110,7 +110,7 @@ In this case lubridate returns the span from the beginning of January to
 the end of November, implicitly filling in the gap. The two disjoint
 months are represented explicitly using phinterval.
 
-#### Subtracting an Interval from Itself
+### Subtracting an Interval from Itself
 
 Finally, consider subtracting an interval from itself. Intuitively, this
 should result in an empty time span.
@@ -127,7 +127,7 @@ phint_setdiff(jan, jan)
 In this case, lubridate returns the original interval, while phinterval
 returns a `<hole>`.
 
-### Case Study: Employment History
+## Case Study: Employment History
 
 The phinterval package is most useful when working with tabular data and
 vectorized workflows. To illustrate this, we’ll consider an abridged
@@ -146,17 +146,17 @@ jobs <- tribble(
 )
 ```
 
-Suppose we know that Greg, Tom, and Shiv went on a group Christmas
-vacation in December 2017.
+Suppose we know that Greg, Tom, and Shiv went on a Christmas vacation in
+December 2017.
 
 ``` r
 vacation <- interval(ymd("2017-12-23"), ymd("2017-12-29"))
 ```
 
 If we want to analyze only the time spent working, and exclude time on
-vacation, we might try to subtract the vacation interval from each job
-span. However, this approach breaks down when the vacation falls
-strictly within a job interval, as it does for Shiv’s Political
+vacation, we might try to subtract the `vacation` interval from each
+span in `jobs`. However, this approach breaks down when the vacation
+falls strictly within a job interval, as it does for Shiv’s Political
 Consultant role.
 
 ``` r
@@ -204,7 +204,7 @@ jobs |>
 #> 6 Shiv  Political Consultant {2017-01-01-[2]-2019-04-01}
 ```
 
-#### Merging Intervals
+### Merging Intervals
 
 Suppose we want to analyze only the total time each character spent
 employed, without distinguishing between individual jobs. This can be
@@ -221,10 +221,10 @@ employment <- jobs |>
 
 employment
 #> # A tibble: 3 × 2
-#>   name  employed                   
-#>   <chr> <phint<UTC>>               
-#> 1 Greg  {2018-01-01-[2]-2020-11-28}
-#> 2 Shiv  {2017-01-01--2019-04-01}   
+#>   name  employed                                        
+#>   <chr> <phint<UTC>>                                    
+#> 1 Greg  {2018-01-01--2018-06-03, 2018-06-10--2020-11-28}
+#> 2 Shiv  {2017-01-01--2019-04-01}                        
 #> 3 Tom   {2019-05-01--2020-12-31}
 ```
 
@@ -253,12 +253,12 @@ datetime_squash(
   by = jobs$name,
   keep_by = TRUE,
   order_by = TRUE
-) |> as_tibble()
+)
 #> # A tibble: 3 × 2
-#>   by    phint                      
-#>   <chr> <phint<UTC>>               
-#> 1 Greg  {2018-01-01-[2]-2020-11-28}
-#> 2 Shiv  {2017-01-01--2019-04-01}   
+#>   by    phint                                           
+#>   <chr> <phint<UTC>>                                    
+#> 1 Greg  {2018-01-01--2018-06-03, 2018-06-10--2020-11-28}
+#> 2 Shiv  {2017-01-01--2019-04-01}                        
 #> 3 Tom   {2019-05-01--2020-12-31}
 ```
 
@@ -283,7 +283,7 @@ employment |>
 #> 4 Tom   2019-05-01 00:00:00 2020-12-31 00:00:00
 ```
 
-#### Finding Gaps
+### Finding Gaps
 
 To analyze periods of unemployment, we need to identify the gaps between
 employment intervals. The

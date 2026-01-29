@@ -68,9 +68,9 @@
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://lubridate.tidyverse.org" class="external-link">lubridate</a></span>, warn.conflicts <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span>, warn.conflicts <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyr.tidyverse.org" class="external-link">tidyr</a></span>, warn.conflicts <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
-<div class="section level3">
-<h3 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
-</h3>
+<div class="section level2">
+<h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
+</h2>
 <p>The phinterval package extends <a href="https://lubridate.tidyverse.org/" class="external-link">{lubridate}</a> to support
 disjoint (“holey”) and empty time spans. It implements the
 <code>&lt;phinterval&gt;</code> vector class, a generalization of the
@@ -95,9 +95,9 @@ an equivalent <code>&lt;phinterval&gt;</code> vector using
 <code>&lt;Interval&gt;</code> or <code>&lt;phinterval&gt;</code>
 inputs.</p>
 </div>
-<div class="section level3">
-<h3 id="when-time-isnt-continuous">When Time Isn’t Continuous<a class="anchor" aria-label="anchor" href="#when-time-isnt-continuous"></a>
-</h3>
+<div class="section level2">
+<h2 id="when-time-isnt-continuous">When Time Isn’t Continuous<a class="anchor" aria-label="anchor" href="#when-time-isnt-continuous"></a>
+</h2>
 <p>Certain set operations on time spans naturally produce empty or
 disjoint results, which are difficult to represent using a standard
 interval. This section illustrates several such edge cases using the
@@ -107,9 +107,9 @@ year.</p>
 <code class="sourceCode R"><span><span class="va">jan</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval</a></span><span class="op">(</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2025-01-01"</span><span class="op">)</span>, <span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2025-02-01"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">nov</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval</a></span><span class="op">(</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2025-11-01"</span><span class="op">)</span>, <span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2025-12-01"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">full_2025</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval</a></span><span class="op">(</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2025-01-01"</span><span class="op">)</span>, <span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2026-01-01"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<div class="section level4">
-<h4 id="empty-intersections">Empty Intersections<a class="anchor" aria-label="anchor" href="#empty-intersections"></a>
-</h4>
+<div class="section level3">
+<h3 id="empty-intersections">Empty Intersections<a class="anchor" aria-label="anchor" href="#empty-intersections"></a>
+</h3>
 <p>Because January and November do not overlap, their intersection
 should contain no time.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
@@ -132,9 +132,9 @@ November:</p>
 <span><span class="fu"><a href="../reference/phinterval-set-operations.html">phint_intersect</a></span><span class="op">(</span><span class="va">jan</span>, <span class="va">nov</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/duration.html" class="external-link">duration</a></span><span class="op">(</span>days <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 0</span></span></code></pre></div>
 </div>
-<div class="section level4">
-<h4 id="punching-holes-in-intervals">Punching Holes in Intervals<a class="anchor" aria-label="anchor" href="#punching-holes-in-intervals"></a>
-</h4>
+<div class="section level3">
+<h3 id="punching-holes-in-intervals">Punching Holes in Intervals<a class="anchor" aria-label="anchor" href="#punching-holes-in-intervals"></a>
+</h3>
 <p>Next, consider subtracting the month of November from the full year
 of 2025.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
@@ -150,9 +150,9 @@ December, which can’t be represented by a single interval. As a result,
 lubridate raises an error. In phinterval, the disjoint span is
 represented as a single object with an explicit gap.</p>
 </div>
-<div class="section level4">
-<h4 id="unions-of-non-overlapping-spans">Unions of Non-Overlapping Spans<a class="anchor" aria-label="anchor" href="#unions-of-non-overlapping-spans"></a>
-</h4>
+<div class="section level3">
+<h3 id="unions-of-non-overlapping-spans">Unions of Non-Overlapping Spans<a class="anchor" aria-label="anchor" href="#unions-of-non-overlapping-spans"></a>
+</h3>
 <p>Similarly, the union of January and November contains a gap from
 February to October.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
@@ -166,9 +166,9 @@ February to October.</p>
 to the end of November, implicitly filling in the gap. The two disjoint
 months are represented explicitly using phinterval.</p>
 </div>
-<div class="section level4">
-<h4 id="subtracting-an-interval-from-itself">Subtracting an Interval from Itself<a class="anchor" aria-label="anchor" href="#subtracting-an-interval-from-itself"></a>
-</h4>
+<div class="section level3">
+<h3 id="subtracting-an-interval-from-itself">Subtracting an Interval from Itself<a class="anchor" aria-label="anchor" href="#subtracting-an-interval-from-itself"></a>
+</h3>
 <p>Finally, consider subtracting an interval from itself. Intuitively,
 this should result in an empty time span.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
@@ -182,9 +182,9 @@ this should result in an empty time span.</p>
 phinterval returns a <code>&lt;hole&gt;</code>.</p>
 </div>
 </div>
-<div class="section level3">
-<h3 id="case-study-employment-history">Case Study: Employment History<a class="anchor" aria-label="anchor" href="#case-study-employment-history"></a>
-</h3>
+<div class="section level2">
+<h2 id="case-study-employment-history">Case Study: Employment History<a class="anchor" aria-label="anchor" href="#case-study-employment-history"></a>
+</h2>
 <p>The phinterval package is most useful when working with tabular data
 and vectorized workflows. To illustrate this, we’ll consider an abridged
 employment history for several characters from the television show
@@ -199,15 +199,15 @@ employment history for several characters from the television show
 <span>  <span class="st">"Tom"</span>,   <span class="st">"CEO"</span>,                  <span class="st">"2020-11-10"</span>,  <span class="st">"2020-12-31"</span>,</span>
 <span>  <span class="st">"Shiv"</span>,  <span class="st">"Political Consultant"</span>, <span class="st">"2017-01-01"</span>,  <span class="st">"2019-04-01"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p>Suppose we know that Greg, Tom, and Shiv went on a group Christmas
-vacation in December 2017.</p>
+<p>Suppose we know that Greg, Tom, and Shiv went on a Christmas vacation
+in December 2017.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">vacation</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval</a></span><span class="op">(</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2017-12-23"</span><span class="op">)</span>, <span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2017-12-29"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>If we want to analyze only the time spent working, and exclude time
-on vacation, we might try to subtract the vacation interval from each
-job span. However, this approach breaks down when the vacation falls
-strictly within a job interval, as it does for Shiv’s Political
-Consultant role.</p>
+on vacation, we might try to subtract the <code>vacation</code> interval
+from each span in <code>jobs</code>. However, this approach breaks down
+when the vacation falls strictly within a job interval, as it does for
+Shiv’s Political Consultant role.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/try.html" class="external-link">try</a></span><span class="op">(</span></span>
 <span>  <span class="va">jobs</span> <span class="op">|&gt;</span></span>
@@ -248,9 +248,9 @@ counterpart.</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> Tom   Chairman             {2019-05-01--2020-11-10}   </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> Tom   CEO                  {2020-11-10--2020-12-31}   </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> Shiv  Political Consultant {2017-01-01-[2]-2019-04-01}</span></span></code></pre></div>
-<div class="section level4">
-<h4 id="merging-intervals">Merging Intervals<a class="anchor" aria-label="anchor" href="#merging-intervals"></a>
-</h4>
+<div class="section level3">
+<h3 id="merging-intervals">Merging Intervals<a class="anchor" aria-label="anchor" href="#merging-intervals"></a>
+</h3>
 <p>Suppose we want to analyze only the total time each character spent
 employed, without distinguishing between individual jobs. This can be
 done using <code><a href="../reference/squash.html">phint_squash()</a></code>, which aggregates a vector of
@@ -264,10 +264,10 @@ intervals into a minimal set of non-overlapping spans within a scalar
 <span></span>
 <span><span class="va">employment</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 3 × 2</span></span></span>
-<span><span class="co">#&gt;   name  employed                   </span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;phint&lt;UTC&gt;&gt;</span>               </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> Greg  {2018-01-01-[2]-2020-11-28}</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> Shiv  {2017-01-01--2019-04-01}   </span></span>
+<span><span class="co">#&gt;   name  employed                                        </span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;phint&lt;UTC&gt;&gt;</span>                                    </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> Greg  {2018-01-01--2018-06-03, 2018-06-10--2020-11-28}</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> Shiv  {2017-01-01--2019-04-01}                        </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> Tom   {2019-05-01--2020-12-31}</span></span></code></pre></div>
 <p>Notice that:</p>
 <ul>
@@ -292,12 +292,12 @@ previous code but is usually several times faster.</p>
 <span>  by <span class="op">=</span> <span class="va">jobs</span><span class="op">$</span><span class="va">name</span>,</span>
 <span>  keep_by <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  order_by <span class="op">=</span> <span class="cn">TRUE</span></span>
-<span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/as_tibble.html" class="external-link">as_tibble</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 3 × 2</span></span></span>
-<span><span class="co">#&gt;   by    phint                      </span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;phint&lt;UTC&gt;&gt;</span>               </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> Greg  {2018-01-01-[2]-2020-11-28}</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> Shiv  {2017-01-01--2019-04-01}   </span></span>
+<span><span class="co">#&gt;   by    phint                                           </span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;phint&lt;UTC&gt;&gt;</span>                                    </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> Greg  {2018-01-01--2018-06-03, 2018-06-10--2020-11-28}</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> Shiv  {2017-01-01--2019-04-01}                        </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> Tom   {2019-05-01--2020-12-31}</span></span></code></pre></div>
 <p>As in <code><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">dplyr::summarize()</a></code>, the <code>by</code> argument
 can be a vector or data frame to support multiple grouping columns.</p>
@@ -315,9 +315,9 @@ can be a vector or data frame to support multiple grouping columns.</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> Shiv  2017-01-01 <span style="color: #949494;">00:00:00</span> 2019-04-01 <span style="color: #949494;">00:00:00</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> Tom   2019-05-01 <span style="color: #949494;">00:00:00</span> 2020-12-31 <span style="color: #949494;">00:00:00</span></span></span></code></pre></div>
 </div>
-<div class="section level4">
-<h4 id="finding-gaps">Finding Gaps<a class="anchor" aria-label="anchor" href="#finding-gaps"></a>
-</h4>
+<div class="section level3">
+<h3 id="finding-gaps">Finding Gaps<a class="anchor" aria-label="anchor" href="#finding-gaps"></a>
+</h3>
 <p>To analyze periods of unemployment, we need to identify the gaps
 between employment intervals. The <code><a href="../reference/phint_invert.html">phint_invert()</a></code> function
 returns the gaps between spans in a <code>&lt;phinterval&gt;</code>.</p>

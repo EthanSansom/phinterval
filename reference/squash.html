@@ -128,7 +128,7 @@ the output is sorted by the unique values of <code>by</code>. Only used when <co
 <dt id="arg-keep-by">keep_by<a class="anchor" aria-label="anchor" href="#arg-keep-by"></a></dt>
 <dd><p><code>[TRUE / FALSE]</code></p>
 <p>Should the <code>by</code> values be returned alongside the result? If <code>FALSE</code> (the
-default), returns a <code>&lt;phinterval&gt;</code> vector. If <code>TRUE</code>, returns a data frame
+default), returns a <code>&lt;phinterval&gt;</code> vector. If <code>TRUE</code>, returns a <code><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble::tibble()</a></code>
 with columns <code>by</code> and <code>phint</code>. Requires <code>by</code> to be non-<code>NULL</code>.</p></dd>
 
 
@@ -150,7 +150,7 @@ with columns <code>by</code> and <code>phint</code>. Requires <code>by</code> to
 is empty and <code>empty_to = "empty"</code>)</p></li>
 <li><p>If <code>by</code> is provided: A <code>&lt;phinterval&gt;</code> vector with one element per unique
 value of <code>by</code></p></li>
-</ul><p>When <code>keep_by = TRUE</code>: A data frame with columns <code>by</code> and <code>phint</code>.</p>
+</ul><p>When <code>keep_by = TRUE</code>: A <code><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble::tibble()</a></code> with columns <code>by</code> and <code>phint</code>.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -201,9 +201,11 @@ value of <code>by</code></p></li>
 <span class="r-in"><span>  by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"A"</span>, <span class="st">"B"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  keep_by <span class="op">=</span> <span class="cn">TRUE</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   by                    phint</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1  A {2000-01-01--2000-01-09}</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2  B {2000-01-11--2000-01-12}</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 2 × 2</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   by    phint                   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;phint&lt;UTC&gt;&gt;</span>            </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> A     {2000-01-01--2000-01-09}</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> B     {2000-01-11--2000-01-12}</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Control output order with order_by</span></span></span>
 <span class="r-in"><span><span class="fu">phint_squash</span><span class="op">(</span></span></span>

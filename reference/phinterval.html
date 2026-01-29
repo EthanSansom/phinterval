@@ -57,14 +57,10 @@ contain gaps.</p>
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
 
 
-<dl><dt id="arg-start">start<a class="anchor" aria-label="anchor" href="#arg-start"></a></dt>
+<dl><dt id="arg-start-end">start, end<a class="anchor" aria-label="anchor" href="#arg-start-end"></a></dt>
 <dd><p><code>[POSIXct / POSIXlt / Date]</code></p>
-<p>A vector of start times. Must be recyclable with <code>end</code>.</p></dd>
-
-
-<dt id="arg-end">end<a class="anchor" aria-label="anchor" href="#arg-end"></a></dt>
-<dd><p><code>[POSIXct / POSIXlt / Date]</code></p>
-<p>A vector of end times. Must be recyclable with <code>start</code>.</p></dd>
+<p>A pair of start and end datetime vectors. <code>start</code> and <code>end</code> are recycled
+to a common length using vctrs-style recycling rules.</p></dd>
 
 
 <dt id="arg-tzone">tzone<a class="anchor" aria-label="anchor" href="#arg-tzone"></a></dt>
@@ -83,7 +79,7 @@ unique value of <code>by</code>. Overlapping or abutting spans within each group
 merged. If <code>NULL</code> (the default), each <code>start</code>/<code>end</code> pair creates a separate
 phinterval element. <code>by</code> is recycled to match the common length of <code>start</code>
 and <code>end</code>.</p>
-<p><code>by</code> must be a vector in the vctrs sense. See <code>[vctrs::obj_is_vector()]</code>
+<p><code>by</code> may be any vector in the vctrs sense. See <code>[vctrs::obj_is_vector()]</code>
 for details.</p></dd>
 
 
@@ -112,7 +108,7 @@ gaps). Each element of a <code>&lt;phinterval&gt;</code> is stored as a (possibl
 non-overlapping and non-abutting time spans.</p>
 <p>When <code>by = NULL</code> (the default), <code>phinterval()</code> creates scalar phinterval
 elements, where each element contains a single time span from <code>start[i]</code> to
-<code>end[i]</code>. This is equivilant to <code><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">lubridate::interval()</a></code>:</p>
+<code>end[i]</code>. This is equivalent to <code><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">lubridate::interval()</a></code>:</p>
 <p></p><div class="sourceCode"><pre><code><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">interval</span>(start, end, <span class="at">tzone =</span> tzone)   <span class="co"># &lt;Interval&gt; vector</span></span>
 <span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">phinterval</span>(start, end, <span class="at">tzone =</span> tzone) <span class="co"># &lt;phinterval&gt; vector</span></span></code></pre><p></p></div>
 <p>When <code>by</code> is provided, <code>phinterval()</code> groups the <code>start</code>/<code>end</code> pairs by the
@@ -120,6 +116,25 @@ values in <code>by</code>, creating phinterval elements that may contain multipl
 time spans. Overlapping or abutting spans within each group are automatically
 merged.</p>
     </div>
+    <div class="section level2">
+    <h2 id="differences-from-interval-">Differences from interval()<a class="anchor" aria-label="anchor" href="#differences-from-interval-"></a></h2>
+
+
+
+<p>While <code>phinterval()</code> is designed as a drop-in replacement for
+<code><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">lubridate::interval()</a></code>, there are three key differences regarding the
+<code>start</code> and <code>end</code> arguments:</p><ul><li><p><strong>Stricter recycling</strong>: <code>phinterval()</code> uses vctrs recycling rules instead of
+base R recycling. Length-1 vectors recycle to any length, but mismatched
+lengths (e.g., 2 vs 3) cause an error.</p></li>
+<li><p><strong>No character inputs</strong>: <code>phinterval()</code> does not accept character vectors
+for <code>start</code> and <code>end</code>. Character starts and ends (e.g. "2021-01-01") must
+be converted to datetimes first using <code><a href="https://rdrr.io/r/base/as.POSIXlt.html" class="external-link">as.POSIXct()</a></code>, <code><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">lubridate::ymd()</a></code>,
+or a similar function.</p></li>
+<li><p><strong>Standardized endpoints</strong>: <code><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">lubridate::interval()</a></code> allows negative length
+spans where <code>end[i] &lt; start[i]</code>. <code>phinterval()</code> flips the order of the i-th
+span's endpoints when <code>end[i] &lt; start[i]</code> to ensure that all spans are
+positive, similar to <code><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">lubridate::int_standardize()</a></code>.</p></li>
+</ul></div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>

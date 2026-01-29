@@ -18,17 +18,12 @@ phinterval(
 
 ## Arguments
 
-- start:
+- start, end:
 
   `[POSIXct / POSIXlt / Date]`
 
-  A vector of start times. Must be recyclable with `end`.
-
-- end:
-
-  `[POSIXct / POSIXlt / Date]`
-
-  A vector of end times. Must be recyclable with `start`.
+  A pair of start and end datetime vectors. `start` and `end` are
+  recycled to a common length using vctrs-style recycling rules.
 
 - tzone:
 
@@ -52,7 +47,7 @@ phinterval(
   pair creates a separate phinterval element. `by` is recycled to match
   the common length of `start` and `end`.
 
-  `by` must be a vector in the vctrs sense. See
+  `by` may be any vector in the vctrs sense. See
   `[vctrs::obj_is_vector()]` for details.
 
 - order_by:
@@ -84,7 +79,7 @@ non-overlapping and non-abutting time spans.
 
 When `by = NULL` (the default), `phinterval()` creates scalar phinterval
 elements, where each element contains a single time span from `start[i]`
-to `end[i]`. This is equivilant to
+to `end[i]`. This is equivalent to
 [`lubridate::interval()`](https://lubridate.tidyverse.org/reference/interval.html):
 
     interval(start, end, tzone = tzone)   # <Interval> vector
@@ -94,6 +89,31 @@ When `by` is provided, `phinterval()` groups the `start`/`end` pairs by
 the values in `by`, creating phinterval elements that may contain
 multiple disjoint time spans. Overlapping or abutting spans within each
 group are automatically merged.
+
+## Differences from interval()
+
+While `phinterval()` is designed as a drop-in replacement for
+[`lubridate::interval()`](https://lubridate.tidyverse.org/reference/interval.html),
+there are three key differences regarding the `start` and `end`
+arguments:
+
+- **Stricter recycling**: `phinterval()` uses vctrs recycling rules
+  instead of base R recycling. Length-1 vectors recycle to any length,
+  but mismatched lengths (e.g., 2 vs 3) cause an error.
+
+- **No character inputs**: `phinterval()` does not accept character
+  vectors for `start` and `end`. Character starts and ends (e.g.
+  "2021-01-01") must be converted to datetimes first using
+  [`as.POSIXct()`](https://rdrr.io/r/base/as.POSIXlt.html),
+  [`lubridate::ymd()`](https://lubridate.tidyverse.org/reference/ymd.html),
+  or a similar function.
+
+- **Standardized endpoints**:
+  [`lubridate::interval()`](https://lubridate.tidyverse.org/reference/interval.html)
+  allows negative length spans where `end[i] < start[i]`. `phinterval()`
+  flips the order of the i-th span's endpoints when `end[i] < start[i]`
+  to ensure that all spans are positive, similar to
+  [`lubridate::int_standardize()`](https://lubridate.tidyverse.org/reference/interval.html).
 
 ## Examples
 
