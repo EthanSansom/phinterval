@@ -1,4 +1,4 @@
-# phinterval: Set Operations for Time Intervals
+# phinterval: Set Operations on Time Intervals
 
 Implements the phinterval vector class for representing time spans that
 may contain gaps (disjoint intervals) or be empty. This class
