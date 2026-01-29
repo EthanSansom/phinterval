@@ -39,7 +39,7 @@
 #' If provided, must be the same length as `phint`. If `NULL` (the default),
 #' the `key` column contains row indices (position in `phint`).
 #'
-#' `key` may be any vector in the vctrs sense. See `[vctrs::obj_is_vector()]`
+#' `key` may be any vector in the vctrs sense. See [vctrs::obj_is_vector()]
 #' for details.
 #'
 #' @return

@@ -1,11 +1,3 @@
-# todos ------------------------------------------------------------------------
-
-# TODO: CRAN
-# - Look into all of the edge-case CRAN checks and run (see RPackages book)
-
-# TODO: JOSS
-# - Review paper and update to use new interface!
-
 # constructors -----------------------------------------------------------------
 
 setOldClass(c("phinterval", "list", "vctrs_rcrd"))
@@ -83,7 +75,7 @@ setOldClass(c("phinterval", "list", "vctrs_rcrd"))
 #' phinterval element. `by` is recycled to match the common length of `start`
 #' and `end`.
 #'
-#' `by` may be any vector in the vctrs sense. See `[vctrs::obj_is_vector()]`
+#' `by` may be any vector in the vctrs sense. See [vctrs::obj_is_vector()]
 #' for details.
 #'
 #' @param order_by `[TRUE / FALSE]`
@@ -186,7 +178,7 @@ phinterval <- function(
 #' interval. Holes are useful as placeholders or for representing the absence
 #' of time periods in interval algebra operations.
 #'
-#' @param n `[integerish(1)]`
+#' @param n `[integer(1)]`
 #'
 #' The number of hole elements to create. Must be a positive whole number.
 #'
