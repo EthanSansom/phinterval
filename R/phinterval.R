@@ -330,6 +330,7 @@ anyNA.phinterval <- function(x, recursive = FALSE) {
 #' `FALSE` otherwise.
 #'
 #' @param x An object to test.
+#'
 #' @return `TRUE` if `x` is a `<phinterval>`, `FALSE` otherwise.
 #'
 #' @examples
@@ -349,6 +350,7 @@ is_phinterval <- function(x) {
 #' returns `FALSE` otherwise.
 #'
 #' @param x An object to test.
+#'
 #' @return `TRUE` if `x` is a `<phinterval>` or `<Interval>`, `FALSE` otherwise.
 #'
 #' @examples
