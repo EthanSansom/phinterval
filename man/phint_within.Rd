@@ -4,7 +4,7 @@
 \alias{phint_within}
 \title{Test whether a datetime or phinterval is within another phinterval}
 \usage{
-phint_within(x, phint)
+phint_within(x, phint, bounds = c("[]", "()"))
 }
 \arguments{
 \item{x}{\verb{[phinterval / Interval / Date / POSIXct / POSIXlt]}
@@ -14,6 +14,19 @@ The object to test.}
 \item{phint}{\verb{[phinterval / Interval]}
 
 A \verb{<phinterval>} or \verb{<Interval>} vector.}
+
+\item{bounds}{\verb{["[]" / "()"]}
+
+Whether span endpoints are inclusive or exclusive:
+\itemize{
+\item \code{"[]"} (default): Closed intervals - both endpoints are included
+\item \code{"()"}: Open intervals - both endpoints are excluded
+}
+
+This affects adjacency and overlap detection. For example, with \code{bounds = "[]"},
+the intervals \verb{[1, 5]} and \verb{[5, 10]} are considered adjacent (they share the
+endpoint 5), while with \code{bounds = "()"}, \verb{(1, 5)} and \verb{(5, 10)} are disjoint
+(neither includes 5).}
 }
 \value{
 A logical vector.

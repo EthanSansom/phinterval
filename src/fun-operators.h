@@ -8,6 +8,7 @@
 // - apply_to_set() takes a PhintView (possible empty) or a ScalarView type
 // - apply_to_span() takes a single-span PhintView or a ScalarView type
 
+template <bool IsInclusive>
 struct Intersect {
   template <typename XView, typename YView>
   void apply_to_set(const XView& x, const YView& y, PhintBuffer& out);
@@ -34,19 +35,30 @@ struct Setdiff {
 
 // intersect -------------------------------------------------------------------
 
+template <bool IsInclusive>
 template <typename XView, typename YView>
-void Intersect::apply_to_span(const XView& x, const YView& y, PhintBuffer& out) {
+void Intersect<IsInclusive>::apply_to_span(const XView& x, const YView& y, PhintBuffer& out) {
   double start { std::max(x.start(0), y.start(0)) };
   double end { std::min(x.end(0), y.end(0)) };
-  if (end < start) {
-    out.add_empty_element();
+
+  if constexpr (IsInclusive) {
+    if (end < start) {
+      out.add_empty_element();
+      return;
+    }
   } else {
-    out.add_scalar_element(start, end);
+    if (end <= start) {
+      out.add_empty_element();
+      return;
+    }
   }
+
+  out.add_scalar_element(start, end);
 };
 
+template <bool IsInclusive>
 template <typename XView, typename YView>
-void Intersect::apply_to_set(const XView& x, const YView& y, PhintBuffer& out) {
+void Intersect<IsInclusive>::apply_to_set(const XView& x, const YView& y, PhintBuffer& out) {
   if (x.is_empty() || y.is_empty()) {
     out.add_empty_element();
     return;
@@ -57,8 +69,14 @@ void Intersect::apply_to_set(const XView& x, const YView& y, PhintBuffer& out) {
     double start = std::max(x.start(i), y.start(j));
     double end = std::min(x.end(i), y.end(j));
 
-    if (start <= end) {
-      out.add_span(start, end);
+    if constexpr (IsInclusive) {
+      if (start <= end) {
+        out.add_span(start, end);
+      }
+    } else {
+      if (start < end) {
+        out.add_span(start, end);
+      }
     }
 
     if (x.end(i) < y.end(j)) {

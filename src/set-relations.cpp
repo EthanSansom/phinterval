@@ -11,73 +11,91 @@ using namespace Rcpp;
 // [[Rcpp::export]]
 LogicalVector phint_phint_within_cpp(
     IntegerVector x_size, List x_starts, List x_ends,
-    IntegerVector y_size, List y_starts, List y_ends
+    IntegerVector y_size, List y_starts, List y_ends,
+    String bounds
 ) {
-  return phint_relate(
-    PhintVectorView{x_size, x_starts, x_ends},
-    PhintVectorView{y_size, y_starts, y_ends},
-    Within{}
-  );
+  PhintVectorView x {x_size, x_starts, x_ends};
+  PhintVectorView y {y_size, y_starts, y_ends};
+  if (bounds == "[]") {
+    return phint_relate(x, y, Within<true>{});
+  } else {
+    return phint_relate(x, y, Within<false>{});
+  }
 }
 
 // [[Rcpp::export]]
 LogicalVector phint_intvl_within_cpp(
     IntegerVector x_size, List x_starts, List x_ends,
-    DatetimeVector y_starts, NumericVector y_spans
+    DatetimeVector y_starts, NumericVector y_spans,
+    String bounds
 ) {
-  return phint_relate(
-    PhintVectorView{x_size, x_starts, x_ends},
-    IntvlVectorView{y_starts, y_spans},
-    Within{}
-  );
+  PhintVectorView x {x_size, x_starts, x_ends};
+  IntvlVectorView y {y_starts, y_spans};
+  if (bounds == "[]") {
+    return phint_relate(x, y, Within<true>{});
+  } else {
+    return phint_relate(x, y, Within<false>{});
+  }
 }
 
 // [[Rcpp::export]]
 LogicalVector intvl_phint_within_cpp(
     DatetimeVector x_starts, NumericVector x_spans,
-    IntegerVector y_size, List y_starts, List y_ends
+    IntegerVector y_size, List y_starts, List y_ends,
+    String bounds
 ) {
-  return phint_relate(
-    IntvlVectorView{x_starts, x_spans},
-    PhintVectorView{y_size, y_starts, y_ends},
-    Within{}
-  );
+  IntvlVectorView x {x_starts, x_spans};
+  PhintVectorView y {y_size, y_starts, y_ends};
+  if (bounds == "[]") {
+    return phint_relate(x, y, Within<true>{});
+  } else {
+    return phint_relate(x, y, Within<false>{});
+  }
 }
 
 // [[Rcpp::export]]
 LogicalVector intvl_intvl_within_cpp(
     DatetimeVector x_starts, NumericVector x_spans,
-    DatetimeVector y_starts, NumericVector y_spans
+    DatetimeVector y_starts, NumericVector y_spans,
+    String bounds
 ) {
-  return phint_relate(
-    IntvlVectorView{x_starts, x_spans},
-    IntvlVectorView{y_starts, y_spans},
-    Within{}
-  );
+  IntvlVectorView x {x_starts, x_spans};
+  IntvlVectorView y {y_starts, y_spans};
+  if (bounds == "[]") {
+    return phint_relate(x, y, Within<true>{});
+  } else {
+    return phint_relate(x, y, Within<false>{});
+  }
 }
 
 // [[Rcpp::export]]
 LogicalVector point_phint_within_cpp(
     DatetimeVector x_points,
-    IntegerVector y_size, List y_starts, List y_ends
+    IntegerVector y_size, List y_starts, List y_ends,
+    String bounds
 ) {
-  return phint_relate(
-    PointVectorView{x_points},
-    PhintVectorView{y_size, y_starts, y_ends},
-    Within{}
-  );
+  PointVectorView x {x_points};
+  PhintVectorView y {y_size, y_starts, y_ends};
+  if (bounds == "[]") {
+    return phint_relate(x, y, Within<true>{});
+  } else {
+    return phint_relate(x, y, Within<false>{});
+  }
 }
 
 // [[Rcpp::export]]
 LogicalVector point_intvl_within_cpp(
     DatetimeVector x_points,
-    DatetimeVector y_starts, NumericVector y_spans
+    DatetimeVector y_starts, NumericVector y_spans,
+    String bounds
 ) {
-  return phint_relate(
-    PointVectorView{x_points},
-    IntvlVectorView{y_starts, y_spans},
-    Within{}
-  );
+  PointVectorView x {x_points};
+  IntvlVectorView y {y_starts, y_spans};
+  if (bounds == "[]") {
+    return phint_relate(x, y, Within<true>{});
+  } else {
+    return phint_relate(x, y, Within<false>{});
+  }
 }
 
 // overlaps --------------------------------------------------------------------
@@ -85,47 +103,59 @@ LogicalVector point_intvl_within_cpp(
 // [[Rcpp::export]]
 LogicalVector phint_phint_overlaps_cpp(
     IntegerVector x_size, List x_starts, List x_ends,
-    IntegerVector y_size, List y_starts, List y_ends
+    IntegerVector y_size, List y_starts, List y_ends,
+    String bounds
 ) {
-  return phint_relate(
-    PhintVectorView{x_size, x_starts, x_ends},
-    PhintVectorView{y_size, y_starts, y_ends},
-    Overlaps{}
-  );
+  PhintVectorView x {x_size, x_starts, x_ends};
+  PhintVectorView y {y_size, y_starts, y_ends};
+  if (bounds == "[]") {
+    return phint_relate(x, y, Overlaps<true>{});
+  } else {
+    return phint_relate(x, y, Overlaps<false>{});
+  }
 }
 
 // [[Rcpp::export]]
 LogicalVector phint_intvl_overlaps_cpp(
     IntegerVector x_size, List x_starts, List x_ends,
-    DatetimeVector y_starts, NumericVector y_spans
+    DatetimeVector y_starts, NumericVector y_spans,
+    String bounds
 ) {
-  return phint_relate(
-    PhintVectorView{x_size, x_starts, x_ends},
-    IntvlVectorView{y_starts, y_spans},
-    Overlaps{}
-  );
+  PhintVectorView x {x_size, x_starts, x_ends};
+  IntvlVectorView y {y_starts, y_spans};
+  if (bounds == "[]") {
+    return phint_relate(x, y, Overlaps<true>{});
+  } else {
+    return phint_relate(x, y, Overlaps<false>{});
+  }
 }
 
 // [[Rcpp::export]]
 LogicalVector intvl_phint_overlaps_cpp(
     DatetimeVector x_starts, NumericVector x_spans,
-    IntegerVector y_size, List y_starts, List y_ends
+    IntegerVector y_size, List y_starts, List y_ends,
+    String bounds
 ) {
-  return phint_relate(
-    IntvlVectorView{x_starts, x_spans},
-    PhintVectorView{y_size, y_starts, y_ends},
-    Overlaps{}
-  );
+  IntvlVectorView x {x_starts, x_spans};
+  PhintVectorView y {y_size, y_starts, y_ends};
+  if (bounds == "[]") {
+    return phint_relate(x, y, Overlaps<true>{});
+  } else {
+    return phint_relate(x, y, Overlaps<false>{});
+  }
 }
 
 // [[Rcpp::export]]
 LogicalVector intvl_intvl_overlaps_cpp(
     DatetimeVector x_starts, NumericVector x_spans,
-    DatetimeVector y_starts, NumericVector y_spans
+    DatetimeVector y_starts, NumericVector y_spans,
+    String bounds
 ) {
-  return phint_relate(
-    IntvlVectorView{x_starts, x_spans},
-    IntvlVectorView{y_starts, y_spans},
-    Overlaps{}
-  );
+  IntvlVectorView x {x_starts, x_spans};
+  IntvlVectorView y {y_starts, y_spans};
+  if (bounds == "[]") {
+    return phint_relate(x, y, Overlaps<true>{});
+  } else {
+    return phint_relate(x, y, Overlaps<false>{});
+  }
 }

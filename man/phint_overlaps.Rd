@@ -4,13 +4,26 @@
 \alias{phint_overlaps}
 \title{Test whether two phintervals overlap}
 \usage{
-phint_overlaps(phint1, phint2)
+phint_overlaps(phint1, phint2, bounds = c("[]", "()"))
 }
 \arguments{
 \item{phint1, phint2}{\verb{[phinterval / Interval]}
 
-A pair of \verb{<phinterval>} or \verb{<Interval>} vectors of the same length or of
-length 1. Inputs of length 1 are recycled.}
+A pair of \verb{<phinterval>} or \verb{<Interval>} vectors. \code{phint1} and \code{phint2}
+are recycled to a common length using vctrs-style recycling.}
+
+\item{bounds}{\verb{["[]" / "()"]}
+
+Whether span endpoints are inclusive or exclusive:
+\itemize{
+\item \code{"[]"} (default): Closed intervals - both endpoints are included
+\item \code{"()"}: Open intervals - both endpoints are excluded
+}
+
+This affects adjacency and overlap detection. For example, with \code{bounds = "[]"},
+the intervals \verb{[1, 5]} and \verb{[5, 10]} are considered adjacent (they share the
+endpoint 5), while with \code{bounds = "()"}, \verb{(1, 5)} and \verb{(5, 10)} are disjoint
+(neither includes 5).}
 }
 \value{
 A logical vector.
@@ -30,8 +43,11 @@ mon_and_fri <- phint_union(monday, friday)
 
 phint_overlaps(c(monday, monday, friday), c(mon_and_fri, friday, NA))
 
-# Adjacent intervals are considered overlapping
+# Adjacent intervals are considered overlapping by default
 phint_overlaps(monday, tuesday)
+
+# Use exclusive bounds to consider adjacent intervals as disjoint
+phint_overlaps(monday, tuesday, bounds = "()")
 
 # Holes never overlap with anything (including other holes)
 hole <- hole()

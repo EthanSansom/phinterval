@@ -65,20 +65,20 @@ intvl_invert_cpp <- function(starts, spans, hole_to) {
     .Call(`_phinterval_intvl_invert_cpp`, starts, spans, hole_to)
 }
 
-phint_phint_intersect_cpp <- function(x_size, x_starts, x_ends, y_size, y_starts, y_ends) {
-    .Call(`_phinterval_phint_phint_intersect_cpp`, x_size, x_starts, x_ends, y_size, y_starts, y_ends)
+phint_phint_intersect_cpp <- function(x_size, x_starts, x_ends, y_size, y_starts, y_ends, bounds) {
+    .Call(`_phinterval_phint_phint_intersect_cpp`, x_size, x_starts, x_ends, y_size, y_starts, y_ends, bounds)
 }
 
-phint_intvl_intersect_cpp <- function(x_size, x_starts, x_ends, y_starts, y_spans) {
-    .Call(`_phinterval_phint_intvl_intersect_cpp`, x_size, x_starts, x_ends, y_starts, y_spans)
+phint_intvl_intersect_cpp <- function(x_size, x_starts, x_ends, y_starts, y_spans, bounds) {
+    .Call(`_phinterval_phint_intvl_intersect_cpp`, x_size, x_starts, x_ends, y_starts, y_spans, bounds)
 }
 
-intvl_phint_intersect_cpp <- function(x_starts, x_spans, y_size, y_starts, y_ends) {
-    .Call(`_phinterval_intvl_phint_intersect_cpp`, x_starts, x_spans, y_size, y_starts, y_ends)
+intvl_phint_intersect_cpp <- function(x_starts, x_spans, y_size, y_starts, y_ends, bounds) {
+    .Call(`_phinterval_intvl_phint_intersect_cpp`, x_starts, x_spans, y_size, y_starts, y_ends, bounds)
 }
 
-intvl_intvl_intersect_cpp <- function(x_starts, x_spans, y_starts, y_spans) {
-    .Call(`_phinterval_intvl_intvl_intersect_cpp`, x_starts, x_spans, y_starts, y_spans)
+intvl_intvl_intersect_cpp <- function(x_starts, x_spans, y_starts, y_spans, bounds) {
+    .Call(`_phinterval_intvl_intvl_intersect_cpp`, x_starts, x_spans, y_starts, y_spans, bounds)
 }
 
 phint_phint_union_cpp <- function(x_size, x_starts, x_ends, y_size, y_starts, y_ends) {
@@ -113,44 +113,44 @@ intvl_intvl_setdiff_cpp <- function(x_starts, x_spans, y_starts, y_spans) {
     .Call(`_phinterval_intvl_intvl_setdiff_cpp`, x_starts, x_spans, y_starts, y_spans)
 }
 
-phint_phint_within_cpp <- function(x_size, x_starts, x_ends, y_size, y_starts, y_ends) {
-    .Call(`_phinterval_phint_phint_within_cpp`, x_size, x_starts, x_ends, y_size, y_starts, y_ends)
+phint_phint_within_cpp <- function(x_size, x_starts, x_ends, y_size, y_starts, y_ends, bounds) {
+    .Call(`_phinterval_phint_phint_within_cpp`, x_size, x_starts, x_ends, y_size, y_starts, y_ends, bounds)
 }
 
-phint_intvl_within_cpp <- function(x_size, x_starts, x_ends, y_starts, y_spans) {
-    .Call(`_phinterval_phint_intvl_within_cpp`, x_size, x_starts, x_ends, y_starts, y_spans)
+phint_intvl_within_cpp <- function(x_size, x_starts, x_ends, y_starts, y_spans, bounds) {
+    .Call(`_phinterval_phint_intvl_within_cpp`, x_size, x_starts, x_ends, y_starts, y_spans, bounds)
 }
 
-intvl_phint_within_cpp <- function(x_starts, x_spans, y_size, y_starts, y_ends) {
-    .Call(`_phinterval_intvl_phint_within_cpp`, x_starts, x_spans, y_size, y_starts, y_ends)
+intvl_phint_within_cpp <- function(x_starts, x_spans, y_size, y_starts, y_ends, bounds) {
+    .Call(`_phinterval_intvl_phint_within_cpp`, x_starts, x_spans, y_size, y_starts, y_ends, bounds)
 }
 
-intvl_intvl_within_cpp <- function(x_starts, x_spans, y_starts, y_spans) {
-    .Call(`_phinterval_intvl_intvl_within_cpp`, x_starts, x_spans, y_starts, y_spans)
+intvl_intvl_within_cpp <- function(x_starts, x_spans, y_starts, y_spans, bounds) {
+    .Call(`_phinterval_intvl_intvl_within_cpp`, x_starts, x_spans, y_starts, y_spans, bounds)
 }
 
-point_phint_within_cpp <- function(x_points, y_size, y_starts, y_ends) {
-    .Call(`_phinterval_point_phint_within_cpp`, x_points, y_size, y_starts, y_ends)
+point_phint_within_cpp <- function(x_points, y_size, y_starts, y_ends, bounds) {
+    .Call(`_phinterval_point_phint_within_cpp`, x_points, y_size, y_starts, y_ends, bounds)
 }
 
-point_intvl_within_cpp <- function(x_points, y_starts, y_spans) {
-    .Call(`_phinterval_point_intvl_within_cpp`, x_points, y_starts, y_spans)
+point_intvl_within_cpp <- function(x_points, y_starts, y_spans, bounds) {
+    .Call(`_phinterval_point_intvl_within_cpp`, x_points, y_starts, y_spans, bounds)
 }
 
-phint_phint_overlaps_cpp <- function(x_size, x_starts, x_ends, y_size, y_starts, y_ends) {
-    .Call(`_phinterval_phint_phint_overlaps_cpp`, x_size, x_starts, x_ends, y_size, y_starts, y_ends)
+phint_phint_overlaps_cpp <- function(x_size, x_starts, x_ends, y_size, y_starts, y_ends, bounds) {
+    .Call(`_phinterval_phint_phint_overlaps_cpp`, x_size, x_starts, x_ends, y_size, y_starts, y_ends, bounds)
 }
 
-phint_intvl_overlaps_cpp <- function(x_size, x_starts, x_ends, y_starts, y_spans) {
-    .Call(`_phinterval_phint_intvl_overlaps_cpp`, x_size, x_starts, x_ends, y_starts, y_spans)
+phint_intvl_overlaps_cpp <- function(x_size, x_starts, x_ends, y_starts, y_spans, bounds) {
+    .Call(`_phinterval_phint_intvl_overlaps_cpp`, x_size, x_starts, x_ends, y_starts, y_spans, bounds)
 }
 
-intvl_phint_overlaps_cpp <- function(x_starts, x_spans, y_size, y_starts, y_ends) {
-    .Call(`_phinterval_intvl_phint_overlaps_cpp`, x_starts, x_spans, y_size, y_starts, y_ends)
+intvl_phint_overlaps_cpp <- function(x_starts, x_spans, y_size, y_starts, y_ends, bounds) {
+    .Call(`_phinterval_intvl_phint_overlaps_cpp`, x_starts, x_spans, y_size, y_starts, y_ends, bounds)
 }
 
-intvl_intvl_overlaps_cpp <- function(x_starts, x_spans, y_starts, y_spans) {
-    .Call(`_phinterval_intvl_intvl_overlaps_cpp`, x_starts, x_spans, y_starts, y_spans)
+intvl_intvl_overlaps_cpp <- function(x_starts, x_spans, y_starts, y_spans, bounds) {
+    .Call(`_phinterval_intvl_intvl_overlaps_cpp`, x_starts, x_spans, y_starts, y_spans, bounds)
 }
 
 phint_squash_cpp <- function(size, starts, ends, na_rm) {

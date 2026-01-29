@@ -20,15 +20,18 @@
 #'
 #' phint_overlaps(c(monday, monday, friday), c(mon_and_fri, friday, NA))
 #'
-#' # Adjacent intervals are considered overlapping
+#' # Adjacent intervals are considered overlapping by default
 #' phint_overlaps(monday, tuesday)
+#'
+#' # Use exclusive bounds to consider adjacent intervals as disjoint
+#' phint_overlaps(monday, tuesday, bounds = "()")
 #'
 #' # Holes never overlap with anything (including other holes)
 #' hole <- hole()
 #' phint_overlaps(c(hole, monday), c(hole, hole))
 #'
 #' @export
-phint_overlaps <- function(phint1, phint2) {
+phint_overlaps <- function(phint1, phint2, bounds = c("[]", "()")) {
   phint_binary_dispatch(
     x = phint1,
     y = phint2,
@@ -39,7 +42,8 @@ phint_overlaps <- function(phint1, phint2) {
       phint_intvl = phint_intvl_overlaps_cpp,
       intvl_phint = intvl_phint_overlaps_cpp,
       intvl_intvl = intvl_intvl_overlaps_cpp
-    )
+    ),
+    bounds = arg_match0(bounds, c("[]", "()"))
   )
 }
 
@@ -56,11 +60,11 @@ phint_overlaps <- function(phint1, phint2) {
 #' Datetimes on an endpoint of an interval are considered to be within the
 #' interval. An interval is considered to be within itself.
 #'
-#' @inheritParams params
-#'
 #' @param x `[phinterval / Interval / Date / POSIXct / POSIXlt]`
 #'
 #' The object to test.
+#'
+#' @inheritParams params
 #'
 #' @return A logical vector.
 #'
@@ -79,15 +83,18 @@ phint_overlaps <- function(phint1, phint2) {
 #' # Intervals are within themselves
 #' phint_within(jan_1_to_5, jan_1_to_5)
 #'
-#' # Interval endpoints are considered within
+#' # By default, interval endpoints are considered within
 #' phint_within(as.Date("2000-01-01"), jan_1_to_5)
+#'
+#' # Use bounds to consider intervals as exclusive of endpoints
+#' phint_within(as.Date("2000-01-01"), jan_1_to_5, bounds = "()")
 #'
 #' # Holes are never within any interval (including other holes)
 #' hole <- hole()
 #' phint_within(c(hole, hole), c(hole, jan_1_to_5))
 #'
 #' @export
-phint_within <- function(x, phint) {
+phint_within <- function(x, phint, bounds = c("[]", "()")) {
   phint_binary_dispatch(
     x = x,
     y = phint,
@@ -100,6 +107,7 @@ phint_within <- function(x, phint) {
       intvl_intvl = intvl_intvl_within_cpp,
       point_phint = point_phint_within_cpp,
       point_intvl = point_intvl_within_cpp
-    )
+    ),
+    bounds = arg_match0(bounds, c("[]", "()"))
   )
 }

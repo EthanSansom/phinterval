@@ -10,49 +10,61 @@ using namespace Rcpp;
 // [[Rcpp::export]]
 List phint_phint_intersect_cpp(
     IntegerVector x_size, List x_starts, List x_ends,
-    IntegerVector y_size, List y_starts, List y_ends
+    IntegerVector y_size, List y_starts, List y_ends,
+    String bounds
 ) {
-  return phint_operate(
-    PhintVectorView{x_size, x_starts, x_ends},
-    PhintVectorView{y_size, y_starts, y_ends},
-    Intersect{}
-  );
+  PhintVectorView x {x_size, x_starts, x_ends};
+  PhintVectorView y {y_size, y_starts, y_ends};
+  if (bounds == "[]") {
+    return phint_operate(x, y, Intersect<true>{});
+  } else {
+    return phint_operate(x, y, Intersect<false>{});
+  }
 }
 
 // [[Rcpp::export]]
 List phint_intvl_intersect_cpp(
     IntegerVector x_size, List x_starts, List x_ends,
-    DatetimeVector y_starts, NumericVector y_spans
+    DatetimeVector y_starts, NumericVector y_spans,
+    String bounds
 ) {
-  return phint_operate(
-    PhintVectorView{x_size, x_starts, x_ends},
-    IntvlVectorView{y_starts, y_spans},
-    Intersect{}
-  );
+  PhintVectorView x {x_size, x_starts, x_ends};
+  IntvlVectorView y {y_starts, y_spans};
+  if (bounds == "[]") {
+    return phint_operate(x, y, Intersect<true>{});
+  } else {
+    return phint_operate(x, y, Intersect<false>{});
+  }
 }
 
 // [[Rcpp::export]]
 List intvl_phint_intersect_cpp(
     DatetimeVector x_starts, NumericVector x_spans,
-    IntegerVector y_size, List y_starts, List y_ends
+    IntegerVector y_size, List y_starts, List y_ends,
+    String bounds
 ) {
-  return phint_operate(
-    IntvlVectorView{x_starts, x_spans},
-    PhintVectorView{y_size, y_starts, y_ends},
-    Intersect{}
-  );
+  IntvlVectorView x {x_starts, x_spans};
+  PhintVectorView y {y_size, y_starts, y_ends};
+  if (bounds == "[]") {
+    return phint_operate(x, y, Intersect<true>{});
+  } else {
+    return phint_operate(x, y, Intersect<false>{});
+  }
 }
 
 // [[Rcpp::export]]
 List intvl_intvl_intersect_cpp(
     DatetimeVector x_starts, NumericVector x_spans,
-    DatetimeVector y_starts, NumericVector y_spans
+    DatetimeVector y_starts, NumericVector y_spans,
+    String bounds
 ) {
-  return phint_operate(
-    IntvlVectorView{x_starts, x_spans},
-    IntvlVectorView{y_starts, y_spans},
-    Intersect{}
-  );
+  IntvlVectorView x {x_starts, x_spans};
+  IntvlVectorView y {y_starts, y_spans};
+  if (bounds == "[]") {
+    return phint_operate(x, y, Intersect<true>{});
+  } else {
+    return phint_operate(x, y, Intersect<false>{});
+  }
 }
 
 // union -----------------------------------------------------------------------

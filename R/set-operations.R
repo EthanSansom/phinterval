@@ -14,6 +14,17 @@
 #'
 #' @inheritParams params
 #'
+#' @param bounds `["[]" / "()"]`
+#'
+#' For `phint_intersect()` only, whether span endpoints are inclusive or exclusive:
+#' - `"[]"` (default): Closed intervals - both endpoints are included
+#' - `"()"`: Open intervals - both endpoints are excluded
+#'
+#' This affects adjacency and overlap detection. For example, with `bounds = "[]"`,
+#' the intervals `[1, 5]` and `[5, 10]` are considered adjacent (they share the
+#' endpoint 5), while with `bounds = "()"`, `(1, 5)` and `(5, 10)` are disjoint
+#' (neither includes 5).
+#'
 #' @return A `<phinterval>` vector.
 #'
 #' @examples
@@ -42,8 +53,11 @@
 #' # The intersection of non-overlapping intervals is a hole
 #' phint_intersect(monday, friday)
 #'
-#' # The intersection of adjacent intervals is instantaneous
+#' # By default, the intersection of adjacent intervals is instantaneous
 #' phint_intersect(monday, tuesday)
+#'
+#' # Use bounds to set the intersection of adjacent intervals to a hole
+#' phint_intersect(monday, tuesday, bounds = "()")
 #'
 #' # Set difference
 #' phint_setdiff(jan_1_to_5, jan_3_to_9)
@@ -90,7 +104,7 @@ phint_union <- function(phint1, phint2) {
 
 #' @rdname phinterval-set-operations
 #' @export
-phint_intersect <- function(phint1, phint2) {
+phint_intersect <- function(phint1, phint2, bounds = c("[]", "()")) {
   out <- phint_binary_dispatch(
     x = phint1,
     y = phint2,
@@ -101,7 +115,8 @@ phint_intersect <- function(phint1, phint2) {
       phint_intvl = phint_intvl_intersect_cpp,
       intvl_phint = intvl_phint_intersect_cpp,
       intvl_intvl = intvl_intvl_intersect_cpp
-    )
+    ),
+    bounds = arg_match0(bounds, c("[]", "()"))
   )
   new_phinterval_bare(out, tzone = tz_union(phint1, phint2))
 }

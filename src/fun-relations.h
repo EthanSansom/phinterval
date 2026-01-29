@@ -8,6 +8,7 @@
 // - apply_to_set() takes a PhintView (possibly empty) or a ScalarView type
 // - apply_to_span() takes a single-span PhintView or a ScalarView type
 
+template <bool IsInclusive>
 struct Within {
   template <typename XView, typename YView>
   bool apply_to_set(const XView& x, const YView& y);
@@ -16,6 +17,7 @@ struct Within {
   bool apply_to_span(const XView& x, const YView& y);
 };
 
+template <bool IsInclusive>
 struct Overlaps {
   template <typename XView, typename YView>
   bool apply_to_set(const XView& x, const YView& y);
@@ -26,13 +28,22 @@ struct Overlaps {
 
 // implementation --------------------------------------------------------------
 
+template <bool IsInclusive>
 template <typename XView, typename YView>
-bool Within::apply_to_span(const XView& x, const YView& y) {
-  return y.start(0) <= x.start(0) && x.end(0) <= y.end(0);
+bool Within<IsInclusive>::apply_to_span(const XView& x, const YView& y) {
+  if constexpr (IsInclusive) {
+    return y.start(0) <= x.start(0) && x.end(0) <= y.end(0);
+  } else {
+    if (x.start(0) == x.end(0)) {
+      return y.start(0) < x.start(0) && x.end(0) < y.end(0);
+    }
+    return y.start(0) <= x.start(0) && x.end(0) <= y.end(0);
+  }
 };
 
+template <bool IsInclusive>
 template <typename XView, typename YView>
-bool Within::apply_to_set(const XView& x, const YView& y) {
+bool Within<IsInclusive>::apply_to_set(const XView& x, const YView& y) {
   if (x.is_empty() || y.is_empty()) {
     return false;
   }
@@ -49,18 +60,29 @@ bool Within::apply_to_set(const XView& x, const YView& y) {
     double y_start = y.start(j);
     double y_end = y.end(j);
     if (x_start < y_start || x_end > y_end) return false;
+
+    // Instants on endpoints are considered not within
+    if constexpr (!IsInclusive) {
+      if (x_start == x_end && (x_start == y_start || x_end == y_end)) return false;
+    }
   }
 
   return true;
 }
 
+template <bool IsInclusive>
 template <typename XView, typename YView>
-bool Overlaps::apply_to_span(const XView& x, const YView& y) {
-  return std::max(x.start(0), y.start(0)) <= std::min(x.end(0), y.end(0));
+bool Overlaps<IsInclusive>::apply_to_span(const XView& x, const YView& y) {
+  if constexpr (IsInclusive) {
+    return std::max(x.start(0), y.start(0)) <= std::min(x.end(0), y.end(0));
+  } else {
+    return std::max(x.start(0), y.start(0)) < std::min(x.end(0), y.end(0));
+  }
 };
 
+template <bool IsInclusive>
 template <typename XView, typename YView>
-bool Overlaps::apply_to_set(const XView& x, const YView& y) {
+bool Overlaps<IsInclusive>::apply_to_set(const XView& x, const YView& y) {
   if (x.is_empty() || y.is_empty()) {
     return false;
   }
@@ -70,7 +92,11 @@ bool Overlaps::apply_to_set(const XView& x, const YView& y) {
     double start = std::max(x.start(i), y.start(j));
     double end = std::min(x.end(i), y.end(j));
 
-    if (start <= end) return true;
+    if constexpr (IsInclusive) {
+      if (start <= end) return true;
+    } else {
+      if (start < end) return true;
+    }
 
     if (x.end(i) < y.end(j)) {
       i++;

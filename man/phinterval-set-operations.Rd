@@ -23,8 +23,8 @@ A \verb{<phinterval>} or \verb{<Interval>} vector.}
 
 \item{phint1, phint2}{\verb{[phinterval / Interval]}
 
-A pair of \verb{<phinterval>} or \verb{<Interval>} vectors of the same length or of
-length 1. Inputs of length 1 are recycled.}
+A pair of \verb{<phinterval>} or \verb{<Interval>} vectors. \code{phint1} and \code{phint2}
+are recycled to a common length using vctrs-style recycling.}
 }
 \value{
 A \verb{<phinterval>} vector.

@@ -180,7 +180,6 @@ test_that("Binary functions recycle inputs", {
   expect_error(phint_within(phint3, phint0))
 })
 
-# TODO
 test_that("Binary functions error on invalid inputs", {
   int <- interval(as.Date("2021-01-01"), as.Date("2021-02-01"))
   phint <- as_phinterval(int)
@@ -188,6 +187,25 @@ test_that("Binary functions error on invalid inputs", {
   expect_error(phint_union(int, 10))
   expect_error(phint_union("A", phint))
   expect_error(phint_union(phint))
+
+  expect_error(phint_intersect(int, 10))
+  expect_error(phint_intersect("A", phint))
+  expect_error(phint_intersect(phint))
+  expect_error(phint_intersect(phint, phint, bounds = "none"))
+
+  expect_error(phint_setdiff(int, 10))
+  expect_error(phint_setdiff("A", phint))
+  expect_error(phint_setdiff(phint))
+
+  expect_error(phint_within(int, 10))
+  expect_error(phint_within("A", phint))
+  expect_error(phint_within(phint))
+  expect_error(phint_within(phint, phint, bounds = "none"))
+
+  expect_error(phint_overlaps(int, 10))
+  expect_error(phint_overlaps("A", phint))
+  expect_error(phint_overlaps(phint))
+  expect_error(phint_overlaps(phint, phint, bounds = "none"))
 })
 
 # phint_union ------------------------------------------------------------------
@@ -339,6 +357,9 @@ test_that("phint_intersect() works as expected", {
 
   hole <- hole(tzone = "UTC")
 
+  phint12_45 <- phint_squash(c(int12, int45))
+  phint13_45 <- phint_squash(c(int13, int45))
+
   # Self intersection
   expect_equal(phint_intersect(int12, int12), int12)
   expect_equal(phint_intersect(rep(int12, 3), rep(int12, 3)), rep(int12, 3))
@@ -370,11 +391,11 @@ test_that("phint_intersect() works as expected", {
   expect_equal(phint_intersect(int25, int36), int35)
   expect_equal(phint_intersect(int36, int25), int35)
   expect_equal(
-    phint_intersect(phint_squash(c(int12, int45)), int12),
+    phint_intersect(phint12_45, int12),
     int12
   )
   expect_equal(
-    phint_intersect(phint_squash(c(int13, int45)), phint_squash(c(int12, int45))),
+    phint_intersect(phint13_45, phint12_45),
     phint_squash(c(int12, int45))
   )
   expect_equal(phint_intersect(int25, int34), int34)
@@ -388,20 +409,58 @@ test_that("phint_intersect() works as expected", {
     phint_squash(c(int12, int34, int56))
   )
 
+  expect_equal(
+    phint_intersect(
+      c(int13, phint_squash(c(int12, int34, int56)), phint12_45),
+      c(int12, int16, phint13_45)
+    ),
+    phint_intersect(
+      c(int13, phint_squash(c(int12, int34, int56)), phint12_45),
+      c(int12, int16, phint13_45),
+      bounds = "()"
+    )
+  )
+
   # Intersection with instants
-  expect_equal(phint_intersect(int22, int22), int22)
-  expect_equal(phint_intersect(int12, int22), int22)
-  expect_equal(phint_intersect(int22, int12), int22)
-  expect_equal(phint_intersect(int13, int22), int22)
-  expect_equal(phint_intersect(int22, int13), int22)
+  expect_all_true(
+    map_lgl(
+      list(
+        phint_intersect(int22, int22),
+        phint_intersect(int12, int22),
+        phint_intersect(int22, int12),
+        phint_intersect(int13, int22),
+        phint_intersect(int22, int13)
+      ),
+      identical,
+      int22
+    )
+  )
+  expect_all_true(
+    map_lgl(
+      list(
+        phint_intersect(int22, int22, bounds = "()"),
+        phint_intersect(int12, int22, bounds = "()"),
+        phint_intersect(int22, int12, bounds = "()"),
+        phint_intersect(int13, int22, bounds = "()"),
+        phint_intersect(int22, int13, bounds = "()")
+      ),
+      identical,
+      hole
+    )
+  )
 
   # Intersection with abutting.
-  # Intersection is endpoint inclusive, so abutting intervals intersect.
   expect_equal(phint_intersect(int23, int12), int22)
   expect_equal(phint_intersect(int12, int23), int22)
   expect_equal(
     phint_intersect(int12, phint_complement(int12)),
     phint_squash(c(int11, int22))
+  )
+  expect_equal(phint_intersect(int23, int12, bounds = "()"), hole)
+  expect_equal(phint_intersect(int12, int23, bounds = "()"), hole)
+  expect_equal(
+    phint_intersect(int12, phint_complement(int12), bounds = "()"),
+    hole
   )
 })
 
@@ -417,6 +476,7 @@ test_that("phint_overlaps() works as expected", {
 
   int12 <- phinterval(t1, t2)
   int23 <- phinterval(t2, t3)
+  int24 <- phinterval(t2, t4)
   int34 <- phinterval(t3, t4)
   int45 <- phinterval(t4, t5)
   int56 <- phinterval(t5, t6)
@@ -425,34 +485,65 @@ test_that("phint_overlaps() works as expected", {
   int36 <- phinterval(t3, t6)
   int22 <- phinterval(t2, t2)
 
+  phint12_45 <- phint_squash(c(int12, int45))
   hole <- hole(tzone = "UTC")
 
   # Self overlap
   expect_true(phint_overlaps(int12, int12))
   expect_true(phint_overlaps(int22, int22))
-  expect_true(phint_overlaps(phint_squash(c(int12, int45)), phint_squash(c(int12, int45))))
+  expect_true(phint_overlaps(phint12_45, phint12_45))
   expect_false(phint_overlaps(hole, hole))
 
+  expect_true(phint_overlaps(int12, int12, bounds = "()"))
+  expect_true(phint_overlaps(phint12_45, phint12_45, bounds = "()"))
+  expect_false(phint_overlaps(int22, int22, bounds = "()"))
+  expect_false(phint_overlaps(hole, hole, bounds = "()"))
+
   # Partial overlap
-  expect_true(phint_overlaps(int12, int14))
-  expect_true(phint_overlaps(int14, int12))
-  expect_true(phint_overlaps(int25, int36))
-  expect_true(phint_overlaps(int36, int25))
+  expect_all_true(c(
+    phint_overlaps(int12, int14),
+    phint_overlaps(int14, int12),
+    phint_overlaps(int25, int36),
+    phint_overlaps(int36, int25),
+    phint_overlaps(int12, int14, bounds = "()"),
+    phint_overlaps(int14, int12, bounds = "()"),
+    phint_overlaps(int25, int36, bounds = "()"),
+    phint_overlaps(int36, int25, bounds = "()")
+  ))
 
   # Non-overlapping
-  expect_false(phint_overlaps(int12, int34))
-  expect_false(phint_overlaps(int12, int56))
-  expect_false(phint_overlaps(phint_squash(c(int12, int34)), int56))
-  expect_false(phint_overlaps(int56, phint_squash(c(int12, int34))))
+  expect_all_false(c(
+    phint_overlaps(int12, int34),
+    phint_overlaps(int12, int56),
+    phint_overlaps(phint_squash(c(int12, int34)), int56),
+    phint_overlaps(int56, phint_squash(c(int12, int34))),
+    phint_overlaps(int12, int34, bounds = "()"),
+    phint_overlaps(int12, int56, bounds = "()"),
+    phint_overlaps(phint_squash(c(int12, int34)), int56, bounds = "()"),
+    phint_overlaps(int56, phint_squash(c(int12, int34)), bounds = "()")
+  ))
 
   # Abutting
-  expect_true(phint_overlaps(int12, int23))
-  expect_true(phint_overlaps(int23, int12))
-  expect_true(phint_overlaps(int22, int22))
+  expect_all_true(c(
+    phint_overlaps(int12, int23),
+    phint_overlaps(int23, int12),
+    phint_overlaps(int22, int22),
+    phint_overlaps(phint12_45, int24)
+  ))
+  expect_all_false(c(
+    phint_overlaps(int12, int23, bounds = "()"),
+    phint_overlaps(int23, int12, bounds = "()"),
+    phint_overlaps(int22, int22, bounds = "()"),
+    phint_overlaps(phint12_45, int24, bounds = "()")
+  ))
 
   # Hole
-  expect_false(phint_overlaps(hole, int22))
-  expect_false(phint_overlaps(int23, hole))
+  expect_all_false(c(
+    phint_overlaps(hole, int22),
+    phint_overlaps(int23, hole),
+    phint_overlaps(hole, int22, bounds = "()"),
+    phint_overlaps(int23, hole, bounds = "()")
+  ))
 })
 
 # phint_within -----------------------------------------------------------------
@@ -465,7 +556,9 @@ test_that("phint_within(<phintish>, <phintish>) works as expected", {
   t5 <- as.POSIXct("2021-01-01 00:02:00", tz = "UTC")
   t6 <- as.POSIXct("2021-01-01 00:03:00", tz = "UTC")
 
+  int11 <- phinterval(t1, t1)
   int12 <- phinterval(t1, t2)
+  int22 <- phinterval(t2, t2)
   int23 <- phinterval(t2, t3)
   int34 <- phinterval(t3, t4)
   int45 <- phinterval(t4, t5)
@@ -474,39 +567,52 @@ test_that("phint_within(<phintish>, <phintish>) works as expected", {
   int24 <- phinterval(t2, t4)
   int25 <- phinterval(t2, t5)
   int36 <- phinterval(t3, t6)
-  int22 <- phinterval(t2, t2)
+
+  phint12_45 <- phint_squash(c(int12, int45))
   hole <- hole(tzone = "UTC")
 
   # Self within self
   expect_true(phint_within(int12, int12))
   expect_true(phint_within(int22, int22))
-  expect_true(phint_within(phint_squash(c(int12, int45)), phint_squash(c(int12, int45))))
+  expect_true(phint_within(phint12_45, phint12_45))
+  expect_false(phint_within(int22, int22, bounds = "()"))
 
-  expect_equal(
-    phint_within(rep(int12, 2), rep(int12, 2)),
-    c(TRUE, TRUE)
-  )
-  expect_equal(
-    phint_within(phint_squash(c(int12, int45)), rep(phint_squash(c(int12, int45)), 2)),
-    c(TRUE, TRUE)
-  )
-  expect_equal(
-    phint_within(rep(phint_squash(c(int12, int45)), 2), phint_squash(c(int12, int45))),
-    c(TRUE, TRUE)
-  )
+  # Endpoint within interval
+  expect_all_true(c(
+    phint_within(int22, int12),
+    phint_within(int11, int12),
+    phint_within(int22, phint12_45),
+    phint_within(int11, phint12_45)
+  ))
+  expect_all_false(c(
+    phint_within(int22, int12, bounds = "()"),
+    phint_within(int11, int12, bounds = "()"),
+    phint_within(int22, phint12_45, bounds = "()"),
+    phint_within(int11, phint12_45, bounds = "()")
+  ))
+
+  expect_equal(phint_within(rep(int12, 2), rep(int12, 2)), c(TRUE, TRUE))
+  expect_equal(phint_within(phint12_45, rep(phint12_45, 2)), c(TRUE, TRUE))
+  expect_equal(phint_within(rep(phint12_45, 2), phint12_45), c(TRUE, TRUE))
 
   # Within a portion of a larger phinterval
-  expect_true(phint_within(int12, phint_squash(c(int12, int45))))
+  expect_true(phint_within(int12, phint12_45))
   expect_true(phint_within(int22, int12))
-  expect_true(phint_within(int22, phint_squash(c(int12, int45))))
-  expect_equal(
-    phint_within(rep(int12, 3), phint_squash(c(int12, int45))),
-    c(TRUE, TRUE, TRUE)
-  )
-  expect_equal(
-    phint_within(int12, rep(phint_squash(c(int12, int45)), 2)),
-    c(TRUE, TRUE)
-  )
+  expect_true(phint_within(int22, phint12_45))
+
+  expect_all_true(c(
+    phint_within(int12, phint12_45),
+    phint_within(int22, int12),
+    phint_within(int22, phint12_45)
+  ))
+  expect_all_false(c(
+    phint_within(int11, phint12_45, bounds = "()"),
+    phint_within(int22, int12, bounds = "()"),
+    phint_within(int22, phint12_45, bounds = "()")
+  ))
+
+  expect_equal(phint_within(rep(int12, 3), phint12_45), c(TRUE, TRUE, TRUE))
+  expect_equal(phint_within(int12, rep(phint12_45, 2)), c(TRUE, TRUE))
 
   # Partial intersection (not fully within)
   expect_false(phint_within(int36, int25))
@@ -514,11 +620,18 @@ test_that("phint_within(<phintish>, <phintish>) works as expected", {
   expect_false(phint_within(int25, phint_squash(c(int24, int56))))
 
   # No intersection
-  expect_false(phint_within(int12, int56))
-  expect_false(phint_within(phint_squash(c(int12, int34)), int56))
-  expect_false(phint_within(int22, int56))
-  expect_false(phint_within(int22, phint_squash(c(int34, int56))))
-  expect_false(phint_within(int56, phint_squash(c(int12, int34))))
+  expect_all_false(c(
+    phint_within(int12, int56),
+    phint_within(phint_squash(c(int12, int34)), int56),
+    phint_within(int22, int56),
+    phint_within(int22, phint_squash(c(int34, int56))),
+    phint_within(int56, phint_squash(c(int12, int34))),
+    phint_within(int12, int56, bounds = "()"),
+    phint_within(phint_squash(c(int12, int34)), int56, bounds = "()"),
+    phint_within(int22, int56, bounds = "()"),
+    phint_within(int22, phint_squash(c(int34, int56)), bounds = "()"),
+    phint_within(int56, phint_squash(c(int12, int34)), bounds = "()")
+  ))
 
   # Hole
   expect_all_false(
@@ -527,7 +640,9 @@ test_that("phint_within(<phintish>, <phintish>) works as expected", {
       phint_within(hole, int12),
       phint_within(phint_squash(c(int12, int34)), hole),
       phint_within(hole, phint_squash(c(int12, int34))),
-      phint_within(hole, hole)
+      phint_within(hole, hole),
+      phint_within(int12, hole, bounds = "()"),
+      phint_within(hole, int12, bounds = "()")
     )
   )
 })
@@ -549,26 +664,50 @@ test_that("phint_within(<datetime>, <phintish>) works as expected", {
   hole <- hole(tzone = "UTC")
 
   # In the middle
-  expect_true(phint_within(date_in, intvl1))
-  expect_true(phint_within(time_in, intvl1))
-  expect_true(phint_within(date_in, phint1))
-  expect_true(phint_within(time_in, phint1))
-  expect_true(phint_within(date_in, phint2))
-  expect_true(phint_within(time_in, phint2))
+  expect_all_true(c(
+    phint_within(date_in, intvl1),
+    phint_within(time_in, intvl1),
+    phint_within(date_in, phint1),
+    phint_within(time_in, phint1),
+    phint_within(date_in, phint2),
+    phint_within(time_in, phint2),
+    phint_within(date_in, intvl1, bounds = "()"),
+    phint_within(time_in, intvl1, bounds = "()"),
+    phint_within(date_in, phint1, bounds = "()"),
+    phint_within(time_in, phint1, bounds = "()"),
+    phint_within(date_in, phint2, bounds = "()"),
+    phint_within(time_in, phint2, bounds = "()")
+  ))
 
   # Outside
-  expect_false(phint_within(date_out, intvl1))
-  expect_false(phint_within(time_out, intvl1))
-  expect_false(phint_within(date_out, phint1))
-  expect_false(phint_within(time_out, phint1))
-  expect_false(phint_within(date_out, phint2))
-  expect_false(phint_within(time_out, phint2))
+  expect_all_false(c(
+    phint_within(date_out, intvl1),
+    phint_within(time_out, intvl1),
+    phint_within(date_out, phint1),
+    phint_within(time_out, phint1),
+    phint_within(date_out, phint2),
+    phint_within(time_out, phint2),
+    phint_within(date_out, intvl1, bounds = "()"),
+    phint_within(time_out, intvl1, bounds = "()"),
+    phint_within(date_out, phint1, bounds = "()"),
+    phint_within(time_out, phint1, bounds = "()"),
+    phint_within(date_out, phint2, bounds = "()"),
+    phint_within(time_out, phint2, bounds = "()")
+  ))
 
   # On the boundary
-  expect_true(phint_within(t1, phint1))
-  expect_true(phint_within(t1, phint2))
-  expect_true(phint_within(t2, phint1))
-  expect_true(phint_within(t2, phint2))
+  expect_all_true(c(
+    phint_within(t1, phint1),
+    phint_within(t1, phint2),
+    phint_within(t2, phint1),
+    phint_within(t2, phint2)
+  ))
+  expect_all_false(c(
+    phint_within(t1, phint1, bounds = "()"),
+    phint_within(t1, phint2, bounds = "()"),
+    phint_within(t2, phint1, bounds = "()"),
+    phint_within(t2, phint2, bounds = "()")
+  ))
 
   # Instant
   expect_true(phint_within(time_in, as_phinterval(time_in)))
@@ -576,7 +715,18 @@ test_that("phint_within(<datetime>, <phintish>) works as expected", {
   expect_false(phint_within(time_in, as_phinterval(time_out)))
   expect_false(phint_within(date_out, as_phinterval(date_in)))
 
+  expect_all_false(c(
+    phint_within(time_in, as_phinterval(time_in), bounds = "()"),
+    phint_within(date_in, as_phinterval(date_in), bounds = "()"),
+    phint_within(time_in, as_phinterval(time_out), bounds = "()"),
+    phint_within(date_out, as_phinterval(date_in), bounds = "()")
+  ))
+
   # Hole
-  expect_false(phint_within(time_in, hole))
-  expect_false(phint_within(date_in, hole))
+  expect_all_false(c(
+    phint_within(time_in, hole),
+    phint_within(date_in, hole),
+    phint_within(time_in, hole, bounds = "()"),
+    phint_within(date_in, hole, bounds = "()")
+  ))
 })

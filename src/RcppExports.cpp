@@ -214,8 +214,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // phint_phint_intersect_cpp
-List phint_phint_intersect_cpp(IntegerVector x_size, List x_starts, List x_ends, IntegerVector y_size, List y_starts, List y_ends);
-RcppExport SEXP _phinterval_phint_phint_intersect_cpp(SEXP x_sizeSEXP, SEXP x_startsSEXP, SEXP x_endsSEXP, SEXP y_sizeSEXP, SEXP y_startsSEXP, SEXP y_endsSEXP) {
+List phint_phint_intersect_cpp(IntegerVector x_size, List x_starts, List x_ends, IntegerVector y_size, List y_starts, List y_ends, String bounds);
+RcppExport SEXP _phinterval_phint_phint_intersect_cpp(SEXP x_sizeSEXP, SEXP x_startsSEXP, SEXP x_endsSEXP, SEXP y_sizeSEXP, SEXP y_startsSEXP, SEXP y_endsSEXP, SEXP boundsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -225,13 +225,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< IntegerVector >::type y_size(y_sizeSEXP);
     Rcpp::traits::input_parameter< List >::type y_starts(y_startsSEXP);
     Rcpp::traits::input_parameter< List >::type y_ends(y_endsSEXP);
-    rcpp_result_gen = Rcpp::wrap(phint_phint_intersect_cpp(x_size, x_starts, x_ends, y_size, y_starts, y_ends));
+    Rcpp::traits::input_parameter< String >::type bounds(boundsSEXP);
+    rcpp_result_gen = Rcpp::wrap(phint_phint_intersect_cpp(x_size, x_starts, x_ends, y_size, y_starts, y_ends, bounds));
     return rcpp_result_gen;
 END_RCPP
 }
 // phint_intvl_intersect_cpp
-List phint_intvl_intersect_cpp(IntegerVector x_size, List x_starts, List x_ends, DatetimeVector y_starts, NumericVector y_spans);
-RcppExport SEXP _phinterval_phint_intvl_intersect_cpp(SEXP x_sizeSEXP, SEXP x_startsSEXP, SEXP x_endsSEXP, SEXP y_startsSEXP, SEXP y_spansSEXP) {
+List phint_intvl_intersect_cpp(IntegerVector x_size, List x_starts, List x_ends, DatetimeVector y_starts, NumericVector y_spans, String bounds);
+RcppExport SEXP _phinterval_phint_intvl_intersect_cpp(SEXP x_sizeSEXP, SEXP x_startsSEXP, SEXP x_endsSEXP, SEXP y_startsSEXP, SEXP y_spansSEXP, SEXP boundsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -240,13 +241,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< List >::type x_ends(x_endsSEXP);
     Rcpp::traits::input_parameter< DatetimeVector >::type y_starts(y_startsSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type y_spans(y_spansSEXP);
-    rcpp_result_gen = Rcpp::wrap(phint_intvl_intersect_cpp(x_size, x_starts, x_ends, y_starts, y_spans));
+    Rcpp::traits::input_parameter< String >::type bounds(boundsSEXP);
+    rcpp_result_gen = Rcpp::wrap(phint_intvl_intersect_cpp(x_size, x_starts, x_ends, y_starts, y_spans, bounds));
     return rcpp_result_gen;
 END_RCPP
 }
 // intvl_phint_intersect_cpp
-List intvl_phint_intersect_cpp(DatetimeVector x_starts, NumericVector x_spans, IntegerVector y_size, List y_starts, List y_ends);
-RcppExport SEXP _phinterval_intvl_phint_intersect_cpp(SEXP x_startsSEXP, SEXP x_spansSEXP, SEXP y_sizeSEXP, SEXP y_startsSEXP, SEXP y_endsSEXP) {
+List intvl_phint_intersect_cpp(DatetimeVector x_starts, NumericVector x_spans, IntegerVector y_size, List y_starts, List y_ends, String bounds);
+RcppExport SEXP _phinterval_intvl_phint_intersect_cpp(SEXP x_startsSEXP, SEXP x_spansSEXP, SEXP y_sizeSEXP, SEXP y_startsSEXP, SEXP y_endsSEXP, SEXP boundsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -255,13 +257,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< IntegerVector >::type y_size(y_sizeSEXP);
     Rcpp::traits::input_parameter< List >::type y_starts(y_startsSEXP);
     Rcpp::traits::input_parameter< List >::type y_ends(y_endsSEXP);
-    rcpp_result_gen = Rcpp::wrap(intvl_phint_intersect_cpp(x_starts, x_spans, y_size, y_starts, y_ends));
+    Rcpp::traits::input_parameter< String >::type bounds(boundsSEXP);
+    rcpp_result_gen = Rcpp::wrap(intvl_phint_intersect_cpp(x_starts, x_spans, y_size, y_starts, y_ends, bounds));
     return rcpp_result_gen;
 END_RCPP
 }
 // intvl_intvl_intersect_cpp
-List intvl_intvl_intersect_cpp(DatetimeVector x_starts, NumericVector x_spans, DatetimeVector y_starts, NumericVector y_spans);
-RcppExport SEXP _phinterval_intvl_intvl_intersect_cpp(SEXP x_startsSEXP, SEXP x_spansSEXP, SEXP y_startsSEXP, SEXP y_spansSEXP) {
+List intvl_intvl_intersect_cpp(DatetimeVector x_starts, NumericVector x_spans, DatetimeVector y_starts, NumericVector y_spans, String bounds);
+RcppExport SEXP _phinterval_intvl_intvl_intersect_cpp(SEXP x_startsSEXP, SEXP x_spansSEXP, SEXP y_startsSEXP, SEXP y_spansSEXP, SEXP boundsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -269,7 +272,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< NumericVector >::type x_spans(x_spansSEXP);
     Rcpp::traits::input_parameter< DatetimeVector >::type y_starts(y_startsSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type y_spans(y_spansSEXP);
-    rcpp_result_gen = Rcpp::wrap(intvl_intvl_intersect_cpp(x_starts, x_spans, y_starts, y_spans));
+    Rcpp::traits::input_parameter< String >::type bounds(boundsSEXP);
+    rcpp_result_gen = Rcpp::wrap(intvl_intvl_intersect_cpp(x_starts, x_spans, y_starts, y_spans, bounds));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -394,8 +398,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // phint_phint_within_cpp
-LogicalVector phint_phint_within_cpp(IntegerVector x_size, List x_starts, List x_ends, IntegerVector y_size, List y_starts, List y_ends);
-RcppExport SEXP _phinterval_phint_phint_within_cpp(SEXP x_sizeSEXP, SEXP x_startsSEXP, SEXP x_endsSEXP, SEXP y_sizeSEXP, SEXP y_startsSEXP, SEXP y_endsSEXP) {
+LogicalVector phint_phint_within_cpp(IntegerVector x_size, List x_starts, List x_ends, IntegerVector y_size, List y_starts, List y_ends, String bounds);
+RcppExport SEXP _phinterval_phint_phint_within_cpp(SEXP x_sizeSEXP, SEXP x_startsSEXP, SEXP x_endsSEXP, SEXP y_sizeSEXP, SEXP y_startsSEXP, SEXP y_endsSEXP, SEXP boundsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -405,13 +409,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< IntegerVector >::type y_size(y_sizeSEXP);
     Rcpp::traits::input_parameter< List >::type y_starts(y_startsSEXP);
     Rcpp::traits::input_parameter< List >::type y_ends(y_endsSEXP);
-    rcpp_result_gen = Rcpp::wrap(phint_phint_within_cpp(x_size, x_starts, x_ends, y_size, y_starts, y_ends));
+    Rcpp::traits::input_parameter< String >::type bounds(boundsSEXP);
+    rcpp_result_gen = Rcpp::wrap(phint_phint_within_cpp(x_size, x_starts, x_ends, y_size, y_starts, y_ends, bounds));
     return rcpp_result_gen;
 END_RCPP
 }
 // phint_intvl_within_cpp
-LogicalVector phint_intvl_within_cpp(IntegerVector x_size, List x_starts, List x_ends, DatetimeVector y_starts, NumericVector y_spans);
-RcppExport SEXP _phinterval_phint_intvl_within_cpp(SEXP x_sizeSEXP, SEXP x_startsSEXP, SEXP x_endsSEXP, SEXP y_startsSEXP, SEXP y_spansSEXP) {
+LogicalVector phint_intvl_within_cpp(IntegerVector x_size, List x_starts, List x_ends, DatetimeVector y_starts, NumericVector y_spans, String bounds);
+RcppExport SEXP _phinterval_phint_intvl_within_cpp(SEXP x_sizeSEXP, SEXP x_startsSEXP, SEXP x_endsSEXP, SEXP y_startsSEXP, SEXP y_spansSEXP, SEXP boundsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -420,13 +425,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< List >::type x_ends(x_endsSEXP);
     Rcpp::traits::input_parameter< DatetimeVector >::type y_starts(y_startsSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type y_spans(y_spansSEXP);
-    rcpp_result_gen = Rcpp::wrap(phint_intvl_within_cpp(x_size, x_starts, x_ends, y_starts, y_spans));
+    Rcpp::traits::input_parameter< String >::type bounds(boundsSEXP);
+    rcpp_result_gen = Rcpp::wrap(phint_intvl_within_cpp(x_size, x_starts, x_ends, y_starts, y_spans, bounds));
     return rcpp_result_gen;
 END_RCPP
 }
 // intvl_phint_within_cpp
-LogicalVector intvl_phint_within_cpp(DatetimeVector x_starts, NumericVector x_spans, IntegerVector y_size, List y_starts, List y_ends);
-RcppExport SEXP _phinterval_intvl_phint_within_cpp(SEXP x_startsSEXP, SEXP x_spansSEXP, SEXP y_sizeSEXP, SEXP y_startsSEXP, SEXP y_endsSEXP) {
+LogicalVector intvl_phint_within_cpp(DatetimeVector x_starts, NumericVector x_spans, IntegerVector y_size, List y_starts, List y_ends, String bounds);
+RcppExport SEXP _phinterval_intvl_phint_within_cpp(SEXP x_startsSEXP, SEXP x_spansSEXP, SEXP y_sizeSEXP, SEXP y_startsSEXP, SEXP y_endsSEXP, SEXP boundsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -435,13 +441,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< IntegerVector >::type y_size(y_sizeSEXP);
     Rcpp::traits::input_parameter< List >::type y_starts(y_startsSEXP);
     Rcpp::traits::input_parameter< List >::type y_ends(y_endsSEXP);
-    rcpp_result_gen = Rcpp::wrap(intvl_phint_within_cpp(x_starts, x_spans, y_size, y_starts, y_ends));
+    Rcpp::traits::input_parameter< String >::type bounds(boundsSEXP);
+    rcpp_result_gen = Rcpp::wrap(intvl_phint_within_cpp(x_starts, x_spans, y_size, y_starts, y_ends, bounds));
     return rcpp_result_gen;
 END_RCPP
 }
 // intvl_intvl_within_cpp
-LogicalVector intvl_intvl_within_cpp(DatetimeVector x_starts, NumericVector x_spans, DatetimeVector y_starts, NumericVector y_spans);
-RcppExport SEXP _phinterval_intvl_intvl_within_cpp(SEXP x_startsSEXP, SEXP x_spansSEXP, SEXP y_startsSEXP, SEXP y_spansSEXP) {
+LogicalVector intvl_intvl_within_cpp(DatetimeVector x_starts, NumericVector x_spans, DatetimeVector y_starts, NumericVector y_spans, String bounds);
+RcppExport SEXP _phinterval_intvl_intvl_within_cpp(SEXP x_startsSEXP, SEXP x_spansSEXP, SEXP y_startsSEXP, SEXP y_spansSEXP, SEXP boundsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -449,13 +456,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< NumericVector >::type x_spans(x_spansSEXP);
     Rcpp::traits::input_parameter< DatetimeVector >::type y_starts(y_startsSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type y_spans(y_spansSEXP);
-    rcpp_result_gen = Rcpp::wrap(intvl_intvl_within_cpp(x_starts, x_spans, y_starts, y_spans));
+    Rcpp::traits::input_parameter< String >::type bounds(boundsSEXP);
+    rcpp_result_gen = Rcpp::wrap(intvl_intvl_within_cpp(x_starts, x_spans, y_starts, y_spans, bounds));
     return rcpp_result_gen;
 END_RCPP
 }
 // point_phint_within_cpp
-LogicalVector point_phint_within_cpp(DatetimeVector x_points, IntegerVector y_size, List y_starts, List y_ends);
-RcppExport SEXP _phinterval_point_phint_within_cpp(SEXP x_pointsSEXP, SEXP y_sizeSEXP, SEXP y_startsSEXP, SEXP y_endsSEXP) {
+LogicalVector point_phint_within_cpp(DatetimeVector x_points, IntegerVector y_size, List y_starts, List y_ends, String bounds);
+RcppExport SEXP _phinterval_point_phint_within_cpp(SEXP x_pointsSEXP, SEXP y_sizeSEXP, SEXP y_startsSEXP, SEXP y_endsSEXP, SEXP boundsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -463,26 +471,28 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< IntegerVector >::type y_size(y_sizeSEXP);
     Rcpp::traits::input_parameter< List >::type y_starts(y_startsSEXP);
     Rcpp::traits::input_parameter< List >::type y_ends(y_endsSEXP);
-    rcpp_result_gen = Rcpp::wrap(point_phint_within_cpp(x_points, y_size, y_starts, y_ends));
+    Rcpp::traits::input_parameter< String >::type bounds(boundsSEXP);
+    rcpp_result_gen = Rcpp::wrap(point_phint_within_cpp(x_points, y_size, y_starts, y_ends, bounds));
     return rcpp_result_gen;
 END_RCPP
 }
 // point_intvl_within_cpp
-LogicalVector point_intvl_within_cpp(DatetimeVector x_points, DatetimeVector y_starts, NumericVector y_spans);
-RcppExport SEXP _phinterval_point_intvl_within_cpp(SEXP x_pointsSEXP, SEXP y_startsSEXP, SEXP y_spansSEXP) {
+LogicalVector point_intvl_within_cpp(DatetimeVector x_points, DatetimeVector y_starts, NumericVector y_spans, String bounds);
+RcppExport SEXP _phinterval_point_intvl_within_cpp(SEXP x_pointsSEXP, SEXP y_startsSEXP, SEXP y_spansSEXP, SEXP boundsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< DatetimeVector >::type x_points(x_pointsSEXP);
     Rcpp::traits::input_parameter< DatetimeVector >::type y_starts(y_startsSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type y_spans(y_spansSEXP);
-    rcpp_result_gen = Rcpp::wrap(point_intvl_within_cpp(x_points, y_starts, y_spans));
+    Rcpp::traits::input_parameter< String >::type bounds(boundsSEXP);
+    rcpp_result_gen = Rcpp::wrap(point_intvl_within_cpp(x_points, y_starts, y_spans, bounds));
     return rcpp_result_gen;
 END_RCPP
 }
 // phint_phint_overlaps_cpp
-LogicalVector phint_phint_overlaps_cpp(IntegerVector x_size, List x_starts, List x_ends, IntegerVector y_size, List y_starts, List y_ends);
-RcppExport SEXP _phinterval_phint_phint_overlaps_cpp(SEXP x_sizeSEXP, SEXP x_startsSEXP, SEXP x_endsSEXP, SEXP y_sizeSEXP, SEXP y_startsSEXP, SEXP y_endsSEXP) {
+LogicalVector phint_phint_overlaps_cpp(IntegerVector x_size, List x_starts, List x_ends, IntegerVector y_size, List y_starts, List y_ends, String bounds);
+RcppExport SEXP _phinterval_phint_phint_overlaps_cpp(SEXP x_sizeSEXP, SEXP x_startsSEXP, SEXP x_endsSEXP, SEXP y_sizeSEXP, SEXP y_startsSEXP, SEXP y_endsSEXP, SEXP boundsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -492,13 +502,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< IntegerVector >::type y_size(y_sizeSEXP);
     Rcpp::traits::input_parameter< List >::type y_starts(y_startsSEXP);
     Rcpp::traits::input_parameter< List >::type y_ends(y_endsSEXP);
-    rcpp_result_gen = Rcpp::wrap(phint_phint_overlaps_cpp(x_size, x_starts, x_ends, y_size, y_starts, y_ends));
+    Rcpp::traits::input_parameter< String >::type bounds(boundsSEXP);
+    rcpp_result_gen = Rcpp::wrap(phint_phint_overlaps_cpp(x_size, x_starts, x_ends, y_size, y_starts, y_ends, bounds));
     return rcpp_result_gen;
 END_RCPP
 }
 // phint_intvl_overlaps_cpp
-LogicalVector phint_intvl_overlaps_cpp(IntegerVector x_size, List x_starts, List x_ends, DatetimeVector y_starts, NumericVector y_spans);
-RcppExport SEXP _phinterval_phint_intvl_overlaps_cpp(SEXP x_sizeSEXP, SEXP x_startsSEXP, SEXP x_endsSEXP, SEXP y_startsSEXP, SEXP y_spansSEXP) {
+LogicalVector phint_intvl_overlaps_cpp(IntegerVector x_size, List x_starts, List x_ends, DatetimeVector y_starts, NumericVector y_spans, String bounds);
+RcppExport SEXP _phinterval_phint_intvl_overlaps_cpp(SEXP x_sizeSEXP, SEXP x_startsSEXP, SEXP x_endsSEXP, SEXP y_startsSEXP, SEXP y_spansSEXP, SEXP boundsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -507,13 +518,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< List >::type x_ends(x_endsSEXP);
     Rcpp::traits::input_parameter< DatetimeVector >::type y_starts(y_startsSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type y_spans(y_spansSEXP);
-    rcpp_result_gen = Rcpp::wrap(phint_intvl_overlaps_cpp(x_size, x_starts, x_ends, y_starts, y_spans));
+    Rcpp::traits::input_parameter< String >::type bounds(boundsSEXP);
+    rcpp_result_gen = Rcpp::wrap(phint_intvl_overlaps_cpp(x_size, x_starts, x_ends, y_starts, y_spans, bounds));
     return rcpp_result_gen;
 END_RCPP
 }
 // intvl_phint_overlaps_cpp
-LogicalVector intvl_phint_overlaps_cpp(DatetimeVector x_starts, NumericVector x_spans, IntegerVector y_size, List y_starts, List y_ends);
-RcppExport SEXP _phinterval_intvl_phint_overlaps_cpp(SEXP x_startsSEXP, SEXP x_spansSEXP, SEXP y_sizeSEXP, SEXP y_startsSEXP, SEXP y_endsSEXP) {
+LogicalVector intvl_phint_overlaps_cpp(DatetimeVector x_starts, NumericVector x_spans, IntegerVector y_size, List y_starts, List y_ends, String bounds);
+RcppExport SEXP _phinterval_intvl_phint_overlaps_cpp(SEXP x_startsSEXP, SEXP x_spansSEXP, SEXP y_sizeSEXP, SEXP y_startsSEXP, SEXP y_endsSEXP, SEXP boundsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -522,13 +534,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< IntegerVector >::type y_size(y_sizeSEXP);
     Rcpp::traits::input_parameter< List >::type y_starts(y_startsSEXP);
     Rcpp::traits::input_parameter< List >::type y_ends(y_endsSEXP);
-    rcpp_result_gen = Rcpp::wrap(intvl_phint_overlaps_cpp(x_starts, x_spans, y_size, y_starts, y_ends));
+    Rcpp::traits::input_parameter< String >::type bounds(boundsSEXP);
+    rcpp_result_gen = Rcpp::wrap(intvl_phint_overlaps_cpp(x_starts, x_spans, y_size, y_starts, y_ends, bounds));
     return rcpp_result_gen;
 END_RCPP
 }
 // intvl_intvl_overlaps_cpp
-LogicalVector intvl_intvl_overlaps_cpp(DatetimeVector x_starts, NumericVector x_spans, DatetimeVector y_starts, NumericVector y_spans);
-RcppExport SEXP _phinterval_intvl_intvl_overlaps_cpp(SEXP x_startsSEXP, SEXP x_spansSEXP, SEXP y_startsSEXP, SEXP y_spansSEXP) {
+LogicalVector intvl_intvl_overlaps_cpp(DatetimeVector x_starts, NumericVector x_spans, DatetimeVector y_starts, NumericVector y_spans, String bounds);
+RcppExport SEXP _phinterval_intvl_intvl_overlaps_cpp(SEXP x_startsSEXP, SEXP x_spansSEXP, SEXP y_startsSEXP, SEXP y_spansSEXP, SEXP boundsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -536,7 +549,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< NumericVector >::type x_spans(x_spansSEXP);
     Rcpp::traits::input_parameter< DatetimeVector >::type y_starts(y_startsSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type y_spans(y_spansSEXP);
-    rcpp_result_gen = Rcpp::wrap(intvl_intvl_overlaps_cpp(x_starts, x_spans, y_starts, y_spans));
+    Rcpp::traits::input_parameter< String >::type bounds(boundsSEXP);
+    rcpp_result_gen = Rcpp::wrap(intvl_intvl_overlaps_cpp(x_starts, x_spans, y_starts, y_spans, bounds));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -683,10 +697,10 @@ static const R_CallMethodDef CallEntries[] = {
     {"_phinterval_intvl_complement_cpp", (DL_FUNC) &_phinterval_intvl_complement_cpp, 2},
     {"_phinterval_phint_invert_cpp", (DL_FUNC) &_phinterval_phint_invert_cpp, 4},
     {"_phinterval_intvl_invert_cpp", (DL_FUNC) &_phinterval_intvl_invert_cpp, 3},
-    {"_phinterval_phint_phint_intersect_cpp", (DL_FUNC) &_phinterval_phint_phint_intersect_cpp, 6},
-    {"_phinterval_phint_intvl_intersect_cpp", (DL_FUNC) &_phinterval_phint_intvl_intersect_cpp, 5},
-    {"_phinterval_intvl_phint_intersect_cpp", (DL_FUNC) &_phinterval_intvl_phint_intersect_cpp, 5},
-    {"_phinterval_intvl_intvl_intersect_cpp", (DL_FUNC) &_phinterval_intvl_intvl_intersect_cpp, 4},
+    {"_phinterval_phint_phint_intersect_cpp", (DL_FUNC) &_phinterval_phint_phint_intersect_cpp, 7},
+    {"_phinterval_phint_intvl_intersect_cpp", (DL_FUNC) &_phinterval_phint_intvl_intersect_cpp, 6},
+    {"_phinterval_intvl_phint_intersect_cpp", (DL_FUNC) &_phinterval_intvl_phint_intersect_cpp, 6},
+    {"_phinterval_intvl_intvl_intersect_cpp", (DL_FUNC) &_phinterval_intvl_intvl_intersect_cpp, 5},
     {"_phinterval_phint_phint_union_cpp", (DL_FUNC) &_phinterval_phint_phint_union_cpp, 6},
     {"_phinterval_phint_intvl_union_cpp", (DL_FUNC) &_phinterval_phint_intvl_union_cpp, 5},
     {"_phinterval_intvl_phint_union_cpp", (DL_FUNC) &_phinterval_intvl_phint_union_cpp, 5},
@@ -695,16 +709,16 @@ static const R_CallMethodDef CallEntries[] = {
     {"_phinterval_phint_intvl_setdiff_cpp", (DL_FUNC) &_phinterval_phint_intvl_setdiff_cpp, 5},
     {"_phinterval_intvl_phint_setdiff_cpp", (DL_FUNC) &_phinterval_intvl_phint_setdiff_cpp, 5},
     {"_phinterval_intvl_intvl_setdiff_cpp", (DL_FUNC) &_phinterval_intvl_intvl_setdiff_cpp, 4},
-    {"_phinterval_phint_phint_within_cpp", (DL_FUNC) &_phinterval_phint_phint_within_cpp, 6},
-    {"_phinterval_phint_intvl_within_cpp", (DL_FUNC) &_phinterval_phint_intvl_within_cpp, 5},
-    {"_phinterval_intvl_phint_within_cpp", (DL_FUNC) &_phinterval_intvl_phint_within_cpp, 5},
-    {"_phinterval_intvl_intvl_within_cpp", (DL_FUNC) &_phinterval_intvl_intvl_within_cpp, 4},
-    {"_phinterval_point_phint_within_cpp", (DL_FUNC) &_phinterval_point_phint_within_cpp, 4},
-    {"_phinterval_point_intvl_within_cpp", (DL_FUNC) &_phinterval_point_intvl_within_cpp, 3},
-    {"_phinterval_phint_phint_overlaps_cpp", (DL_FUNC) &_phinterval_phint_phint_overlaps_cpp, 6},
-    {"_phinterval_phint_intvl_overlaps_cpp", (DL_FUNC) &_phinterval_phint_intvl_overlaps_cpp, 5},
-    {"_phinterval_intvl_phint_overlaps_cpp", (DL_FUNC) &_phinterval_intvl_phint_overlaps_cpp, 5},
-    {"_phinterval_intvl_intvl_overlaps_cpp", (DL_FUNC) &_phinterval_intvl_intvl_overlaps_cpp, 4},
+    {"_phinterval_phint_phint_within_cpp", (DL_FUNC) &_phinterval_phint_phint_within_cpp, 7},
+    {"_phinterval_phint_intvl_within_cpp", (DL_FUNC) &_phinterval_phint_intvl_within_cpp, 6},
+    {"_phinterval_intvl_phint_within_cpp", (DL_FUNC) &_phinterval_intvl_phint_within_cpp, 6},
+    {"_phinterval_intvl_intvl_within_cpp", (DL_FUNC) &_phinterval_intvl_intvl_within_cpp, 5},
+    {"_phinterval_point_phint_within_cpp", (DL_FUNC) &_phinterval_point_phint_within_cpp, 5},
+    {"_phinterval_point_intvl_within_cpp", (DL_FUNC) &_phinterval_point_intvl_within_cpp, 4},
+    {"_phinterval_phint_phint_overlaps_cpp", (DL_FUNC) &_phinterval_phint_phint_overlaps_cpp, 7},
+    {"_phinterval_phint_intvl_overlaps_cpp", (DL_FUNC) &_phinterval_phint_intvl_overlaps_cpp, 6},
+    {"_phinterval_intvl_phint_overlaps_cpp", (DL_FUNC) &_phinterval_intvl_phint_overlaps_cpp, 6},
+    {"_phinterval_intvl_intvl_overlaps_cpp", (DL_FUNC) &_phinterval_intvl_intvl_overlaps_cpp, 5},
     {"_phinterval_phint_squash_cpp", (DL_FUNC) &_phinterval_phint_squash_cpp, 4},
     {"_phinterval_intvl_squash_cpp", (DL_FUNC) &_phinterval_intvl_squash_cpp, 3},
     {"_phinterval_range_squash_cpp", (DL_FUNC) &_phinterval_range_squash_cpp, 3},
