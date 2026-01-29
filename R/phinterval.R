@@ -1,13 +1,5 @@
 # todos ------------------------------------------------------------------------
 
-# TODO: Add a `bounds = c("inclusive", "[]", "exclusive", "()")` argument to:
-# - `phint_overlaps()`
-# - `phint_intersect()`
-
-# TODO: Documentation
-# - Update README for new interface / functionality
-# - Create a phinterval and dplyr vignette, show speed of `by` vs. `group_by()`
-#
 # TODO: CRAN
 # - Look into all of the edge-case CRAN checks and run (see RPackages book)
 
@@ -37,7 +29,7 @@ setOldClass(c("phinterval", "list", "vctrs_rcrd"))
 #'
 #' When `by = NULL` (the default), `phinterval()` creates scalar phinterval
 #' elements, where each element contains a single time span from `start[i]` to
-#' `end[i]`. This is equivilant to [lubridate::interval()]:
+#' `end[i]`. This is equivalent to [lubridate::interval()]:
 #'
 #' ```
 #' interval(start, end, tzone = tzone)   # <Interval> vector
@@ -49,13 +41,30 @@ setOldClass(c("phinterval", "list", "vctrs_rcrd"))
 #' time spans. Overlapping or abutting spans within each group are automatically
 #' merged.
 #'
-#' @param start `[POSIXct / POSIXlt / Date]`
+#' @section Differences from interval():
 #'
-#' A vector of start times. Must be recyclable with `end`.
+#' While `phinterval()` is designed as a drop-in replacement for
+#' [lubridate::interval()], there are three key differences regarding the
+#' `start` and `end` arguments:
 #'
-#' @param end `[POSIXct / POSIXlt / Date]`
+#' - **Stricter recycling**: `phinterval()` uses vctrs recycling rules instead of
+#'   base R recycling. Length-1 vectors recycle to any length, but mismatched
+#'   lengths (e.g., 2 vs 3) cause an error.
 #'
-#' A vector of end times. Must be recyclable with `start`.
+#' - **No character inputs**: `phinterval()` does not accept character vectors
+#'   for `start` and `end`. Character starts and ends (e.g. "2021-01-01") must
+#'   be converted to datetimes first using [as.POSIXct()], [lubridate::ymd()],
+#'   or a similar function.
+#'
+#' - **Standardized endpoints**: [lubridate::interval()] allows negative length
+#'   spans where `end[i] < start[i]`. `phinterval()` flips the order of the i-th
+#'   span's endpoints when `end[i] < start[i]` to ensure that all spans are
+#'   positive, similar to [lubridate::int_standardize()].
+#'
+#' @param start,end `[POSIXct / POSIXlt / Date]`
+#'
+#' A pair of datetime vectors to represent the endpoints of the spans. `start`
+#' and `end` are recycled to a common length using vctrs-style recycling rules.
 #'
 #' @param tzone `[character(1)]`
 #'
@@ -74,7 +83,7 @@ setOldClass(c("phinterval", "list", "vctrs_rcrd"))
 #' phinterval element. `by` is recycled to match the common length of `start`
 #' and `end`.
 #'
-#' `by` must be a vector in the vctrs sense. See `[vctrs::obj_is_vector()]`
+#' `by` may be any vector in the vctrs sense. See `[vctrs::obj_is_vector()]`
 #' for details.
 #'
 #' @param order_by `[TRUE / FALSE]`
