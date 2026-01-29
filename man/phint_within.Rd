@@ -56,8 +56,11 @@ phint_within(as.Date(c("2000-01-06", "2000-01-20")), jan_3_to_9)
 # Intervals are within themselves
 phint_within(jan_1_to_5, jan_1_to_5)
 
-# Interval endpoints are considered within
+# By default, interval endpoints are considered within
 phint_within(as.Date("2000-01-01"), jan_1_to_5)
+
+# Use bounds to consider intervals as exclusive of endpoints
+phint_within(as.Date("2000-01-01"), jan_1_to_5, bounds = "()")
 
 # Holes are never within any interval (including other holes)
 hole <- hole()

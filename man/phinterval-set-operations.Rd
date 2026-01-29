@@ -12,7 +12,7 @@ phint_complement(phint)
 
 phint_union(phint1, phint2)
 
-phint_intersect(phint1, phint2)
+phint_intersect(phint1, phint2, bounds = c("[]", "()"))
 
 phint_setdiff(phint1, phint2)
 }
@@ -25,6 +25,19 @@ A \verb{<phinterval>} or \verb{<Interval>} vector.}
 
 A pair of \verb{<phinterval>} or \verb{<Interval>} vectors. \code{phint1} and \code{phint2}
 are recycled to a common length using vctrs-style recycling.}
+
+\item{bounds}{\verb{["[]" / "()"]}
+
+For \code{phint_intersect()} only, whether span endpoints are inclusive or exclusive:
+\itemize{
+\item \code{"[]"} (default): Closed intervals - both endpoints are included
+\item \code{"()"}: Open intervals - both endpoints are excluded
+}
+
+This affects adjacency and overlap detection. For example, with \code{bounds = "[]"},
+the intervals \verb{[1, 5]} and \verb{[5, 10]} are considered adjacent (they share the
+endpoint 5), while with \code{bounds = "()"}, \verb{(1, 5)} and \verb{(5, 10)} are disjoint
+(neither includes 5).}
 }
 \value{
 A \verb{<phinterval>} vector.
@@ -67,8 +80,11 @@ phint_intersect(jan_1_to_5, jan_3_to_9)
 # The intersection of non-overlapping intervals is a hole
 phint_intersect(monday, friday)
 
-# The intersection of adjacent intervals is instantaneous
+# By default, the intersection of adjacent intervals is instantaneous
 phint_intersect(monday, tuesday)
+
+# Use bounds to set the intersection of adjacent intervals to a hole
+phint_intersect(monday, tuesday, bounds = "()")
 
 # Set difference
 phint_setdiff(jan_1_to_5, jan_3_to_9)
