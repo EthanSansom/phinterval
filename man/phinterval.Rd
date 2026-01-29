@@ -13,13 +13,10 @@ phinterval(
 )
 }
 \arguments{
-\item{start}{\verb{[POSIXct / POSIXlt / Date]}
+\item{start, end}{\verb{[POSIXct / POSIXlt / Date]}
 
-A vector of start times. Must be recyclable with \code{end}.}
-
-\item{end}{\verb{[POSIXct / POSIXlt / Date]}
-
-A vector of end times. Must be recyclable with \code{start}.}
+A pair of start and end datetime vectors. \code{start} and \code{end} are recycled
+to a common length using vctrs-style recycling rules.}
 
 \item{tzone}{\verb{[character(1)]}
 
@@ -38,7 +35,7 @@ merged. If \code{NULL} (the default), each \code{start}/\code{end} pair creates 
 phinterval element. \code{by} is recycled to match the common length of \code{start}
 and \code{end}.
 
-\code{by} must be a vector in the vctrs sense. See \verb{[vctrs::obj_is_vector()]}
+\code{by} may be any vector in the vctrs sense. See \verb{[vctrs::obj_is_vector()]}
 for details.}
 
 \item{order_by}{\verb{[TRUE / FALSE]}
@@ -70,7 +67,7 @@ non-overlapping and non-abutting time spans.
 
 When \code{by = NULL} (the default), \code{phinterval()} creates scalar phinterval
 elements, where each element contains a single time span from \code{start[i]} to
-\code{end[i]}. This is equivilant to \code{\link[lubridate:interval]{lubridate::interval()}}:
+\code{end[i]}. This is equivalent to \code{\link[lubridate:interval]{lubridate::interval()}}:
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{interval(start, end, tzone = tzone)   # <Interval> vector
 phinterval(start, end, tzone = tzone) # <phinterval> vector
@@ -81,6 +78,27 @@ values in \code{by}, creating phinterval elements that may contain multiple disj
 time spans. Overlapping or abutting spans within each group are automatically
 merged.
 }
+\section{Differences from interval()}{
+
+
+While \code{phinterval()} is designed as a drop-in replacement for
+\code{\link[lubridate:interval]{lubridate::interval()}}, there are three key differences regarding the
+\code{start} and \code{end} arguments:
+\itemize{
+\item \strong{Stricter recycling}: \code{phinterval()} uses vctrs recycling rules instead of
+base R recycling. Length-1 vectors recycle to any length, but mismatched
+lengths (e.g., 2 vs 3) cause an error.
+\item \strong{No character inputs}: \code{phinterval()} does not accept character vectors
+for \code{start} and \code{end}. Character starts and ends (e.g. "2021-01-01") must
+be converted to datetimes first using \code{\link[=as.POSIXct]{as.POSIXct()}}, \code{\link[lubridate:ymd]{lubridate::ymd()}},
+or a similar function.
+\item \strong{Standardized endpoints}: \code{\link[lubridate:interval]{lubridate::interval()}} allows negative length
+spans where \code{end[i] < start[i]}. \code{phinterval()} flips the order of the i-th
+span's endpoints when \code{end[i] < start[i]} to ensure that all spans are
+positive, similar to \code{\link[lubridate:interval]{lubridate::int_standardize()}}.
+}
+}
+
 \examples{
 # Scalar phintervals (equivalent to interval())
 phinterval(

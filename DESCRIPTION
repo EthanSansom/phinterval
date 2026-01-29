@@ -25,6 +25,7 @@ Imports:
     pillar,
     Rcpp,
     rlang,
+    tibble,
     tzdb,
     vctrs (>= 0.7.0)
 Suggests: 

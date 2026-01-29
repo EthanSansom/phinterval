@@ -2,8 +2,8 @@
 #'
 #' @description
 #'
-#' `phint_unnest()` converts a `<phinterval>` vector into a data frame where
-#' each time span becomes a row.
+#' `phint_unnest()` converts a `<phinterval>` vector into a [tibble::tibble()]
+#' where each time span becomes a row.
 #'
 #' @details
 #'
@@ -44,7 +44,7 @@
 #'
 #' @return
 #'
-#' A data frame with columns:
+#' A [tibble::tibble()] with columns:
 #' - `key`:
 #'    - If `key = NULL`: A numeric vector identifying the index of the phinterval element
 #'    - Otherwise: The element of `key` corresponding to the phinterval element
@@ -111,9 +111,9 @@ phint_unnest.Interval <- function(phint, hole_to = c("drop", "na"), keep_size = 
   )
 
   if (!is.null(key)) {
-    out$key <- vec_slice(key, out$key)
+    out[["key"]] <- vec_slice(key, out[["key"]])
   }
-  out
+  tibble::new_tibble(out)
 }
 
 #' @export
@@ -137,5 +137,5 @@ phint_unnest.phinterval <- function(phint, hole_to = c("drop", "na"), keep_size 
   if (!is.null(key)) {
     out[["key"]] <- vec_slice(key, out[["key"]])
   }
-  out
+  tibble::new_tibble(out)
 }

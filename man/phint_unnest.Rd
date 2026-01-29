@@ -34,7 +34,7 @@ the \code{key} column contains row indices (position in \code{phint}).
 for details.}
 }
 \value{
-A data frame with columns:
+A \code{\link[tibble:tibble]{tibble::tibble()}} with columns:
 \itemize{
 \item \code{key}:
 \itemize{
@@ -47,8 +47,8 @@ A data frame with columns:
 }
 }
 \description{
-\code{phint_unnest()} converts a \verb{<phinterval>} vector into a data frame where
-each time span becomes a row.
+\code{phint_unnest()} converts a \verb{<phinterval>} vector into a \code{\link[tibble:tibble]{tibble::tibble()}}
+where each time span becomes a row.
 }
 \details{
 \code{phint_unnest()} expands each phinterval element into its constituent time

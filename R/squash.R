@@ -65,7 +65,7 @@
 #' @param keep_by `[TRUE / FALSE]`
 #'
 #' Should the `by` values be returned alongside the result? If `FALSE` (the
-#' default), returns a `<phinterval>` vector. If `TRUE`, returns a data frame
+#' default), returns a `<phinterval>` vector. If `TRUE`, returns a [tibble::tibble()]
 #' with columns `by` and `phint`. Requires `by` to be non-`NULL`.
 #'
 #' @return
@@ -76,7 +76,7 @@
 #' - If `by` is provided: A `<phinterval>` vector with one element per unique
 #'   value of `by`
 #'
-#' When `keep_by = TRUE`: A data frame with columns `by` and `phint`.
+#' When `keep_by = TRUE`: A [tibble::tibble()] with columns `by` and `phint`.
 #'
 #' @examples
 #' jan_1_to_5 <- interval(as.Date("2000-01-01"), as.Date("2000-01-05"))
@@ -177,15 +177,15 @@ phint_squash <- function(
         intvl = intvl_squash_by_cpp
       ),
       na_rm = na.rm,
-      group_locs = groups[["loc"]]
+      group_locs = .subset2(groups, "loc")
     )
   }
 
   if (keep_by) {
-    data_frame(
+    tibble::new_tibble(list(
       by = groups$key,
       phint = new_phinterval_bare(out, tzone = get_tzone(phint))
-    )
+    ))
   } else {
     new_phinterval_bare(out, tzone = get_tzone(phint))
   }
@@ -252,16 +252,16 @@ datetime_squash_impl <- function(starts, ends, by, tzone, na.rm, empty_to, order
     out <- range_squash_by_cpp(
       starts = starts,
       ends = ends,
-      group_locs = groups[["loc"]],
+      group_locs = .subset2(groups, "loc"),
       na_rm = na.rm
     )
   }
 
   if (keep_by) {
-    data_frame(
-      by = groups$key,
+    tibble::new_tibble(list(
+      by = .subset2(groups, "key"),
       phint = new_phinterval_bare(out, tzone = tzone)
-    )
+    ))
   } else {
     new_phinterval_bare(out, tzone = tzone)
   }
@@ -286,7 +286,7 @@ empty_squash <- function(empty_to, tzone, by = NULL, keep_by = FALSE) {
     } else {
       by <- if (empty_to == "empty") vec_slice(by, 0) else by
     }
-    return(data_frame(by = by, phint = phint))
+    return(tibble::new_tibble(list(by = by, phint = phint)))
   }
 
   phint

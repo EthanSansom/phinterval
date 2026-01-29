@@ -67,7 +67,7 @@ the output is sorted by the unique values of \code{by}. Only used when \code{by}
 \item{keep_by}{\verb{[TRUE / FALSE]}
 
 Should the \code{by} values be returned alongside the result? If \code{FALSE} (the
-default), returns a \verb{<phinterval>} vector. If \code{TRUE}, returns a data frame
+default), returns a \verb{<phinterval>} vector. If \code{TRUE}, returns a \code{\link[tibble:tibble]{tibble::tibble()}}
 with columns \code{by} and \code{phint}. Requires \code{by} to be non-\code{NULL}.}
 
 \item{start}{\verb{[POSIXct / POSIXlt / Date]}
@@ -89,7 +89,7 @@ is empty and \code{empty_to = "empty"})
 value of \code{by}
 }
 
-When \code{keep_by = TRUE}: A data frame with columns \code{by} and \code{phint}.
+When \code{keep_by = TRUE}: A \code{\link[tibble:tibble]{tibble::tibble()}} with columns \code{by} and \code{phint}.
 }
 \description{
 \code{phint_squash()} and \code{datetime_squash()} merge overlapping or adjacent
