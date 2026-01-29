@@ -2,6 +2,24 @@
 
 load_all()
 
+# bounds -----------------------------------------------------------------------
+
+s1 <- as.POSIXct(1)
+s2 <- as.POSIXct(2)
+s3 <- as.POSIXct(3)
+s4 <- as.POSIXct(4)
+
+int12 <- interval(s1, s2)
+int23 <- interval(s2, s3)
+int34 <- interval(s3, s4)
+
+int13 <- interval(s1, s3)
+int24 <- interval(s2, s4)
+
+phint_overlaps(int12, int23)
+phint_overlaps(int12, int23, bounds = "()")
+phint_overlaps(int13, int24, bounds = "()")
+
 # docs -------------------------------------------------------------------------
 
 library(dplyr, warn.conflicts = FALSE)

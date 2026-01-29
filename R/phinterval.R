@@ -1,13 +1,13 @@
 # todos ------------------------------------------------------------------------
 
+# TODO: Add a `bounds = c("inclusive", "[]", "exclusive", "()")` argument to:
+# - `phint_overlaps()`
+# - `phint_intersect()`
+
 # TODO: Documentation
 # - Update README for new interface / functionality
 # - Create a phinterval and dplyr vignette, show speed of `by` vs. `group_by()`
-# - Add lubridate quirks that come with phinterval to Getting Started
-# - Add time zone treatment to getting started
 #
-# TODO: Pick "time zone" or "time zone" and stick to it!
-
 # TODO: CRAN
 # - Look into all of the edge-case CRAN checks and run (see RPackages book)
 

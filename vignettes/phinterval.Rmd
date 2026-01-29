@@ -227,7 +227,7 @@ employment |>
 ```
 
 The resulting tidy format integrates well with [{dplyr}](https://dplyr.tidyverse.org/) and
-lubridate workflows.
+lubridate workflows. See `vignette("dplyr")` for more details.
 
 ### Finding Gaps
 
@@ -252,3 +252,152 @@ unemployment
 Greg was unemployed for 7 days between his time as a Mascot and his role
 as Executive Assistant. Tom and Shiv have no gaps within their
 respective employment timelines, represented by a `<hole>`.
+
+# Edge Cases and Gotchas
+
+## Abutting Intervals and Intersection
+
+Manipulating abutting intervals (intervals that share an endpoint) can produce
+sometimes unexpected results. To demonstrate, consider the time within
+a Monday and Tuesday in November 2025.
+
+```{r}
+monday <- interval(ymd("2025-11-10"), ymd("2025-11-11"))
+tuesday <- interval(ymd("2025-11-11"), ymd("2025-11-12"))
+```
+
+By default, intervals in `<phinterval>` and `<Interval>` vectors have inclusive
+endpoints, meaning that midnight on Monday, November 11th, 2025 falls within
+both `monday` and `tuesday`:
+
+```{r}
+midnight_monday <- ymd_hms("2025-11-11 00:00:00")
+phint_within(midnight_monday, monday)
+phint_within(midnight_monday, tuesday)
+```
+
+As a result, the intersection of `monday` and `tuesday` is an instantaneous
+interval at `midnight_monday`.
+
+```{r}
+phint_intersect(monday, tuesday) == midnight_monday
+```
+
+Perhaps surprisingly, this also means that the intersection of `monday` and its
+complement is not empty, but consists of the two endpoints of `monday`.
+
+```{r}
+not_monday <- phint_complement(monday)
+not_monday
+
+phint_intersect(monday, not_monday)
+```
+
+The bounds argument in `phint_overlaps()`, `phint_within()`, and
+`phint_intersect()` controls this behavior. When `bounds = "()"`, endpoints are
+treated as exclusive:
+
+```{r}
+phint_overlaps(monday, tuesday, bounds = "()")
+phint_intersect(monday, tuesday, bounds = "()")
+```
+
+With exclusive endpoints, `monday` and `tuesday` no longer overlap, and their
+intersection is empty.
+
+An instantaneous interval `(point, point)` with open bounds is mathematically
+undefined, but for convenience we allow these points to exist. With `bounds = "()"`,
+instants on the endpoint of an interval are outside of the interval, while
+instants in the middle of an interval are considered to be within it:
+
+```{r}
+monday_at_9AM <- as_phinterval(ymd_hms("2025-11-10 00:09:00"))
+phint_within(monday_at_9AM, monday, bounds = "()")
+phint_within(midnight_monday, monday, bounds = "()")
+```
+
+To consider instantaneous intervals as empty, use `phint_sift()` to remove all 
+instants from an interval vector:
+
+```{r}
+phint <- phint_squash(c(monday_at_9AM, tuesday))
+phint
+
+phint_sift(phint)
+```
+
+## Instantaneous Intervals and Set Difference
+
+Because phinterval elements are composed of non-overlapping, non-adjacent spans,
+"punching" an instantaneous hole into an interval using `phint_setdiff()` has no 
+effect on the interval. While removing a single point from an interval `[start, end]` 
+would theoretically split it into `[start, point)` and `(point, end]`, in practice
+these adjacent pieces are immediately merged back together:
+
+```{r}
+monday_noon <- as_phinterval(ymd_hms("2025-11-10 12:00:00"))
+monday_lunch_break <- interval(
+  ymd_hms("2025-11-10 12:00:00"), 
+  ymd_hms("2025-11-10 13:00:00")
+)
+
+phint_setdiff(monday, monday_lunch_break) # Removes a non-zero interval
+phint_setdiff(monday, monday_noon)        # Instantaneous - no effect
+```
+
+To create gaps, you must remove an interval with non-zero duration.
+
+## Time Zones
+
+To ensure that any `<Interval>` vector can be represented as an equivalent
+`<phinterval>` vector, the `phinterval()` constructor accepts any time zone
+permitted by `interval()`, including unrecognized zones.
+
+```{r}
+intvl <- interval(ymd("2020-01-01"), ymd("2020-01-02"), tzone = "nozone")
+phint <- phinterval(ymd("2020-01-01"), ymd("2020-01-02"), tzone = "nozone")
+intvl == phint
+```
+
+When a `<phinterval>` with an unrecognized time zone is formatted, its time points
+are displayed using the UTC time zone:
+
+```{r, include = FALSE}
+rlang::reset_warning_verbosity("phinterval_warning_unrecognized_tzone")
+```
+
+```{r}
+print(phint)
+```
+
+The `is_recognized_tzone()` function can be used to check whether a time zone is
+recognized:
+
+```{r}
+is_recognized_tzone("America/New_York")
+is_recognized_tzone("nozone")
+is_recognized_tzone(NA_character_)
+```
+
+Some datetime vectors, such as `<POSIXct>`, are allowed to have an `NA` time zone.
+When converted to a `<phinterval>`, the missing time zone is silently replaced
+with UTC:
+
+```{r}
+na_zoned <- as.POSIXct("2021-01-01", tz = NA_character_)
+as_phinterval(na_zoned)
+```
+
+Operations that combine two or more interval vectors, such as `phint_union()`,
+use the time zone of the first argument. If the first argument's time zone is 
+`""` (the user's local time zone), the second argument's time zone is used instead.
+
+```{r}
+int_est <- interval(ymd("2020-01-01"), ymd("2020-01-02"), tzone = "EST")
+int_utc <- interval(ymd("2020-01-01"), ymd("2020-01-02"), tzone = "UTC")
+int_lcl <- interval(ymd("2020-01-01"), ymd("2020-01-02"), tzone = "")
+
+phint_union(int_est, int_utc)
+phint_union(int_utc, int_est)
+phint_union(int_lcl, int_est)
+```
