@@ -178,12 +178,11 @@ Handling this correctly is surprisingly involved. One option is to split
 Shiv’s job into two rows (one pre-vacation and one post-vacation),
 breaking the one-row-per-job structure of the data. Another is to
 represent each job as a list of intervals, complicating downstream
-analysis. The main purpose of phinterval is to avoid these
-workarounds, by providing drop-in replacements for lubridate
-interval functions. Because phinterval functions accept either
-`<Interval>` or `<phinterval>` inputs, existing code can typically be
-adapted by simply replacing a lubridate function with its
-phinterval counterpart.
+analysis. 
+
+The main purpose of phinterval is to avoid these workarounds, by providing drop-in replacements for lubridate interval functions. Because phinterval functions accept 
+either `<Interval>` or `<phinterval>` inputs, existing code can typically be
+adapted by simply replacing a lubridate function with its phinterval counterpart.
 
 ```{r}
 jobs |>
@@ -218,6 +217,24 @@ Notice that:
     which `phint_squash()` correctly merges into a single contiguous
     span.
 
+The `by` argument of `phint_squash()` and `datetime_squash()` (which takes 
+`start` and `end` times directly) can be used in place of `dplyr::group_by()`.
+The example below is equivalent to the previous code but is usually several 
+times faster.
+
+```{r}
+datetime_squash(
+  start = ymd(jobs$start),
+  end = ymd(jobs$end),
+  by = jobs$name,
+  keep_by = TRUE,
+  order_by = TRUE
+) |> as_tibble()
+```
+
+As in `dplyr::summarize()`, the `by` argument can be a vector or data frame 
+to support multiple grouping columns.
+
 To return the dataset to a one-row-per-span format, use `phint_unnest()`,
 which converts each `<phinterval>` element into separate rows:
 
@@ -225,9 +242,6 @@ which converts each `<phinterval>` element into separate rows:
 employment |>
   reframe(phint_unnest(employed, key = name))
 ```
-
-The resulting tidy format integrates well with [{dplyr}](https://dplyr.tidyverse.org/) and
-lubridate workflows. See `vignette("dplyr")` for more details.
 
 ### Finding Gaps
 

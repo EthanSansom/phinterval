@@ -25,15 +25,105 @@ phint_overlaps(int13, int24, bounds = "()")
 library(dplyr, warn.conflicts = FALSE)
 library(tidyr)
 
+set.seed(1)
+
 jobs <- tibble::tribble(
-  ~name,   ~job_title,             ~start,        ~end,
-  "Greg",  "Mascot",               "2018-01-01",  "2018-06-03",
-  "Greg",  "Executive Assistant",  "2018-06-10",  "2020-04-01",
-  "Greg",  "Chief of Staff",       "2020-03-01",  "2020-11-28",
-  "Tom",   "Chairman",             "2019-05-01",  "2020-11-10",
-  "Tom",   "CEO",                  "2020-11-10",  "2020-12-31",
-  "Shiv",  "Political Consultant", "2017-01-01",  "2019-04-01"
+  ~fname,     ~lname,      ~job_title,             ~start,        ~end,
+  "Greg",     "Hirsch",    "Mascot",               "2018-01-01",  "2018-06-03",
+  "Greg",     "Hirsch",    "Executive Assistant",  "2018-06-10",  "2020-04-01",
+  "Greg",     "Hirsch",    "Chief of Staff",       "2020-03-01",  "2020-11-28",
+  "Tom",      "Wambsgans", "Chairman",             "2019-05-01",  "2020-11-10",
+  "Tom",      "Wambsgans", "CEO",                  "2020-11-10",  "2020-12-31",
+  "Shiv",     "Roy",       "Political Consultant", "2017-01-01",  "2019-04-01",
+  "Kendall",  "Roy",       "COO",                  "2018-01-01",  "2018-08-15",
+  "Kendall",  "Roy",       "Acting CEO",           "2018-08-15",  "2018-10-30",
+  "Roman",    "Roy",       "COO",                  "2019-01-01",  "2020-06-30",
+  "Roman",    "Roy",       "CEO",                  "2020-07-01",  "2020-09-15",
+  "Gerri",    "Kellman",   "General Counsel",      "2015-01-01",  "2020-12-31",
+  "Gerri",    "Kellman",   "Interim CEO",          "2018-10-30",  "2019-02-01",
+  "Frank",    "Vernon",    "COO",                  "2016-01-01",  "2018-12-31",
+  "Karl",     "Muller",    "CFO",                  "2016-01-01",  "2020-12-31",
+  "Connor",   "Roy",       "Entrepreneur",         "2010-01-01",  "2020-12-31"
 )
+
+# Example: We can use `datetime_squash()` by argument to emulate dplyr workflow
+jobs |>
+  group_by(fname) |>
+  summarize(phint = datetime_squash(ymd(start), ymd(end))) |>
+  ungroup()
+
+# Notice: `datetime_squash()` returns a `data.frame` by default, we cast to a
+#         tibble for nicer formatting.
+#
+# Notice: `dplyr::group_by()` sorts the output by `fname` (alphabetically in this
+# case), while `datetime_squash()` returns the `by` groups by first appearance
+datetime_squash(
+  start = ymd(jobs$start),
+  end = ymd(jobs$end),
+  by = jobs$fname,
+  keep_by = TRUE
+) |> as_tibble()
+
+# Example: To emulate `dplyr` ordering, use the `order_by` argument
+datetime_squash(
+  start = ymd(jobs$start),
+  end = ymd(jobs$end),
+  by = jobs$fname,
+  keep_by = TRUE,
+  order_by = TRUE
+) |> as_tibble()
+
+# Example: In many workflows, `by` includes multiple columns. `datetime_squash()`
+# and `phint_squash()` `by` argument can be a tibble.
+jobs |>
+  group_by(fname, lname) |>
+  summarize(phint = datetime_squash(ymd(start), ymd(end))) |>
+  ungroup()
+
+# Notice: In a `dplyr` pipeline, reframe with `by` can emulate above
+jobs |>
+  reframe(
+    datetime_squash(
+      start = ymd(start),
+      end = ymd(end),
+      by = pick(fname, lname),
+      keep_by = TRUE,
+      order_by = TRUE
+    )
+  ) |>
+  unnest(by) # Unnests fname, lname data.frame
+
+# Example
+big_jobs <- jobs |>
+  slice_sample(n = 20000) |>
+  mutate(lname = sample(LETTERS, size = n(), replace = TRUE))
+
+head(big_jobs)
+
+bench::mark(
+  group_by = big_jobs |>
+    mutate(start = ymd(start), end = ymd(end)) |>
+    group_by(job_title, lname) |>
+    summarize(phint = datetime_squash(start, end), .groups = "drop"),
+
+  squash_by = datetime_squash(
+    start = ymd(big_jobs$start),
+    end = ymd(big_jobs$end),
+    by = big_jobs |> select(job_title, lname),
+    keep_by = TRUE,
+    order_by = TRUE
+  ) |>
+    unnest(by)
+)[1:6]
+
+datetime_squash(
+  start = ymd(jobs$start),
+  end = ymd(jobs$end),
+  # `by` works like the `.by` argument in `dplyr::summarize()`
+  by = jobs |> select(fname, lname),
+  keep_by = TRUE
+) |>
+  as_tibble() # For nicer formatting
 
 employment <- jobs |>
   dplyr::mutate(span = interval(start, end)) |>
