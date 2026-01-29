@@ -30,8 +30,7 @@ Imports:
     tibble,
     tzdb,
     vctrs (>= 0.7.0)
-Suggests: 
-    bench,
+Suggests:
     dplyr,
     knitr,
     rmarkdown,
