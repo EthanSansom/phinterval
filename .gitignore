@@ -4,9 +4,6 @@
 .httr-oauth
 .DS_Store
 .quarto
-R/under_construction/
-benchmarks/data/*.rds
-benchmarks/results/*.rds
 inst/doc
 docs
 /doc/
