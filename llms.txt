@@ -248,18 +248,10 @@ package documentation.
 
 # Package index
 
-## Construction and Coercion
+## Construction and Casting
 
 - [`phinterval()`](https://ethansansom.github.io/phinterval/reference/phinterval.md)
   : Create a new phinterval
-- [`reexports`](https://ethansansom.github.io/phinterval/reference/reexports.md)
-  [`interval`](https://ethansansom.github.io/phinterval/reference/reexports.md)
-  [`duration`](https://ethansansom.github.io/phinterval/reference/reexports.md)
-  [`POSIXct`](https://ethansansom.github.io/phinterval/reference/reexports.md)
-  [`NA_POSIXct_`](https://ethansansom.github.io/phinterval/reference/reexports.md)
-  [`tzdb_names`](https://ethansansom.github.io/phinterval/reference/reexports.md)
-  [`tzdb_version`](https://ethansansom.github.io/phinterval/reference/reexports.md)
-  : Objects exported from other packages
 - [`hole()`](https://ethansansom.github.io/phinterval/reference/hole.md)
   : Create a hole phinterval
 - [`as_phinterval()`](https://ethansansom.github.io/phinterval/reference/as_phinterval.md)
@@ -310,18 +302,10 @@ package documentation.
 - [`n_spans()`](https://ethansansom.github.io/phinterval/reference/n_spans.md)
   : Count the number of spans in a phinterval
 
-## Time Zones
+## Time Zone
 
 - [`is_recognized_tzone()`](https://ethansansom.github.io/phinterval/reference/is_recognized_tzone.md)
   : Test if the object is a recognized time zone
-- [`reexports`](https://ethansansom.github.io/phinterval/reference/reexports.md)
-  [`interval`](https://ethansansom.github.io/phinterval/reference/reexports.md)
-  [`duration`](https://ethansansom.github.io/phinterval/reference/reexports.md)
-  [`POSIXct`](https://ethansansom.github.io/phinterval/reference/reexports.md)
-  [`NA_POSIXct_`](https://ethansansom.github.io/phinterval/reference/reexports.md)
-  [`tzdb_names`](https://ethansansom.github.io/phinterval/reference/reexports.md)
-  [`tzdb_version`](https://ethansansom.github.io/phinterval/reference/reexports.md)
-  : Objects exported from other packages
 
 ## Package Options
 
