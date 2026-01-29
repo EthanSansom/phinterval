@@ -35,7 +35,7 @@ merged. If \code{NULL} (the default), each \code{start}/\code{end} pair creates 
 phinterval element. \code{by} is recycled to match the common length of \code{start}
 and \code{end}.
 
-\code{by} may be any vector in the vctrs sense. See \verb{[vctrs::obj_is_vector()]}
+\code{by} may be any vector in the vctrs sense. See \code{\link[vctrs:vector-checks]{vctrs::obj_is_vector()}}
 for details.}
 
 \item{order_by}{\verb{[TRUE / FALSE]}

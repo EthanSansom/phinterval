@@ -39,10 +39,10 @@ default), all intervals are merged into a single phinterval element.
 For \code{datetime_squash()}, \code{by} must be recyclable with the recycled length
 of \code{start} and \code{end}.
 
-\code{by} may be any vector in the vctrs sense. See \verb{[vctrs::obj_is_vector()]}
+\code{by} may be any vector in the vctrs sense. See \code{\link[vctrs:vector-checks]{vctrs::obj_is_vector()}}
 for details.}
 
-\item{na.rm}{\verb{[TRUE / FALSE]]}
+\item{na.rm}{\verb{[TRUE / FALSE]}
 
 Should \code{NA} elements be removed before squashing? If \code{FALSE} and any \code{NA}
 elements are present, the result for that group is \code{NA}. Defaults to \code{TRUE}.}

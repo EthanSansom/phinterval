@@ -30,7 +30,7 @@ An optional vector or data frame to use as the \code{key} column in the output.
 If provided, must be the same length as \code{phint}. If \code{NULL} (the default),
 the \code{key} column contains row indices (position in \code{phint}).
 
-\code{key} may be any vector in the vctrs sense. See \verb{[vctrs::obj_is_vector()]}
+\code{key} may be any vector in the vctrs sense. See \code{\link[vctrs:vector-checks]{vctrs::obj_is_vector()}}
 for details.}
 }
 \value{

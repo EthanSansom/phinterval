@@ -7,7 +7,7 @@
 hole(n = 1L, tzone = "")
 }
 \arguments{
-\item{n}{\verb{[integerish(1)]}
+\item{n}{\verb{[integer(1)]}
 
 The number of hole elements to create. Must be a positive whole number.}
 
