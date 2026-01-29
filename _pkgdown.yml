@@ -3,14 +3,10 @@ template:
   bootstrap: 5
 
 reference:
-  - title: Construction and Coercion
+  - title: Construction and Casting
     contents:
       - phinterval
-      - interval
       - hole
-      - duration
-      - POSIXct
-      - NA_POSIXct_
       - as_phinterval
       - as_duration
 
@@ -44,11 +40,9 @@ reference:
       - phint_lengths
       - n_spans
 
-  - title: Time Zones
+  - title: Time Zone
     contents:
     - is_recognized_tzone
-    - tzdb_names
-    - tzdb_version
 
   - title: Package Options
     contents:
