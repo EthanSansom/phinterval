@@ -1,5 +1,9 @@
 #nocov start
 
+is_scalar <- function(x) {
+  vec_size(x) == 1L
+}
+
 is_instant <- function(x) {
   inherits(x, c("POSIXt", "POSIXct", "POSIXlt", "Date"))
 }
