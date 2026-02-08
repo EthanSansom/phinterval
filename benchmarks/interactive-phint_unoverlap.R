@@ -1,62 +1,14 @@
-# todos misc -------------------------------------------------------------------
+# todos ------------------------------------------------------------------------
 
-# TODO: Fixes + New Functions
-# - phint_squash() and `datetime_squash()` should immediately return length-1 inputs
-# - phint_cumunion(), phint_cumintersect(), phint_cumsetdiff() -> cumulative union, intersect, setdiff
-# - phint_setdiff_symmetric() + cumulative version
-# - phint_shift(phint, duration) -> int_shift(), but we only allow shifting by duration
-
-# TODO: Long term
-# - phint_locate_groups() -> based on ivs::iv_locate_groups(), also `phint_identify_group()`
-# - phint_locate_splits() -> based on ivs::iv_locate_splits()
-#   - this is actually similar to `phint_unoverlap()`, since splits must be disjoint
-# - phint_identify_containers() -> https://davisvaughan.github.io/ivs/reference/iv-containers.html
+# TODO: Instants
+# - Instants aren't compatible with this approach, we'll have to sift them
+#   first. Future intervals *can* overlap with prior instants, since `phint_setdiff()`
+#   can't remove instants (and there's no way around this)
 #
-# For all of these, need to think about why you couldn't just use ivs. I still
-# don't see a compelling reason not to use `ivs`.
-#
-# TODO: Final thought, I think only `phint_locate_groups()` is really critical,
-#       the rest can be converted to `ivs`. I already have most of `phint_locate_groups()`
-#       implemented during squashing, I just need to track which elements belong
-#       to which group! Maybe `phint_locate_splits()` since that's also in
-#       `phint_unoverlap()`...
-
-# TODO: Weird
-# - phint_filter(phint, min_dur, max_dur) -> remove span where: `min_dur <= end - start <= max_dur`
-# - phint_fill(phint, min_gap = dminutes(10)) -> opposite of `phint_sift()`,
-#   fill in gaps less than a given time {[0, 10], [20, 30]} becomes {[0, 30]}
-
-# todo overlap family ----------------------------------------------------------
-
-# Second un-overlapping method, `phint_unblock()`. This has the *same*
-# arguments as `phint_unoverlap()`, but resolves overlaps by shifting
-# intervals forward in time, such that `phint_start(phint[i]) >= phint_end(phint[i - 1])`.
-# For holey intervals, we don't attempt to fill holes (confusing).
-#
-# phint_unblock([1, 5], [3, 6], [9, 12])
-# [1, 5]
-# [5, 8]  # Still duration-3, but shifted
-# [9, 12] # Don't need to shift
-#
-# phint_unoverlap([1, 5], [3, 6], [9, 12])
-# [1, 5]
-# [5, 6]  # Setdiffed
-# [9, 12] # Don't need to setdiff
-#
-# Other functions:
-# - `phint_has_overlaps(phint, ...)` : does a <phinterval> have internal overlaps
-# - Invariant: If `!any(phint_has_overlaps(phint, ...))` then phint_unoverlap(phint, ...) == phint
-# - `phint_has_blockers(phint, ...)`, synonym of `phint_has_overlaps`, same invariant for phint_unblock
-# - phint_any_overlaps(phint, ...), phint_any_blockers(phint, ...), scalar versions (e.g. TRUE or FALSE)
-
-# TODO: Argument, `propogate_na = FALSE`
-# Should NA values from previous elements (e.g. phint[i - 1]) or groups
-# (e.g. phint[priority < priority[i]]) propagate to `phint[i]` while
-# unoverlapping. In the implementation, we'll have to resolve each interval
-# in order of priority, so if we hit an NA and `propogate_na = TRUE`, we can
-# return the rest of the results as NA.
-
-# todo unoverlap ---------------------------------------------------------------
+# 1. `phint_unoverlap()` just removes instants.
+# 2. Create a `phint_widen(phint, duration = duration(1, "seconds"))` or similar,
+#    to widen spans below a certain duration. This way, you can get normal
+#    behavior by treating instants as 1-second long intervals.
 
 # TODO: Solving the overlapping problem: `phint_unoverlap()`
 #
@@ -148,3 +100,47 @@
 #     priority = level,
 #     priority_order = "descending"  # Process level 9, then 3, then 1
 #   ))
+
+# phint_unoverlap --------------------------------------------------------------
+
+phint_unoverlap <- function(
+    phint,
+    priority = NULL,
+    priority_order = c("asc", "desc", "appearance"),
+    within_priority = c("sequential", "keep"),
+    na_propogate = FALSE
+) {
+  check_phintish(phint)
+  check_vector(priority, allow_null = TRUE)
+  priority_order <- arg_match0(priority_order, c("asc", "desc", "appearance"))
+  within_priority <- arg_match0(within_priority, c("sequential", "keep"))
+  check_bool(na_propogate)
+
+  # TODO: Implement `na_propogate` at some point
+  hole <- hole(tzone = get_tzone(phint))
+  phint[is.na(phint)] <- hole
+
+  # If `priority` is `NULL` we consider the entirety of `phint` to be within
+  # the same group.
+  if (is.null(priority) || is_scalar(priority)) {
+    # If we keep overlaps within the same priority level, then we're keeping
+    # the entire `phint` in this case.
+    if (within_priority == "keep") {
+      return(phint)
+    }
+
+    # Want to ensure that `phint[i]` doesn't intersect with `phint[1:(i - 1)]`.
+    # The `mask` is the cumulative union of all preceding elements.
+    mask <- phint_cumunion(c(hole, phint[-length(phint)]))
+
+    return(phint_setdiff(phint, mask))
+  }
+
+  groups <- switch(
+    priority_order,
+    asc = vec_locate_sorted_groups(priority, direction = "asc"),
+    desc = vec_locate_sorted_groups(priority, direction = "desc"),
+    appearance = vec_group_loc(priority)
+  )
+  groups
+}
