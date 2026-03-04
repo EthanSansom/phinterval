@@ -1,3 +1,5 @@
+# vectorized -------------------------------------------------------------------
+
 #' Vectorized set operations
 #'
 #' @description
@@ -137,4 +139,48 @@ phint_setdiff <- function(phint1, phint2) {
     )
   )
   new_phinterval_bare(out, tzone = tz_union(phint1, phint2))
+}
+
+# TODO: Symmetric Set-difference
+phint_setdiff_symmetric <- function(phint1, phint2) {
+
+}
+
+# cumulative -------------------------------------------------------------------
+
+# `phint_cumsetdiff()` is better covered by `phint_unoverlap()` and
+# `phint_cumcomplement()` is (1) not useful and (2) maybe something
+# like `phint |> phint_cumunion() |> phint_complement()`
+
+# @rdname phinterval-cumset-operations
+# @export
+phint_cumunion <- function(phint, na_propogate = FALSE, reverse = FALSE) {
+  check_phintish(phint)
+  check_bool(na_propogate)
+  check_bool(reverse)
+
+  if (!na_propogate) {
+    phint[is.na(phint)] <- hole(tzone = get_tzone(phint))
+  }
+
+  phint_accumulate(phint, phint_union, reverse = reverse)
+}
+
+# @rdname phinterval-cumset-operations
+# @export
+phint_cumintersect <- function(phint, na_propogate = FALSE, reverse = FALSE) {
+  check_phintish(phint)
+  check_bool(na_propogate)
+  check_bool(reverse)
+
+  if (!na_propogate) {
+    phint[is.na(phint)] <- hole(tzone = get_tzone(phint))
+  }
+
+  phint_accumulate(phint, phint_intersect, reverse = reverse)
+}
+
+phint_accumulate <- function(.x, .f, ..., reverse = FALSE) {
+  f <- function(x, y) .f(x, y, ...)
+  list_unchop(Reduce(f, .x, accumulate = TRUE, right = reverse, simplify = FALSE))
 }
