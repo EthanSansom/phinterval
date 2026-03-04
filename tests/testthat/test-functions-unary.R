@@ -10,6 +10,8 @@ test_that("Unary functions work on <Interval> and <phinterval> inputs", {
   expect_equal(phint_complement(phint), phint_complement(intvl))
   expect_equal(phint_sift(phint), phint_sift(intvl))
   expect_equal(phint_invert(phint), phint_invert(intvl))
+  expect_equal(phint_cumunion(phint), phint_cumunion(intvl))
+  expect_equal(phint_cumintersect(phint), phint_cumintersect(intvl))
 })
 
 # unary functions --------------------------------------------------------------
@@ -19,7 +21,9 @@ test_that("Unary functions empty input results in empty output", {
     list(
       phint_complement(phinterval()),
       phint_sift(phinterval()),
-      phint_invert(phinterval())
+      phint_invert(phinterval()),
+      phint_cumunion(phinterval()),
+      phint_cumintersect(phinterval())
     ),
     identical,
     phinterval()
@@ -50,12 +54,21 @@ test_that("Unary functions NA input results in NA output", {
 })
 
 test_that("Unary functions error on invalid inputs", {
+  intvl <- interval(NA, NA)
+
   expect_error(phint_complement(as.POSIXct(0)))
   expect_error(phint_complement(10))
   expect_error(phint_sift(as.POSIXct(0)))
   expect_error(phint_sift(10))
   expect_error(phint_invert(as.POSIXct(0)))
-  expect_error(phint_invert(interval(NA, NA), hole_to = "span"))
+  expect_error(phint_invert(intvl, hole_to = "span"))
+
+  expect_error(phint_cumunion(as.POSIXct(0)))
+  expect_error(phint_cumunion(intvl, na_propogate = "no"))
+  expect_error(phint_cumunion(intvl, reverse = "yes"))
+  expect_error(phint_cumintersect(as.POSIXct(0)))
+  expect_error(phint_cumintersect(intvl, na_propogate = "no"))
+  expect_error(phint_cumintersect(intvl, reverse = "yes"))
 })
 
 # phint_sift -------------------------------------------------------------------
@@ -184,4 +197,247 @@ test_that("phint_invert() works as expected", {
   expect_equal(phint_invert(hole, hole_to = "hole"), hole)
   expect_equal(phint_invert(hole, hole_to = "na"), phinterval(NA_POSIXct_, NA_POSIXct_))
   expect_equal(phint_invert(hole, hole_to = "inf"), phinterval(t_neg_inf, t_pos_inf))
+})
+
+# phint_cumunion ---------------------------------------------------------------
+
+test_that("phint_cumunion() works as expected", {
+  t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
+  t2 <- as.POSIXct("2021-01-01 00:00:45", tz = "UTC")
+  t3 <- as.POSIXct("2021-01-01 00:00:55", tz = "UTC")
+  t4 <- as.POSIXct("2021-01-01 00:01:00", tz = "UTC")
+  t5 <- as.POSIXct("2021-01-01 00:04:00", tz = "UTC")
+  t6 <- as.POSIXct("2021-01-01 00:08:00", tz = "UTC")
+  int12 <- phinterval(t1, t2)
+  int23 <- phinterval(t2, t3)
+  int34 <- phinterval(t3, t4)
+  int25 <- phinterval(t2, t5)
+  int36 <- phinterval(t3, t6)
+  hole  <- hole(tzone = "UTC")
+
+  # Length-1 input
+  expect_equal(phint_cumunion(int12), int12)
+  expect_equal(phint_cumunion(hole), hole)
+
+  # Non-overlapping intervals accumulate into growing unions
+  phint <- c(int12, int23, int34)
+  expect_equal(
+    phint_cumunion(phint),
+    c(int12, phinterval(t1, t3), phinterval(t1, t4))
+  )
+
+  # Overlapping intervals: later duplicates are absorbed
+  phint <- c(int25, int23, int36)
+  expect_equal(
+    phint_cumunion(phint),
+    c(int25, int25, phinterval(t2, t6))
+  )
+
+  # Holes in input are treated as empty (na_propogate = FALSE default)
+  phint <- c(int12, hole, int34)
+  expect_equal(
+    phint_cumunion(phint),
+    c(int12, int12, phint_squash(c(int12, int34)))
+  )
+
+  # reverse = TRUE accumulates from right to left
+  phint <- c(int12, int23, int34)
+  expect_equal(
+    phint_cumunion(phint, reverse = TRUE),
+    c(phinterval(t1, t4), phinterval(t2, t4), int34)
+  )
+
+  # reverse = TRUE with hole
+  phint <- c(int12, hole, int34)
+  expect_equal(
+    phint_cumunion(phint, reverse = TRUE),
+    c(phint_squash(c(int12, int34)), int34, int34)
+  )
+})
+
+test_that("phint_cumunion() respects na_propogate argument", {
+  t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
+  t2 <- as.POSIXct("2021-01-01 00:00:45", tz = "UTC")
+  t3 <- as.POSIXct("2021-01-01 00:00:55", tz = "UTC")
+  t4 <- as.POSIXct("2021-01-01 00:01:00", tz = "UTC")
+  int12 <- phinterval(t1, t2)
+  int23 <- phinterval(t2, t3)
+  int34 <- phinterval(t3, t4)
+  na_phint <- phinterval(NA_POSIXct_, NA_POSIXct_, tzone = "UTC")
+  hole  <- hole(tzone = "UTC")
+
+  # na_propogate = FALSE (default): NA treated as hole, does not infect result
+  expect_equal(
+    phint_cumunion(c(int12, na_phint, int34)),
+    c(int12, int12, phint_squash(c(int12, int34)))
+  )
+  expect_equal(
+    phint_cumunion(c(na_phint, int12, int23)),
+    c(hole, int12, phinterval(t1, t3))
+  )
+
+  # na_propogate = TRUE: NA infects all subsequent elements
+  expect_equal(
+    phint_cumunion(c(int12, na_phint, int34), na_propogate = TRUE),
+    c(int12, na_phint, na_phint)
+  )
+  expect_equal(
+    phint_cumunion(c(na_phint, int12, int23), na_propogate = TRUE),
+    c(na_phint, na_phint, na_phint)
+  )
+
+  # na_propogate = TRUE: elements before the NA are unaffected
+  expect_equal(
+    phint_cumunion(c(int12, int23, na_phint), na_propogate = TRUE),
+    c(int12, phinterval(t1, t3), na_phint)
+  )
+
+  # na_propogate = TRUE with reverse = TRUE: NA infects leftward
+  expect_equal(
+    phint_cumunion(c(int12, na_phint, int34), na_propogate = TRUE, reverse = TRUE),
+    c(na_phint, na_phint, int34)
+  )
+  expect_equal(
+    phint_cumunion(c(int12, int23, na_phint), na_propogate = TRUE, reverse = TRUE),
+    c(na_phint, na_phint, na_phint)
+  )
+
+  # All NA input
+  expect_equal(
+    phint_cumunion(c(na_phint, na_phint), na_propogate = TRUE),
+    c(na_phint, na_phint)
+  )
+  expect_equal(
+    phint_cumunion(c(na_phint, na_phint), na_propogate = FALSE),
+    c(hole, hole)
+  )
+})
+
+# phint_cumintersect -----------------------------------------------------------
+
+test_that("phint_cumintersect() works as expected", {
+  t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
+  t2 <- as.POSIXct("2021-01-01 00:00:45", tz = "UTC")
+  t3 <- as.POSIXct("2021-01-01 00:00:55", tz = "UTC")
+  t4 <- as.POSIXct("2021-01-01 00:01:00", tz = "UTC")
+  t5 <- as.POSIXct("2021-01-01 00:04:00", tz = "UTC")
+  t6 <- as.POSIXct("2021-01-01 00:08:00", tz = "UTC")
+  int12 <- phinterval(t1, t2)
+  int23 <- phinterval(t2, t3)
+  int34 <- phinterval(t3, t4)
+  int25 <- phinterval(t2, t5)
+  int36 <- phinterval(t3, t6)
+  hole  <- hole(tzone = "UTC")
+
+  # Length-1 input
+  expect_equal(phint_cumintersect(int12), int12)
+  expect_equal(phint_cumintersect(hole), hole)
+
+  # Non-overlapping intervals: intersection collapses to hole
+  phint <- c(int12, int34)
+  expect_equal(
+    phint_cumintersect(phint),
+    c(int12, hole)
+  )
+
+  # Overlapping intervals: intersection narrows
+  phint <- c(int25, int36)
+  expect_equal(
+    phint_cumintersect(phint),
+    c(int25, phinterval(t3, t5))
+  )
+
+  # Three overlapping intervals
+  phint <- c(phinterval(t1, t5), phinterval(t2, t6), int34)
+  expect_equal(
+    phint_cumintersect(phint),
+    c(phinterval(t1, t5), phinterval(t2, t5), int34)
+  )
+
+  # Once intersection becomes hole, remains hole
+  phint <- c(int12, int34, int25)
+  expect_equal(
+    phint_cumintersect(phint),
+    c(int12, hole, hole)
+  )
+
+  # Holes in input treated as empty (na_propogate = FALSE default)
+  phint <- c(int25, hole, int36)
+  expect_equal(
+    phint_cumintersect(phint),
+    c(int25, hole, hole)
+  )
+
+  # reverse = TRUE accumulates from right to left
+  phint <- c(int25, int36, phinterval(t3, t5))
+  expect_equal(
+    phint_cumintersect(phint, reverse = TRUE),
+    c(phinterval(t3, t5), phinterval(t3, t5), phinterval(t3, t5))
+  )
+
+  # reverse = TRUE with non-overlapping: collapses to hole
+  phint <- c(int12, int34)
+  expect_equal(
+    phint_cumintersect(phint, reverse = TRUE),
+    c(hole, int34)
+  )
+})
+
+test_that("phint_cumintersect() respects na_propogate argument", {
+  t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
+  t2 <- as.POSIXct("2021-01-01 00:00:45", tz = "UTC")
+  t3 <- as.POSIXct("2021-01-01 00:00:55", tz = "UTC")
+  t4 <- as.POSIXct("2021-01-01 00:01:00", tz = "UTC")
+  t5 <- as.POSIXct("2021-01-01 00:04:00", tz = "UTC")
+  int12 <- phinterval(t1, t2)
+  int25 <- phinterval(t2, t5)
+  int34 <- phinterval(t3, t4)
+  na_phint <- phinterval(NA_POSIXct_, NA_POSIXct_, tzone = "UTC")
+  hole  <- hole(tzone = "UTC")
+
+  # na_propogate = FALSE (default): NA treated as hole, does not infect result
+  expect_equal(
+    phint_cumintersect(c(int25, na_phint, int34)),
+    c(int25, hole, hole)
+  )
+  expect_equal(
+    phint_cumintersect(c(na_phint, int25, int34)),
+    c(hole, hole, hole)
+  )
+
+  # na_propogate = TRUE: NA infects all subsequent elements
+  expect_equal(
+    phint_cumintersect(c(int25, na_phint, int34), na_propogate = TRUE),
+    c(int25, na_phint, na_phint)
+  )
+  expect_equal(
+    phint_cumintersect(c(na_phint, int25, int34), na_propogate = TRUE),
+    c(na_phint, na_phint, na_phint)
+  )
+
+  # na_propogate = TRUE: elements before the NA are unaffected
+  expect_equal(
+    phint_cumintersect(c(int25, int34, na_phint), na_propogate = TRUE),
+    c(int25, int34, na_phint)
+  )
+
+  # na_propogate = TRUE with reverse = TRUE: NA infects leftward
+  expect_equal(
+    phint_cumintersect(c(int25, na_phint, int34), na_propogate = TRUE, reverse = TRUE),
+    c(na_phint, na_phint, int34)
+  )
+  expect_equal(
+    phint_cumintersect(c(int25, int34, na_phint), na_propogate = TRUE, reverse = TRUE),
+    c(na_phint, na_phint, na_phint)
+  )
+
+  # All NA input
+  expect_equal(
+    phint_cumintersect(c(na_phint, na_phint), na_propogate = TRUE),
+    c(na_phint, na_phint)
+  )
+  expect_equal(
+    phint_cumintersect(c(na_phint, na_phint), na_propogate = FALSE),
+    c(hole, hole)
+  )
 })
