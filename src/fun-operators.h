@@ -222,10 +222,11 @@ void Setdiff::apply_to_set(const XView& x, const YView& y, PhintBuffer& out) {
     return;
   }
 
+  double current_start, current_end;
   int j = 0;
   for (int i = 0; i < x.size; i++) {
-    double current_start = x.start(i);
-    double current_end = x.end(i);
+    current_start = x.start(i);
+    current_end = x.end(i);
 
     // Skip over elements in y preceding the current element in x
     while (j < y.size && y.end(j) <= current_start) {
@@ -237,6 +238,12 @@ void Setdiff::apply_to_set(const XView& x, const YView& y, PhintBuffer& out) {
     while (j < y.size && y.start(j) < current_end) {
       double y_start = y.start(j);
       double y_end = y.end(j);
+
+      // Don't punch instantaneous holes (#3)
+      if (y_start == y_end) {
+        j++;
+        continue;
+      }
 
       if (remainder_start < y_start) {
         out.add_span(remainder_start, std::min(current_end, y_start));
@@ -251,8 +258,9 @@ void Setdiff::apply_to_set(const XView& x, const YView& y, PhintBuffer& out) {
     }
 
     // Add the remaining portion of x[i], after punching holes. This is skipped
-    // when a span in y aligned with the end of x[i].
-    if (remainder_start < current_end) {
+    // when a span in y aligns with the end of x[i] and x[i] is not instant (#3).
+    bool x_is_instant = (current_start == current_end);
+    if (remainder_start < current_end || (x_is_instant && remainder_start == current_end)) {
       out.add_span(remainder_start, current_end);
     }
   }

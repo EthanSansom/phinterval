@@ -330,6 +330,120 @@ test_that("phint_setdiff() works as expected", {
   expect_equal(phint_setdiff(int22, int13), hole)
 })
 
+test_that("phint_setdiff() handles instants and identical spans correctly", {
+  t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
+  t2 <- as.POSIXct("2021-01-01 00:00:45", tz = "UTC")
+  t3 <- as.POSIXct("2021-01-01 00:00:55", tz = "UTC")
+  t4 <- as.POSIXct("2021-01-01 00:01:00", tz = "UTC")
+  t5 <- as.POSIXct("2021-01-01 00:04:00", tz = "UTC")
+  t6 <- as.POSIXct("2021-01-01 00:08:00", tz = "UTC")
+  t7 <- as.POSIXct("2021-01-01 00:08:30", tz = "UTC")
+  t8 <- as.POSIXct("2021-01-01 00:09:00", tz = "UTC")
+  hole  <- hole(tzone = "UTC")
+
+  phint14 <- phinterval(t1, t4)
+  phint23 <- phinterval(t2, t3)
+  phint67 <- phinterval(t6, t7)
+  phint58 <- phinterval(t5, t8)
+
+  phint11 <- phinterval(t1, t1)
+  phint22 <- phinterval(t2, t2)
+  phint44 <- phinterval(t4, t4)
+  phint55 <- phinterval(t5, t5)
+  phint66 <- phinterval(t6, t6)
+  phint88 <- phinterval(t8, t8)
+
+  phint14_58 <- phint_union(phint14, phint58)
+  phint14_88 <- phint_union(phint14, phint88)
+  phint11_58 <- phint_union(phint11, phint58)
+
+  ## <span> x <instant>
+  expect_all_true(
+    c(
+      phint_setdiff(phint14, phint22) == phint14,
+      phint_setdiff(phint14, phint11) == phint14,
+      phint_setdiff(phint14, phint44) == phint14,
+
+      phint_setdiff(phint22, phint14) == hole,
+      phint_setdiff(phint11, phint14) == phint11,
+      phint_setdiff(phint44, phint14) == phint44
+    )
+  )
+
+  # <span> x <set-of-spans>
+  expect_all_true(
+    c(
+      phint_setdiff(phint14, phint14_58) == hole(),
+      phint_setdiff(phint58, phint14_58) == hole(),
+      phint_setdiff(phint23, phint14_58) == hole(),
+      phint_setdiff(phint67, phint14_58) == hole(),
+
+      phint_setdiff(phint14_58, phint14) == phint58,
+      phint_setdiff(phint14_58, phint58) == phint14,
+      phint_setdiff(phint14_58, phint23) == phinterval(c(t1, t3, t5), c(t2, t4, t8), by = 1),
+      phint_setdiff(phint14_58, phint67) == phinterval(c(t1, t5, t7), c(t4, t6, t8), by = 1)
+    )
+  )
+
+  # <span> x <set-of-span-and-instant>
+  expect_all_true(
+    c(
+      phint_setdiff(phint14, phint14_88) == hole(),
+      phint_setdiff(phint23, phint14_88) == hole(),
+      phint_setdiff(phint58, phint11_58) == hole(),
+      phint_setdiff(phint67, phint11_58) == hole(),
+
+      phint_setdiff(phint14_88, phint14) == phint88,
+      phint_setdiff(phint14_88, phint23) == phinterval(c(t1, t3, t8), c(t2, t4, t8), by = 1),
+      phint_setdiff(phint11_58, phint58) == phint11,
+      phint_setdiff(phint11_58, phint67) == phinterval(c(t1, t5, t7), c(t1, t6, t8), by = 1)
+    )
+  )
+
+  # <instant> x <set-of-spans>
+  expect_all_true(
+    c(
+      phint_setdiff(phint14_58, phint22) == phint14_58,
+      phint_setdiff(phint14_58, phint11) == phint14_58,
+      phint_setdiff(phint14_58, phint44) == phint14_58,
+      phint_setdiff(phint14_58, phint55) == phint14_58,
+      phint_setdiff(phint14_58, phint88) == phint14_58,
+
+      phint_setdiff(phint22, phint14_58) == hole,
+      phint_setdiff(phint11, phint14_58) == phint11,
+      phint_setdiff(phint44, phint14_58) == phint44,
+      phint_setdiff(phint55, phint14_58) == phint55,
+      phint_setdiff(phint88, phint14_58) == phint88
+    )
+  )
+
+  # <instant> x <set-of-span-and-instant>
+  expect_all_true(
+    c(
+      phint_setdiff(phint14_88, phint22) == phint14_88,
+      phint_setdiff(phint14_88, phint11) == phint14_88,
+      phint_setdiff(phint14_88, phint44) == phint14_88,
+      phint_setdiff(phint14_88, phint88) == phint14_88,
+      phint_setdiff(phint11_58, phint66) == phint11_58,
+      phint_setdiff(phint11_58, phint11) == phint11_58,
+      phint_setdiff(phint11_58, phint55) == phint11_58,
+      phint_setdiff(phint11_58, phint88) == phint11_58,
+
+      phint_setdiff(phint22, phint14_88) == hole,
+      phint_setdiff(phint11, phint14_88) == phint11,
+      phint_setdiff(phint44, phint14_88) == phint44,
+      phint_setdiff(phint88, phint14_88) == phint88,
+      phint_setdiff(phint66, phint11_58) == hole,
+      phint_setdiff(phint11, phint11_58) == phint11,
+      phint_setdiff(phint55, phint11_58) == phint55,
+      phint_setdiff(phint88, phint11_58) == phint88,
+
+      phint_setdiff(phint44, phint11_58) == phint44,
+      phint_setdiff(phint55, phint14_88) == phint55
+    )
+  )
+})
+
 # phint_intersect --------------------------------------------------------------
 
 test_that("phint_intersect() works as expected", {
