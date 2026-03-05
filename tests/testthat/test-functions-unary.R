@@ -37,6 +37,7 @@ test_that("Unary functions NA input results in NA output", {
   intvl <- interval(c(t1, NA, t1, NA), c(t2, t2, NA, NA))
   phint <- as_phinterval(intvl)
 
+  # phint_cumunion(), phint_cumintersect() are exceptions
   expect_all_true(
     map_lgl(
       list(
@@ -62,7 +63,6 @@ test_that("Unary functions error on invalid inputs", {
   expect_error(phint_sift(10))
   expect_error(phint_invert(as.POSIXct(0)))
   expect_error(phint_invert(intvl, hole_to = "span"))
-
   expect_error(phint_cumunion(as.POSIXct(0)))
   expect_error(phint_cumunion(intvl, na_propogate = "no"))
   expect_error(phint_cumunion(intvl, reverse = "yes"))

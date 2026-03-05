@@ -10,14 +10,20 @@ reference:
       - as_phinterval
       - as_duration
 
-  - title: Set Operations and Modifications
+  - title: Set Operations
     contents:
       - phint_union
       - phint_intersect
       - phint_setdiff
       - phint_complement
+
+  - title: Modifications
+    contents:
       - phint_invert
       - phint_sift
+
+  - title: Transformations
+    contents:
       - phint_squash
       - datetime_squash
 
@@ -56,3 +62,13 @@ reference:
       - NA_POSIXct_
       - tzdb_names
       - tzdb_version
+
+  - title: Under Development
+    desc: >
+      These functions are currently only available in the development version of
+      {phinterval} and are not yet stable. You can install the development version
+      from GitHub using `pak::pak("EthanSansom/phinterval")`.
+    contents:
+      - phint_cumunion
+      - phint_cumintersect
+      - phint_symmetric_setdiff

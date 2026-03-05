@@ -20,9 +20,7 @@
 #' - `"inf"`: Return a span from `-Inf` to `Inf` (all time)
 #' - `"na"`: Return an `NA` phinterval
 #'
-#' @return
-#'
-#' A `<phinterval>` vector the same length as `phint`.
+#' @return A `<phinterval>` vector the same length as `phint`.
 #'
 #' @examples
 #' monday <- interval(as.Date("2025-11-10"), as.Date("2025-11-11"))
@@ -106,17 +104,85 @@ phint_sift <- function(phint) {
 
 # cumulative -------------------------------------------------------------------
 
-# `phint_cumsetdiff()` is better covered by `phint_unoverlap()` and
-# `phint_cumcomplement()` is (1) not useful and (2) maybe something
-# like `phint |> phint_cumunion() |> phint_complement()`
+#' Cumulative set operations
+#'
+#' @description
+#'
+#' These functions perform cumulative elementwise set operations on `<phinterval>`
+#' vectors, treating each element as a set of non-overlapping intervals. They
+#' return a new `<phinterval>` vector where each element is the result of
+#' applying the corresponding set operation across all preceding elements.
+#'
+#' - `phint_cumunion()` returns the running union of all elements up to and
+#'   including `phint[i]`.
+#' - `phint_cumintersect()` returns the running intersection of all elements up
+#'   to and including `phint[i]`.
+#'
+#' @inheritParams params
+#'
+#' @param na_propogate `[FALSE / TRUE]`
+#'
+#' Whether `NA` values propagate forward (or backward, if `reverse = TRUE`)
+#' through the cumulative result:
+#' - `FALSE` (default): `NA` elements are treated as [hole()]s and do not
+#'   affect subsequent results.
+#' - `TRUE`: An `NA` element causes all subsequent elements to become `NA`.
+#'
+#' @param reverse `[FALSE / TRUE]`
+#'
+#' Whether to accumulate from right to left instead of left to right:
+#' - `FALSE` (default): Each element `result[i]` is the cumulative set
+#'   operation over `phint[1:i]`.
+#' - `TRUE`: Each element `result[i]` is the cumulative set operation over
+#'   `phint[i:length(phint)]`.
+#'
+#' @return A `<phinterval>` vector the same length as `phint`.
+#'
+#' @examples
+#' monday <- interval(as.Date("2025-11-10"), as.Date("2025-11-11"))
+#' tuesday <- interval(as.Date("2025-11-11"), as.Date("2025-11-12"))
+#' wednesday <- interval(as.Date("2025-11-12"), as.Date("2025-11-13"))
+#' mon_to_wed <- interval(as.Date("2025-11-10"), as.Date("2025-11-13"))
+#' jan_1_to_5 <- interval(as.Date("2000-01-01"), as.Date("2000-01-05"))
+#' jan_3_to_9 <- interval(as.Date("2000-01-03"), as.Date("2000-01-09"))
+#' jan_6_to_9 <- interval(as.Date("2000-01-06"), as.Date("2000-01-09"))
+#'
+#' # Cumulative union expands with each new element
+#' phint_cumunion(c(monday, tuesday, wednesday))
+#'
+#' # Accumulate from right to left
+#' phint_cumunion(c(monday, tuesday, wednesday), reverse = TRUE)
+#'
+#' # NA elements are treated as holes by default
+#' phint_cumunion(c(monday, NA, wednesday))
+#'
+#' # NA elements propagate forward with na_propogate = TRUE
+#' phint_cumunion(c(monday, NA, wednesday), na_propogate = TRUE)
+#'
+#' # Cumulative intersection narrows with each new element
+#' phint_cumintersect(c(mon_to_wed, jan_1_to_5, jan_3_to_9))
+#'
+#' # Once the intersection becomes a hole, it remains a hole
+#' phint_cumintersect(c(monday, tuesday, wednesday))
+#'
+#' # Accumulate from right to left
+#' phint_cumintersect(c(monday, tuesday, wednesday), reverse = TRUE)
+#'
+#' # NA elements are treated as holes by default
+#' phint_cumintersect(c(jan_1_to_5, NA, jan_3_to_9))
+#'
+#' # NA elements propagate forward with na_propogate = TRUE
+#' phint_cumintersect(c(jan_1_to_5, NA, jan_3_to_9), na_propogate = TRUE)
+#'
+#' @name phinterval-cumset-operations
+NULL
 
-# @rdname phinterval-cumset-operations
-# @export
+#' @rdname phinterval-cumset-operations
+#' @export
 phint_cumunion <- function(phint, na_propogate = FALSE, reverse = FALSE) {
   check_phintish(phint)
   check_bool(na_propogate)
   check_bool(reverse)
-
 
   if (is_empty(phint)) {
     return(phint)
@@ -130,8 +196,8 @@ phint_cumunion <- function(phint, na_propogate = FALSE, reverse = FALSE) {
   phint_accumulate(phint, phint_union, reverse = reverse)
 }
 
-# @rdname phinterval-cumset-operations
-# @export
+#' @rdname phinterval-cumset-operations
+#' @export
 phint_cumintersect <- function(phint, na_propogate = FALSE, reverse = FALSE) {
   check_phintish(phint)
   check_bool(na_propogate)
