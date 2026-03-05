@@ -143,9 +143,6 @@ phint_sift <- function(phint) {
 #' tuesday <- interval(as.Date("2025-11-11"), as.Date("2025-11-12"))
 #' wednesday <- interval(as.Date("2025-11-12"), as.Date("2025-11-13"))
 #' mon_to_wed <- interval(as.Date("2025-11-10"), as.Date("2025-11-13"))
-#' jan_1_to_5 <- interval(as.Date("2000-01-01"), as.Date("2000-01-05"))
-#' jan_3_to_9 <- interval(as.Date("2000-01-03"), as.Date("2000-01-09"))
-#' jan_6_to_9 <- interval(as.Date("2000-01-06"), as.Date("2000-01-09"))
 #'
 #' # Cumulative union expands with each new element
 #' phint_cumunion(c(monday, tuesday, wednesday))
@@ -160,19 +157,13 @@ phint_sift <- function(phint) {
 #' phint_cumunion(c(monday, NA, wednesday), na_propogate = TRUE)
 #'
 #' # Cumulative intersection narrows with each new element
-#' phint_cumintersect(c(mon_to_wed, jan_1_to_5, jan_3_to_9))
+#' phint_cumintersect(c(mon_to_wed, monday, tuesday))
 #'
 #' # Once the intersection becomes a hole, it remains a hole
 #' phint_cumintersect(c(monday, tuesday, wednesday))
 #'
 #' # Accumulate from right to left
 #' phint_cumintersect(c(monday, tuesday, wednesday), reverse = TRUE)
-#'
-#' # NA elements are treated as holes by default
-#' phint_cumintersect(c(jan_1_to_5, NA, jan_3_to_9))
-#'
-#' # NA elements propagate forward with na_propogate = TRUE
-#' phint_cumintersect(c(jan_1_to_5, NA, jan_3_to_9), na_propogate = TRUE)
 #'
 #' @name phinterval-cumset-operations
 NULL
