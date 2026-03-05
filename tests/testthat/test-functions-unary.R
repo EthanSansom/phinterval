@@ -199,6 +199,52 @@ test_that("phint_invert() works as expected", {
   expect_equal(phint_invert(hole, hole_to = "inf"), phinterval(t_neg_inf, t_pos_inf))
 })
 
+test_that("phint_invert() handles instants correctly", {
+  t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
+  t2 <- as.POSIXct("2021-01-01 00:00:45", tz = "UTC")
+  t3 <- as.POSIXct("2021-01-01 00:00:55", tz = "UTC")
+  t4 <- as.POSIXct("2021-01-01 00:01:00", tz = "UTC")
+  t5 <- as.POSIXct("2021-01-01 00:04:00", tz = "UTC")
+  t6 <- as.POSIXct("2021-01-01 00:08:00", tz = "UTC")
+  t7 <- as.POSIXct("2021-01-01 00:09:00", tz = "UTC")
+  t8 <- as.POSIXct("2021-01-01 00:10:00", tz = "UTC")
+  t9 <- as.POSIXct("2021-01-01 00:11:00", tz = "UTC")
+  hole <- hole(tzone = "UTC")
+
+  phint11 <- phinterval(t1, t1)
+  phint55 <- phinterval(t5, t5)
+  phint66 <- phinterval(t6, t6)
+  phint99 <- phinterval(t9, t9)
+
+  phint34 <- phinterval(t3, t4)
+  phint78 <- phinterval(t7, t8)
+
+  # <instant(s)>
+  expect_all_true(
+    c(
+      phint_invert(phint11) == hole,
+      phint_invert(phint_squash(c(phint11, phint55))) == phinterval(t1, t5),
+      phint_invert(phint_squash(c(phint11, phint55, phint99))) == phinterval(t1, t9)
+    )
+  )
+
+  # <instant> x <span>
+  expect_all_true(
+    c(
+      phint_invert(phint_squash(c(phint11, phint34))) == phinterval(t1, t3),
+      phint_invert(phint_squash(c(phint34, phint55))) == phinterval(t3, t5),
+
+      # <span>, <instant(s)>, <span>
+      phint_invert(phint_squash(c(phint34, phint55, phint78))) == phinterval(t4, t7),
+      phint_invert(phint_squash(c(phint34, phint55, phint78))) == phinterval(t4, t7),
+      phint_invert(phint_squash(c(phint34, phint55, phint66, phint78))) == phinterval(t1, t9),
+
+      # <instant>, <span>, <instant>
+      phint_invert(phint_squash(c(phint11, phint34, phint99))) == phint_squash(c(phinterval(t1, t3), phinterval(t4, t9)))
+    )
+  )
+})
+
 # phint_cumunion ---------------------------------------------------------------
 
 test_that("phint_cumunion() works as expected", {
