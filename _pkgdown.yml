@@ -72,3 +72,4 @@ reference:
       - phint_cumunion
       - phint_cumintersect
       - phint_symmetric_setdiff
+      - phint_flatten()
