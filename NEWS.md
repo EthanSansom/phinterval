@@ -16,6 +16,8 @@
 
 * `phint_setdiff()` no longer creates a malformed phinterval when `phint2` contains instants (#3).
 
+* `phint_invert()` no longer creates a malformed phinterval when `phint` contains instants (#9).
+
 # phinterval 1.0.0
 
 * Initial CRAN submission.
