@@ -8,3 +8,5 @@ inst/doc
 docs
 /doc/
 /Meta/
+-benchmarks/
+-interactive/

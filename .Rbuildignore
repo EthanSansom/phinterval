@@ -1,7 +1,8 @@
 ^phinterval\.Rproj$
 ^\.Rproj\.user$
 ^LICENSE\.md$
-^benchmarks$
+^-benchmarks/
+^-interactive/
 ^paper$
 ^README\.Rmd$
 ^codecov\.yml$
