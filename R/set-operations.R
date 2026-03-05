@@ -24,6 +24,12 @@
 #' )
 #' ```
 #'
+#' @section Under Development:
+#'
+#' `phint_symmetric_setdiff()` is under development and may contain bugs. To use
+#' `phint_symmetric_setdiff()`, install the development version of {phinterval}
+#' from GitHub with `pak::pak("EthanSansom/phinterval")`.
+#'
 #' @inheritParams params
 #'
 #' @param bounds `["[]" / "()"]`

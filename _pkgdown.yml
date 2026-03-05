@@ -15,6 +15,7 @@ reference:
       - phint_union
       - phint_intersect
       - phint_setdiff
+      - phint_symmetric_setdiff
       - phint_complement
 
   - title: Modifications
@@ -71,5 +72,4 @@ reference:
     contents:
       - phint_cumunion
       - phint_cumintersect
-      - phint_symmetric_setdiff
-      - phint_flatten()
+      - phint_flatten

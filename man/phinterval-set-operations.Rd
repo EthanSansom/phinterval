@@ -69,6 +69,14 @@ operation. All functions follow vctrs-style recycling rules.
 )
 }\if{html}{\out{</div>}}
 }
+\section{Under Development}{
+
+
+\code{phint_symmetric_setdiff()} is under development and may contain bugs. To use
+\code{phint_symmetric_setdiff()}, install the development version of {phinterval}
+from GitHub with \code{pak::pak("EthanSansom/phinterval")}.
+}
+
 \examples{
 monday <- interval(as.Date("2025-11-10"), as.Date("2025-11-11"))
 tuesday <- interval(as.Date("2025-11-11"), as.Date("2025-11-12"))
