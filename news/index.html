@@ -36,6 +36,23 @@
 <h2 class="pkg-version" data-toc-text="development version" id="phinterval-development-version">phinterval (development version)<a class="anchor" aria-label="anchor" href="#phinterval-development-version"></a></h2>
 </div>
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="1.0.0.9000" id="phinterval-1009000">phinterval 1.0.0.9000<a class="anchor" aria-label="anchor" href="#phinterval-1009000"></a></h2>
+<div class="section level3">
+<h3 id="features-1-0-0-9000">Features:<a class="anchor" aria-label="anchor" href="#features-1-0-0-9000"></a></h3>
+<ul><li>
+<p>New <code><a href="../reference/phinterval-cumset-operations.html">phint_cumunion()</a></code>, <code><a href="../reference/phinterval-cumset-operations.html">phint_cumintersect()</a></code>, <code><a href="../reference/phinterval-set-operations.html">phint_symmetric_setdiff()</a></code> to complete the family of set-operations.</p>
+<ul><li><p><code><a href="../reference/phinterval-cumset-operations.html">phint_cumunion()</a></code> and <code><a href="../reference/phinterval-cumset-operations.html">phint_cumintersect()</a></code> take the cumulative union and intersection of a phinterval respectively.</p></li>
+<li><p><code><a href="../reference/phinterval-set-operations.html">phint_symmetric_setdiff()</a></code> takes the symmetric set-difference of two phintervals.</p></li>
+</ul></li>
+<li><p>New <code><a href="../reference/phint_flatten.html">phint_flatten()</a></code> returns all spans or gaps within an entire phinterval vector as a vector of intervals.</p></li>
+</ul></div>
+<div class="section level3">
+<h3 id="bug-fixes-1-0-0-9000">Bug fixes:<a class="anchor" aria-label="anchor" href="#bug-fixes-1-0-0-9000"></a></h3>
+<ul><li>
+<code><a href="../reference/phinterval-set-operations.html">phint_setdiff()</a></code> no longer creates a malformed phinterval when <code>phint2</code> contains instants (<a href="https://github.com/EthanSansom/phinterval/issues/3" class="external-link">#3</a>).</li>
+</ul></div>
+</div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.0.0" id="phinterval-100">phinterval 1.0.0<a class="anchor" aria-label="anchor" href="#phinterval-100"></a></h2><p class="text-muted">CRAN release: 2026-02-03</p>
 <ul><li>Initial CRAN submission.</li>
 </ul></div>

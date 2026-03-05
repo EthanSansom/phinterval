@@ -17,6 +17,18 @@ rules.
 - `phint_setdiff()` returns intervals in `phint1` that are not within
   `phint2`.
 
+- `phint_symmetric_setdiff()` returns intervals which are within either
+  `phint1` or `phint2`, but which are not within both `phint1` and
+  `phint2`.
+
+`phint_symmetric_setdiff(phint1, phint2, bounds)` is roughly equivalent
+to (but usually faster than) the following:
+
+    phint_setdiff(
+     phint_union(phint1, phint2),
+     phint_intersect(phint1, phint2, bounds = bounds)
+    )
+
 ## Usage
 
 ``` r
@@ -27,6 +39,8 @@ phint_union(phint1, phint2)
 phint_intersect(phint1, phint2, bounds = c("[]", "()"))
 
 phint_setdiff(phint1, phint2)
+
+phint_symmetric_setdiff(phint1, phint2, bounds = c("()", "[]"))
 ```
 
 ## Arguments
@@ -48,12 +62,14 @@ phint_setdiff(phint1, phint2)
 
   `["[]" / "()"]`
 
-  For `phint_intersect()` only, whether span endpoints are inclusive or
-  exclusive:
+  For `phint_intersect()` and `phint_symmetric_setdiff()`, whether span
+  endpoints are inclusive or exclusive:
 
-  - `"[]"` (default): Closed intervals - both endpoints are included
+  - `"[]"` (default for `phint_intersect()`): Closed intervals - both
+    endpoints are included
 
-  - `"()"`: Open intervals - both endpoints are excluded
+  - `"()"` (default for `phint_symmetric_setdiff()`): Open intervals -
+    both endpoints are excluded
 
   This affects adjacency and overlap detection. For example, with
   `bounds = "[]"`, the intervals `[1, 5]` and `[5, 10]` are considered
@@ -63,6 +79,12 @@ phint_setdiff(phint1, phint2)
 ## Value
 
 A `<phinterval>` vector.
+
+## Under Development
+
+`phint_symmetric_setdiff()` is under development and may contain bugs.
+To use `phint_symmetric_setdiff()`, install the development version of
+phinterval from GitHub with `pak::pak("EthanSansom/phinterval")`.
 
 ## Examples
 
@@ -130,4 +152,19 @@ phint_setdiff(jan_3_to_9, jan_1_to_5)
 noon_monday <- as.POSIXct("2025-11-10 12:00:00")
 phint_setdiff(monday, interval(noon_monday, noon_monday)) == monday
 #> [1] TRUE
+
+# Symmetric difference
+phint_symmetric_setdiff(jan_1_to_5, jan_3_to_9)
+#> <phinterval<UTC>[1]>
+#> [1] {2000-01-01--2000-01-03, 2000-01-05--2000-01-09}
+
+# The symmetric difference of non-overlapping intervals is their union
+phint_symmetric_setdiff(monday, friday)
+#> <phinterval<UTC>[1]>
+#> [1] {2025-11-10--2025-11-11, 2025-11-14--2025-11-15}
+
+# The symmetric difference of identical intervals is a hole
+phint_symmetric_setdiff(monday, monday)
+#> <phinterval<UTC>[1]>
+#> [1] <hole>
 ```

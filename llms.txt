@@ -266,17 +266,24 @@ package documentation.
 - [`as_duration()`](https://ethansansom.github.io/phinterval/reference/as_duration.md)
   : Convert a phinterval to a duration
 
-## Set Operations and Modifications
+## Set Operations
 
 - [`phint_complement()`](https://ethansansom.github.io/phinterval/reference/phinterval-set-operations.md)
   [`phint_union()`](https://ethansansom.github.io/phinterval/reference/phinterval-set-operations.md)
   [`phint_intersect()`](https://ethansansom.github.io/phinterval/reference/phinterval-set-operations.md)
   [`phint_setdiff()`](https://ethansansom.github.io/phinterval/reference/phinterval-set-operations.md)
+  [`phint_symmetric_setdiff()`](https://ethansansom.github.io/phinterval/reference/phinterval-set-operations.md)
   : Vectorized set operations
+
+## Modifications
+
 - [`phint_invert()`](https://ethansansom.github.io/phinterval/reference/phint_invert.md)
   : Get the gaps in a phinterval as time spans
 - [`phint_sift()`](https://ethansansom.github.io/phinterval/reference/phint_sift.md)
   : Remove instantaneous time spans from a phinterval
+
+## Transformations
+
 - [`phint_squash()`](https://ethansansom.github.io/phinterval/reference/squash.md)
   [`datetime_squash()`](https://ethansansom.github.io/phinterval/reference/squash.md)
   : Squash overlapping intervals into non-overlapping spans
@@ -329,6 +336,18 @@ package documentation.
   [`tzdb_names`](https://ethansansom.github.io/phinterval/reference/reexports.md)
   [`tzdb_version`](https://ethansansom.github.io/phinterval/reference/reexports.md)
   : Objects exported from other packages
+
+## Under Development
+
+These functions are currently only available in the development version
+of {phinterval} and are not yet stable. You can install the development
+version from GitHub using `pak::pak("EthanSansom/phinterval")`.
+
+- [`phint_cumunion()`](https://ethansansom.github.io/phinterval/reference/phinterval-cumset-operations.md)
+  [`phint_cumintersect()`](https://ethansansom.github.io/phinterval/reference/phinterval-cumset-operations.md)
+  : Cumulative set operations
+- [`phint_flatten()`](https://ethansansom.github.io/phinterval/reference/phint_flatten.md)
+  : Flatten a phinterval vector into a vector of spans or gaps
 
 # Articles
 

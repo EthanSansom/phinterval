@@ -69,7 +69,7 @@
         </dt>
         <dd>Convert a phinterval to a duration</dd>
       </dl></div><div class="section level2">
-      <h2 id="set-operations-and-modifications">Set Operations and Modifications<a class="anchor" aria-label="anchor" href="#set-operations-and-modifications"></a></h2>
+      <h2 id="set-operations">Set Operations<a class="anchor" aria-label="anchor" href="#set-operations"></a></h2>
 
 
 
@@ -80,12 +80,21 @@
 
       <dl><dt>
 
-          <code><a href="phinterval-set-operations.html">phint_complement()</a></code> <code><a href="phinterval-set-operations.html">phint_union()</a></code> <code><a href="phinterval-set-operations.html">phint_intersect()</a></code> <code><a href="phinterval-set-operations.html">phint_setdiff()</a></code>
+          <code><a href="phinterval-set-operations.html">phint_complement()</a></code> <code><a href="phinterval-set-operations.html">phint_union()</a></code> <code><a href="phinterval-set-operations.html">phint_intersect()</a></code> <code><a href="phinterval-set-operations.html">phint_setdiff()</a></code> <code><a href="phinterval-set-operations.html">phint_symmetric_setdiff()</a></code>
 
         </dt>
         <dd>Vectorized set operations</dd>
+      </dl></div><div class="section level2">
+      <h2 id="modifications">Modifications<a class="anchor" aria-label="anchor" href="#modifications"></a></h2>
 
-        <dt>
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
 
           <code><a href="phint_invert.html">phint_invert()</a></code>
 
@@ -98,8 +107,17 @@
 
         </dt>
         <dd>Remove instantaneous time spans from a phinterval</dd>
+      </dl></div><div class="section level2">
+      <h2 id="transformations">Transformations<a class="anchor" aria-label="anchor" href="#transformations"></a></h2>
 
-        <dt>
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
 
           <code><a href="squash.html">phint_squash()</a></code> <code><a href="squash.html">datetime_squash()</a></code>
 
@@ -234,6 +252,29 @@
 
         </dt>
         <dd>Objects exported from other packages</dd>
+      </dl></div><div class="section level2">
+      <h2 id="under-development">Under Development<a class="anchor" aria-label="anchor" href="#under-development"></a></h2>
+
+      <div class="section-desc"><p>These functions are currently only available in the development version of {phinterval} and are not yet stable. You can install the development version from GitHub using <code>pak::pak("EthanSansom/phinterval")</code>.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="phinterval-cumset-operations.html">phint_cumunion()</a></code> <code><a href="phinterval-cumset-operations.html">phint_cumintersect()</a></code>
+
+        </dt>
+        <dd>Cumulative set operations</dd>
+
+        <dt>
+
+          <code><a href="phint_flatten.html">phint_flatten()</a></code>
+
+        </dt>
+        <dd>Flatten a phinterval vector into a vector of spans or gaps</dd>
       </dl></div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
