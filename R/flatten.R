@@ -44,7 +44,10 @@
 #' # NA elements are ignored
 #' phint_flatten(c(monday, NA, friday))
 #' phint_flatten(interval(NA, NA))
+#'
+#' @export
 phint_flatten <- function(phint, what = c("spans", "holes")) {
+  check_phintish(phint)
   what <- arg_match(what, c("spans", "holes"))
 
   squashed <- phint_squash(phint)

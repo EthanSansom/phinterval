@@ -55,4 +55,5 @@ phint_flatten(c(monday, tuesday, friday))
 # NA elements are ignored
 phint_flatten(c(monday, NA, friday))
 phint_flatten(interval(NA, NA))
+
 }
