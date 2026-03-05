@@ -129,9 +129,21 @@ void Invert<hole_to>::apply_to_set(const XView& x, PhintBuffer& out) {
     return;
   }
 
-  // Safely assume `x.size > 1`, as `x.size == 1` is caught by `apply_to_span()`
-  for (int i = 0; i < x.size - 1; i++) {
-    out.add_span(x.end(i), x.start(i + 1));
+  double start, next_start, end;
+  int i = 0;
+  while (i < x.size - 1) {
+    start = x.end(i);
+    end = x.start(i + 1);
+    next_start = x.end(i + 1);
+
+    // Skip over instants in the middle of the set (#9)
+    while (end == next_start && i < x.size - 2) {
+      ++i;
+      next_start = x.end(i + 1);
+      end = x.start(i + 1);
+    }
+    out.add_span(start, end);
+    ++i;
   }
   out.finish_element();
 }

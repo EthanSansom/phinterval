@@ -224,7 +224,8 @@ test_that("phint_invert() handles instants correctly", {
     c(
       phint_invert(phint11) == hole,
       phint_invert(phint_squash(c(phint11, phint55))) == phinterval(t1, t5),
-      phint_invert(phint_squash(c(phint11, phint55, phint99))) == phinterval(t1, t9)
+      phint_invert(phint_squash(c(phint11, phint55, phint99))) == phinterval(t1, t9),
+      phint_invert(phint_squash(c(phint11, phint55, phint66, phint99))) == phinterval(t1, t9)
     )
   )
 
@@ -232,15 +233,16 @@ test_that("phint_invert() handles instants correctly", {
   expect_all_true(
     c(
       phint_invert(phint_squash(c(phint11, phint34))) == phinterval(t1, t3),
-      phint_invert(phint_squash(c(phint34, phint55))) == phinterval(t3, t5),
+      phint_invert(phint_squash(c(phint34, phint55))) == phinterval(t4, t5),
 
       # <span>, <instant(s)>, <span>
       phint_invert(phint_squash(c(phint34, phint55, phint78))) == phinterval(t4, t7),
       phint_invert(phint_squash(c(phint34, phint55, phint78))) == phinterval(t4, t7),
-      phint_invert(phint_squash(c(phint34, phint55, phint66, phint78))) == phinterval(t1, t9),
+      phint_invert(phint_squash(c(phint34, phint55, phint66, phint78))) == phinterval(t4, t7),
 
       # <instant>, <span>, <instant>
-      phint_invert(phint_squash(c(phint11, phint34, phint99))) == phint_squash(c(phinterval(t1, t3), phinterval(t4, t9)))
+      phint_invert(phint_squash(c(phint11, phint34, phint99))) == phint_squash(c(phinterval(t1, t3), phinterval(t4, t9))),
+      phint_invert(phint_squash(c(phint11, phint34, phint78, phint99))) == phinterval(c(t1, t4, t8), c(t3, t7, t9), by = 1)
     )
   )
 })
