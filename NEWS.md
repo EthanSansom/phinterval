@@ -9,6 +9,8 @@
   *  `phint_cumunion()` and `phint_cumintersect()` take the cumulative union and intersection of a phinterval respectively.
   
   * `phint_symmetric_setdiff()` takes the symmetric set-difference of two phintervals.
+  
+* New `phint_flatten()` returns all spans or gaps within an entire phinterval vector as a vector of intervals.
 
 ## Bug fixes:
 
