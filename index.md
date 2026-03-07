@@ -1,6 +1,6 @@
 # phinterval
 
-phinterval is a package for representing and manipulating time spans
+{phinterval} is a package for representing and manipulating time spans
 that may contain gaps. It implements the `<phinterval>` (think
 “potentially-holey-interval”) vector class, designed as an extension of
 the [{lubridate}](https://lubridate.tidyverse.org/) `<Interval>`, to
@@ -25,7 +25,7 @@ with:
 install.packages("phinterval")
 ```
 
-You can install the development version of phinterval from
+You can install the development version of {phinterval} from
 [GitHub](https://github.com/) with:
 
 ``` r
@@ -99,7 +99,7 @@ input intervals, without duplication.
 
 ## Example: Employment History
 
-The phinterval package is most useful when working with tabular data,
+The {phinterval} package is most useful when working with tabular data,
 such as a longitudinal employment panel.
 
 ``` r
@@ -165,9 +165,9 @@ employment |>
 
 The `<phinterval>` class is a generalization of the `<Interval>` class,
 meaning any `<Interval>` can be converted into an equivalent
-`<phinterval>` and all phinterval functions accept either `<Interval>`
-or `<phinterval>` inputs. The table below shows the lubridate functions
-that have drop-in phinterval replacements.
+`<phinterval>` and all {phinterval} functions accept either `<Interval>`
+or `<phinterval>` inputs. The table below shows the {lubridate}
+functions that have drop-in {phinterval} replacements.
 
 | phinterval               | lubridate              | Returns                        |
 |--------------------------|------------------------|--------------------------------|
@@ -182,8 +182,8 @@ that have drop-in phinterval replacements.
 | `phint_within(x, y)`     | `x %within% y`         | Whether `y` contains `x`       |
 | `x / duration(...)`      | `x / duration(...)`    | How many durations fit in `x`  |
 
-All phinterval set operations work as expected with arbitrary time
-spans, enabling operations that are not supported by lubridate. For
+All {phinterval} set operations work as expected with arbitrary time
+spans, enabling operations that are not supported by {lubridate}. For
 example, the intersection of two non-overlapping intervals is an empty
 time span, called a `<hole>`.
 
@@ -228,7 +228,7 @@ phint_union(jan_1_to_2, jan_4_to_9)
 #> [1] {2000-01-01--2000-01-02, 2000-01-04--2000-01-09}
 ```
 
-As with the lubridate equivalents, all phinterval set operations are
+As with the {lubridate} equivalents, all {phinterval} set operations are
 vectorized.
 
 ``` r

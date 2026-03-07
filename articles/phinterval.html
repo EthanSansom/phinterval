@@ -72,7 +72,7 @@
 <div class="section level2">
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
-<p>The phinterval package extends <a href="https://lubridate.tidyverse.org/" class="external-link">{lubridate}</a> to support
+<p>The {phinterval} package extends <a href="https://lubridate.tidyverse.org/" class="external-link">{lubridate}</a> to support
 disjoint (“holey”) and empty time spans. It implements the
 <code>&lt;phinterval&gt;</code> vector class, a generalization of the
 standard contiguous <code>&lt;Interval&gt;</code>, which can
@@ -89,11 +89,11 @@ the intersection of your life and Napoleon’s).</li>
 separated by gaps (e.g., the days you attended school, excluding
 weekends and holidays).</li>
 </ul>
-<p>This package is designed to easily integrate into existing lubridate
-workflows. Any <code>&lt;Interval&gt;</code> vector can be converted to
-an equivalent <code>&lt;phinterval&gt;</code> vector using
-<code><a href="../reference/as_phinterval.html">as_phinterval()</a></code>, and all phinterval functions accept either
-<code>&lt;Interval&gt;</code> or <code>&lt;phinterval&gt;</code>
+<p>This package is designed to easily integrate into existing
+{lubridate} workflows. Any <code>&lt;Interval&gt;</code> vector can be
+converted to an equivalent <code>&lt;phinterval&gt;</code> vector using
+<code><a href="../reference/as_phinterval.html">as_phinterval()</a></code>, and all {phinterval} functions accept
+either <code>&lt;Interval&gt;</code> or <code>&lt;phinterval&gt;</code>
 inputs.</p>
 </div>
 <div class="section level2">
@@ -120,8 +120,8 @@ should contain no time.</p>
 <span><span class="fu"><a href="../reference/phinterval-set-operations.html">phint_intersect</a></span><span class="op">(</span><span class="va">jan</span>, <span class="va">nov</span><span class="op">)</span></span>
 <span><span class="co">#&gt; &lt;phinterval&lt;UTC&gt;[1]&gt;</span></span>
 <span><span class="co">#&gt; [1] &lt;hole&gt;</span></span></code></pre></div>
-<p>In lubridate this is resolved by coercing the intersection to
-<code>NA</code>, while phinterval returns a <code>&lt;hole&gt;</code>,
+<p>In {lubridate} this is resolved by coercing the intersection to
+<code>NA</code>, while {phinterval} returns a <code>&lt;hole&gt;</code>,
 which explicitly represents an empty span of time.</p>
 <p>This distinction matters when performing downstream calculations. For
 example, counting the number of days contained in both January and
@@ -148,7 +148,7 @@ of 2025.</p>
 <span><span class="co">#&gt; [1] {2025-01-01--2025-11-01, 2025-12-01--2026-01-01}</span></span></code></pre></div>
 <p>The result is two disjoint spans, January through October and
 December, which can’t be represented by a single interval. As a result,
-lubridate raises an error. In phinterval, the disjoint span is
+{lubridate} raises an error. In {phinterval}, the disjoint span is
 represented as a single object with an explicit gap.</p>
 </div>
 <div class="section level3">
@@ -163,9 +163,9 @@ February to October.</p>
 <span><span class="fu"><a href="../reference/phinterval-set-operations.html">phint_union</a></span><span class="op">(</span><span class="va">jan</span>, <span class="va">nov</span><span class="op">)</span></span>
 <span><span class="co">#&gt; &lt;phinterval&lt;UTC&gt;[1]&gt;</span></span>
 <span><span class="co">#&gt; [1] {2025-01-01--2025-02-01, 2025-11-01--2025-12-01}</span></span></code></pre></div>
-<p>In this case lubridate returns the span from the beginning of January
-to the end of November, implicitly filling in the gap. The two disjoint
-months are represented explicitly using phinterval.</p>
+<p>In this case {lubridate} returns the span from the beginning of
+January to the end of November, implicitly filling in the gap. The two
+disjoint months are represented explicitly using {phinterval}.</p>
 </div>
 <div class="section level3">
 <h3 id="subtracting-an-interval-from-itself">Subtracting an Interval from Itself<a class="anchor" aria-label="anchor" href="#subtracting-an-interval-from-itself"></a>
@@ -179,17 +179,17 @@ this should result in an empty time span.</p>
 <span><span class="fu"><a href="../reference/phinterval-set-operations.html">phint_setdiff</a></span><span class="op">(</span><span class="va">jan</span>, <span class="va">jan</span><span class="op">)</span></span>
 <span><span class="co">#&gt; &lt;phinterval&lt;UTC&gt;[1]&gt;</span></span>
 <span><span class="co">#&gt; [1] &lt;hole&gt;</span></span></code></pre></div>
-<p>In this case, lubridate returns the original interval, while
-phinterval returns a <code>&lt;hole&gt;</code>.</p>
+<p>In this case, {lubridate} returns the original interval, while
+{phinterval} returns a <code>&lt;hole&gt;</code>.</p>
 </div>
 </div>
 <div class="section level2">
 <h2 id="case-study-employment-history">Case Study: Employment History<a class="anchor" aria-label="anchor" href="#case-study-employment-history"></a>
 </h2>
-<p>The phinterval package is most useful when working with tabular data
-and vectorized workflows. To illustrate this, we’ll consider an abridged
-employment history for several characters from the television show
-<em>Succession</em>.</p>
+<p>The {phinterval} package is most useful when working with tabular
+data and vectorized workflows. To illustrate this, we’ll consider an
+abridged employment history for several characters from the television
+show <em>Succession</em>.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">jobs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tribble.html" class="external-link">tribble</a></span><span class="op">(</span></span>
 <span>  <span class="op">~</span><span class="va">name</span>,   <span class="op">~</span><span class="va">job_title</span>,             <span class="op">~</span><span class="va">start</span>,        <span class="op">~</span><span class="va">end</span>,</span>
@@ -227,12 +227,12 @@ split Shiv’s job into two rows (one pre-vacation and one post-vacation),
 breaking the one-row-per-job structure of the data. Another is to
 represent each job as a list of intervals, complicating downstream
 analysis.</p>
-<p>The main purpose of phinterval is to avoid these workarounds, by
-providing drop-in replacements for lubridate interval functions. Because
-phinterval functions accept either <code>&lt;Interval&gt;</code> or
-<code>&lt;phinterval&gt;</code> inputs, existing code can typically be
-adapted by simply replacing a lubridate function with its phinterval
-counterpart.</p>
+<p>The main purpose of {phinterval} is to avoid these workarounds, by
+providing drop-in replacements for {lubridate} interval functions.
+Because {phinterval} functions accept either
+<code>&lt;Interval&gt;</code> or <code>&lt;phinterval&gt;</code> inputs,
+existing code can typically be adapted by simply replacing a {lubridate}
+function with its {phinterval} counterpart.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">jobs</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span></span>
@@ -353,7 +353,7 @@ respective employment timelines, represented by a
 <h3 id="abutting-intervals-and-intersection">Abutting Intervals and Intersection<a class="anchor" aria-label="anchor" href="#abutting-intervals-and-intersection"></a>
 </h3>
 <p>Manipulating abutting intervals (intervals that share an endpoint)
-can produce sometimes unexpected results. To demonstrate, consider the
+can sometimes produce unexpected results. To demonstrate, consider the
 time within a Monday and Tuesday in November 2025.</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">monday</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval</a></span><span class="op">(</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2025-11-10"</span><span class="op">)</span>, <span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="st">"2025-11-11"</span><span class="op">)</span><span class="op">)</span></span>
@@ -386,10 +386,10 @@ two endpoints of <code>monday</code>.</p>
 <span><span class="fu"><a href="../reference/phinterval-set-operations.html">phint_intersect</a></span><span class="op">(</span><span class="va">monday</span>, <span class="va">not_monday</span><span class="op">)</span></span>
 <span><span class="co">#&gt; &lt;phinterval&lt;UTC&gt;[1]&gt;</span></span>
 <span><span class="co">#&gt; [1] {2025-11-10--2025-11-10, 2025-11-11--2025-11-11}</span></span></code></pre></div>
-<p>The bounds argument in <code><a href="../reference/phint_overlaps.html">phint_overlaps()</a></code>,
-<code><a href="../reference/phint_within.html">phint_within()</a></code>, and <code><a href="../reference/phinterval-set-operations.html">phint_intersect()</a></code> controls
-this behavior. When <code>bounds = "()"</code>, endpoints are treated as
-exclusive:</p>
+<p>The <code>bounds</code> argument in functions such as
+<code><a href="../reference/phint_overlaps.html">phint_overlaps()</a></code>, <code><a href="../reference/phint_within.html">phint_within()</a></code>, and
+<code><a href="../reference/phinterval-set-operations.html">phint_intersect()</a></code> controls this behavior. When
+<code>bounds = "()"</code>, endpoints are treated as exclusive:</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/phint_overlaps.html">phint_overlaps</a></span><span class="op">(</span><span class="va">monday</span>, <span class="va">tuesday</span>, bounds <span class="op">=</span> <span class="st">"()"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] FALSE</span></span>
@@ -400,10 +400,12 @@ exclusive:</p>
 <code>tuesday</code> no longer overlap, and their intersection is
 empty.</p>
 <p>An instantaneous interval <code>(point, point)</code> with open
-bounds is mathematically undefined, but for convenience we allow these
-points to exist. With <code>bounds = "()"</code>, instants on the
-endpoint of an interval are outside of the interval, while instants in
-the middle of an interval are considered to be within it:</p>
+bounds is technically defined as an empty interval (e.g. a
+<code>&lt;hole&gt;</code>), but for convenience we consider this
+interval to contain a single point in time, e.g. <code>point</code>.
+With <code>bounds = "()"</code>, instants on the endpoint of an interval
+are outside of the interval, while instants in the middle of an interval
+are considered to be within it:</p>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">monday_at_9AM</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/as_phinterval.html">as_phinterval</a></span><span class="op">(</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd_hms.html" class="external-link">ymd_hms</a></span><span class="op">(</span><span class="st">"2025-11-10 00:09:00"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/phint_within.html">phint_within</a></span><span class="op">(</span><span class="va">monday_at_9AM</span>, <span class="va">monday</span>, bounds <span class="op">=</span> <span class="st">"()"</span><span class="op">)</span></span>

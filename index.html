@@ -60,7 +60,7 @@
 </div>
 <!-- badges: start -->
 
-<p>phinterval is a package for representing and manipulating time spans that may contain gaps. It implements the <code>&lt;phinterval&gt;</code> (think “potentially-holey-interval”) vector class, designed as an extension of the <a href="https://lubridate.tidyverse.org/" class="external-link">{lubridate}</a> <code>&lt;Interval&gt;</code>, to represent spans of time that are contiguous, disjoint, empty, or missing.</p>
+<p>{phinterval} is a package for representing and manipulating time spans that may contain gaps. It implements the <code>&lt;phinterval&gt;</code> (think “potentially-holey-interval”) vector class, designed as an extension of the <a href="https://lubridate.tidyverse.org/" class="external-link">{lubridate}</a> <code>&lt;Interval&gt;</code>, to represent spans of time that are contiguous, disjoint, empty, or missing.</p>
 <p>Functionality for manipulating these spans includes:</p>
 <ul>
 <li>Merging overlapping or adjacent intervals into non-overlapping sets of time spans.</li>
@@ -73,7 +73,7 @@
 <p>Install the released version from <a href="https://cran.r-project.org/" class="external-link">CRAN</a> with:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"phinterval"</span><span class="op">)</span></span></code></pre></div>
-<p>You can install the development version of phinterval from <a href="https://github.com/" class="external-link">GitHub</a> with:</p>
+<p>You can install the development version of {phinterval} from <a href="https://github.com/" class="external-link">GitHub</a> with:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("pak")</span></span>
 <span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"EthanSansom/phinterval"</span><span class="op">)</span></span></code></pre></div>
@@ -124,7 +124,7 @@
 <div class="section level2">
 <h2 id="example-employment-history">Example: Employment History<a class="anchor" aria-label="anchor" href="#example-employment-history"></a>
 </h2>
-<p>The phinterval package is most useful when working with tabular data, such as a longitudinal employment panel.</p>
+<p>The {phinterval} package is most useful when working with tabular data, such as a longitudinal employment panel.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span>, warn.conflicts <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
@@ -173,7 +173,7 @@
 <div class="section level2">
 <h2 id="phinterval---lubridate">phinterval &lt;-&gt; lubridate<a class="anchor" aria-label="anchor" href="#phinterval---lubridate"></a>
 </h2>
-<p>The <code>&lt;phinterval&gt;</code> class is a generalization of the <code>&lt;Interval&gt;</code> class, meaning any <code>&lt;Interval&gt;</code> can be converted into an equivalent <code>&lt;phinterval&gt;</code> and all phinterval functions accept either <code>&lt;Interval&gt;</code> or <code>&lt;phinterval&gt;</code> inputs. The table below shows the lubridate functions that have drop-in phinterval replacements.</p>
+<p>The <code>&lt;phinterval&gt;</code> class is a generalization of the <code>&lt;Interval&gt;</code> class, meaning any <code>&lt;Interval&gt;</code> can be converted into an equivalent <code>&lt;phinterval&gt;</code> and all {phinterval} functions accept either <code>&lt;Interval&gt;</code> or <code>&lt;phinterval&gt;</code> inputs. The table below shows the {lubridate} functions that have drop-in {phinterval} replacements.</p>
 <table class="table">
 <colgroup>
 <col width="33%">
@@ -247,7 +247,7 @@
 </tr>
 </tbody>
 </table>
-<p>All phinterval set operations work as expected with arbitrary time spans, enabling operations that are not supported by lubridate. For example, the intersection of two non-overlapping intervals is an empty time span, called a <code>&lt;hole&gt;</code>.</p>
+<p>All {phinterval} set operations work as expected with arbitrary time spans, enabling operations that are not supported by {lubridate}. For example, the intersection of two non-overlapping intervals is an empty time span, called a <code>&lt;hole&gt;</code>.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">lubridate</span><span class="fu">::</span><span class="fu"><a href="https://generics.r-lib.org/reference/setops.html" class="external-link">intersect</a></span><span class="op">(</span><span class="va">jan_1_to_2</span>, <span class="va">jan_4_to_9</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] NA--NA</span></span>
@@ -276,7 +276,7 @@
 <span><span class="fu"><a href="reference/phinterval-set-operations.html">phint_union</a></span><span class="op">(</span><span class="va">jan_1_to_2</span>, <span class="va">jan_4_to_9</span><span class="op">)</span></span>
 <span><span class="co">#&gt; &lt;phinterval&lt;UTC&gt;[1]&gt;</span></span>
 <span><span class="co">#&gt; [1] {2000-01-01--2000-01-02, 2000-01-04--2000-01-09}</span></span></code></pre></div>
-<p>As with the lubridate equivalents, all phinterval set operations are vectorized.</p>
+<p>As with the {lubridate} equivalents, all {phinterval} set operations are vectorized.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/phinterval-set-operations.html">phint_intersect</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">jan_1_to_2</span>, <span class="va">jan_3_to_5</span>, <span class="va">jan_1_to_2</span><span class="op">)</span>,</span>

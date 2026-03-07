@@ -9,7 +9,7 @@ library(tidyr, warn.conflicts = FALSE)
 
 ## Introduction
 
-The phinterval package extends
+The {phinterval} package extends
 [{lubridate}](https://lubridate.tidyverse.org/) to support disjoint
 (“holey”) and empty time spans. It implements the `<phinterval>` vector
 class, a generalization of the standard contiguous `<Interval>`, which
@@ -22,11 +22,11 @@ can represent:
 - **Disjoint spans:** A set of multiple time spans separated by gaps
   (e.g., the days you attended school, excluding weekends and holidays).
 
-This package is designed to easily integrate into existing lubridate
+This package is designed to easily integrate into existing {lubridate}
 workflows. Any `<Interval>` vector can be converted to an equivalent
 `<phinterval>` vector using
 [`as_phinterval()`](https://ethansansom.github.io/phinterval/reference/as_phinterval.md),
-and all phinterval functions accept either `<Interval>` or
+and all {phinterval} functions accept either `<Interval>` or
 `<phinterval>` inputs.
 
 ## When Time Isn’t Continuous
@@ -56,8 +56,8 @@ phint_intersect(jan, nov)
 #> [1] <hole>
 ```
 
-In lubridate this is resolved by coercing the intersection to `NA`,
-while phinterval returns a `<hole>`, which explicitly represents an
+In {lubridate} this is resolved by coercing the intersection to `NA`,
+while {phinterval} returns a `<hole>`, which explicitly represents an
 empty span of time.
 
 This distinction matters when performing downstream calculations. For
@@ -88,9 +88,9 @@ phint_setdiff(full_2025, nov)
 ```
 
 The result is two disjoint spans, January through October and December,
-which can’t be represented by a single interval. As a result, lubridate
-raises an error. In phinterval, the disjoint span is represented as a
-single object with an explicit gap.
+which can’t be represented by a single interval. As a result,
+{lubridate} raises an error. In {phinterval}, the disjoint span is
+represented as a single object with an explicit gap.
 
 ### Unions of Non-Overlapping Spans
 
@@ -106,9 +106,9 @@ phint_union(jan, nov)
 #> [1] {2025-01-01--2025-02-01, 2025-11-01--2025-12-01}
 ```
 
-In this case lubridate returns the span from the beginning of January to
-the end of November, implicitly filling in the gap. The two disjoint
-months are represented explicitly using phinterval.
+In this case {lubridate} returns the span from the beginning of January
+to the end of November, implicitly filling in the gap. The two disjoint
+months are represented explicitly using {phinterval}.
 
 ### Subtracting an Interval from Itself
 
@@ -124,13 +124,13 @@ phint_setdiff(jan, jan)
 #> [1] <hole>
 ```
 
-In this case, lubridate returns the original interval, while phinterval
-returns a `<hole>`.
+In this case, {lubridate} returns the original interval, while
+{phinterval} returns a `<hole>`.
 
 ## Case Study: Employment History
 
-The phinterval package is most useful when working with tabular data and
-vectorized workflows. To illustrate this, we’ll consider an abridged
+The {phinterval} package is most useful when working with tabular data
+and vectorized workflows. To illustrate this, we’ll consider an abridged
 employment history for several characters from the television show
 *Succession*.
 
@@ -180,11 +180,11 @@ breaking the one-row-per-job structure of the data. Another is to
 represent each job as a list of intervals, complicating downstream
 analysis.
 
-The main purpose of phinterval is to avoid these workarounds, by
-providing drop-in replacements for lubridate interval functions. Because
-phinterval functions accept either `<Interval>` or `<phinterval>`
-inputs, existing code can typically be adapted by simply replacing a
-lubridate function with its phinterval counterpart.
+The main purpose of {phinterval} is to avoid these workarounds, by
+providing drop-in replacements for {lubridate} interval functions.
+Because {phinterval} functions accept either `<Interval>` or
+`<phinterval>` inputs, existing code can typically be adapted by simply
+replacing a {lubridate} function with its {phinterval} counterpart.
 
 ``` r
 jobs |>
@@ -319,7 +319,7 @@ respective employment timelines, represented by a `<hole>`.
 ### Abutting Intervals and Intersection
 
 Manipulating abutting intervals (intervals that share an endpoint) can
-produce sometimes unexpected results. To demonstrate, consider the time
+sometimes produce unexpected results. To demonstrate, consider the time
 within a Monday and Tuesday in November 2025.
 
 ``` r
@@ -362,7 +362,7 @@ phint_intersect(monday, not_monday)
 #> [1] {2025-11-10--2025-11-10, 2025-11-11--2025-11-11}
 ```
 
-The bounds argument in
+The `bounds` argument in functions such as
 [`phint_overlaps()`](https://ethansansom.github.io/phinterval/reference/phint_overlaps.md),
 [`phint_within()`](https://ethansansom.github.io/phinterval/reference/phint_within.md),
 and
@@ -382,10 +382,11 @@ With exclusive endpoints, `monday` and `tuesday` no longer overlap, and
 their intersection is empty.
 
 An instantaneous interval `(point, point)` with open bounds is
-mathematically undefined, but for convenience we allow these points to
-exist. With `bounds = "()"`, instants on the endpoint of an interval are
-outside of the interval, while instants in the middle of an interval are
-considered to be within it:
+technically defined as an empty interval (e.g. a `<hole>`), but for
+convenience we consider this interval to contain a single point in time,
+e.g. `point`. With `bounds = "()"`, instants on the endpoint of an
+interval are outside of the interval, while instants in the middle of an
+interval are considered to be within it:
 
 ``` r
 monday_at_9AM <- as_phinterval(ymd_hms("2025-11-10 00:09:00"))
