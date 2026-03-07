@@ -52,21 +52,23 @@ thurs_and_sat <- phint_union(
 
 # Flatten into individual spans
 phint_flatten(c(monday, thurs_and_sat))
-#> Error in phint_flatten(c(monday, thurs_and_sat)): could not find function "phint_flatten"
+#> Error in FUN(X[[i]], ...): as.interval is not defined for class 'phinterval'as.interval is not defined for class 'vctrs_rcrd'as.interval is not defined for class 'vctrs_vctr'
 
 # Flatten into gaps between spans
 phint_flatten(c(monday, thurs_and_sat), what = "holes")
-#> Error in phint_flatten(c(monday, thurs_and_sat), what = "holes"): could not find function "phint_flatten"
+#> Error in FUN(X[[i]], ...): as.interval is not defined for class 'phinterval'as.interval is not defined for class 'vctrs_rcrd'as.interval is not defined for class 'vctrs_vctr'
 phint_flatten(thurs_and_sat, what = "holes") == friday
-#> Error in phint_flatten(thurs_and_sat, what = "holes"): could not find function "phint_flatten"
+#> [1] TRUE
 
 # Overlapping or adjacent elements are merged before flattening
 phint_flatten(c(monday, tuesday, friday))
-#> Error in phint_flatten(c(monday, tuesday, friday)): could not find function "phint_flatten"
+#> <phinterval<UTC>[2]>
+#> [1] {2025-11-10--2025-11-12} {2025-11-14--2025-11-15}
 
 # NA elements are ignored
 phint_flatten(c(monday, NA, friday))
-#> Error in phint_flatten(c(monday, NA, friday)): could not find function "phint_flatten"
+#> <phinterval<UTC>[2]>
+#> [1] {2025-11-10--2025-11-11} {2025-11-14--2025-11-15}
 phint_flatten(interval(NA, NA))
-#> Error in phint_flatten(interval(NA, NA)): could not find function "phint_flatten"
+#> <phinterval<UTC>[0]>
 ```

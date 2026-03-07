@@ -15,9 +15,9 @@ across all preceding elements.
 ## Usage
 
 ``` r
-phint_cumunion(phint, na_propogate = FALSE, reverse = FALSE)
+phint_cumunion(phint, na_propogate = FALSE)
 
-phint_cumintersect(phint, na_propogate = FALSE, reverse = FALSE)
+phint_cumintersect(phint, na_propogate = FALSE, bounds = c("[]", "()"))
 ```
 
 ## Arguments
@@ -42,21 +42,32 @@ phint_cumintersect(phint, na_propogate = FALSE, reverse = FALSE)
   - `TRUE`: An `NA` element causes all subsequent elements to become
     `NA`.
 
-- reverse:
+- bounds:
 
-  `[FALSE / TRUE]`
+  `["[]" / "()"]`
 
-  Whether to accumulate from right to left instead of left to right:
+  For `phint_cumintersect()`, whether span endpoints are inclusive or
+  exclusive:
 
-  - `FALSE` (default): Each element `result[i]` is the cumulative set
-    operation over `phint[1:i]`.
+  - `"[]"` (default): Closed intervals - both endpoints are included
 
-  - `TRUE`: Each element `result[i]` is the cumulative set operation
-    over `phint[i:length(phint)]`.
+  - `"()"`: Open intervals - both endpoints are excluded
+
+  This affects adjacency and overlap detection. For example, with
+  `bounds = "[]"`, the intervals `[1, 5]` and `[5, 10]` are considered
+  adjacent (they share the endpoint 5), while with `bounds = "()"`,
+  `(1, 5)` and `(5, 10)` are disjoint (neither includes 5).
 
 ## Value
 
 A `<phinterval>` vector the same length as `phint`.
+
+## See also
+
+[`phint_union()`](https://ethansansom.github.io/phinterval/reference/phinterval-set-operations.md)
+and
+[`phint_intersect()`](https://ethansansom.github.io/phinterval/reference/phinterval-set-operations.md)
+for the elementwise versions.
 
 ## Examples
 
@@ -65,19 +76,11 @@ monday <- interval(as.Date("2025-11-10"), as.Date("2025-11-11"))
 tuesday <- interval(as.Date("2025-11-11"), as.Date("2025-11-12"))
 wednesday <- interval(as.Date("2025-11-12"), as.Date("2025-11-13"))
 mon_to_wed <- interval(as.Date("2025-11-10"), as.Date("2025-11-13"))
-jan_1_to_5 <- interval(as.Date("2000-01-01"), as.Date("2000-01-05"))
-jan_3_to_9 <- interval(as.Date("2000-01-03"), as.Date("2000-01-09"))
-jan_6_to_9 <- interval(as.Date("2000-01-06"), as.Date("2000-01-09"))
 
 # Cumulative union expands with each new element
 phint_cumunion(c(monday, tuesday, wednesday))
 #> <phinterval<UTC>[3]>
 #> [1] {2025-11-10--2025-11-11} {2025-11-10--2025-11-12} {2025-11-10--2025-11-13}
-
-# Accumulate from right to left
-phint_cumunion(c(monday, tuesday, wednesday), reverse = TRUE)
-#> <phinterval<UTC>[3]>
-#> [1] {2025-11-10--2025-11-13} {2025-11-11--2025-11-13} {2025-11-12--2025-11-13}
 
 # NA elements are treated as holes by default
 phint_cumunion(c(monday, NA, wednesday))
@@ -92,27 +95,20 @@ phint_cumunion(c(monday, NA, wednesday), na_propogate = TRUE)
 #> [1] {2025-11-10--2025-11-11} <NA>                     <NA>                    
 
 # Cumulative intersection narrows with each new element
-phint_cumintersect(c(mon_to_wed, jan_1_to_5, jan_3_to_9))
+phint_cumintersect(c(mon_to_wed, monday, tuesday))
 #> <phinterval<UTC>[3]>
-#> [1] {2025-11-10--2025-11-13} <hole>                   <hole>                  
+#> [1] {2025-11-10--2025-11-13} {2025-11-10--2025-11-11} {2025-11-11--2025-11-11}
 
 # Once the intersection becomes a hole, it remains a hole
 phint_cumintersect(c(monday, tuesday, wednesday))
 #> <phinterval<UTC>[3]>
 #> [1] {2025-11-10--2025-11-11} {2025-11-11--2025-11-11} <hole>                  
 
-# Accumulate from right to left
-phint_cumintersect(c(monday, tuesday, wednesday), reverse = TRUE)
-#> <phinterval<UTC>[3]>
-#> [1] <hole>                   {2025-11-12--2025-11-12} {2025-11-12--2025-11-13}
-
-# NA elements are treated as holes by default
-phint_cumintersect(c(jan_1_to_5, NA, jan_3_to_9))
-#> <phinterval<UTC>[3]>
-#> [1] {2000-01-01--2000-01-05} <hole>                   <hole>                  
-
-# NA elements propagate forward with na_propogate = TRUE
-phint_cumintersect(c(jan_1_to_5, NA, jan_3_to_9), na_propogate = TRUE)
-#> <phinterval<UTC>[3]>
-#> [1] {2000-01-01--2000-01-05} <NA>                     <NA>                    
+# Bounds affect the intersection of adjacent intervals
+phint_cumintersect(c(monday, tuesday), bounds = "[]")
+#> <phinterval<UTC>[2]>
+#> [1] {2025-11-10--2025-11-11} {2025-11-11--2025-11-11}
+phint_cumintersect(c(monday, tuesday), bounds = "()")
+#> <phinterval<UTC>[2]>
+#> [1] {2025-11-10--2025-11-11} <hole>                  
 ```

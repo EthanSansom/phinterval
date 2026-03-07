@@ -94,23 +94,26 @@ the first span and after the last span).</p></li>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Flatten into individual spans</span></span></span>
 <span class="r-in"><span><span class="fu">phint_flatten</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">monday</span>, <span class="va">thurs_and_sat</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in phint_flatten(c(monday, thurs_and_sat)):</span> could not find function "phint_flatten"</span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in FUN(X[[i]], ...):</span> as.interval is not defined for class 'phinterval'as.interval is not defined for class 'vctrs_rcrd'as.interval is not defined for class 'vctrs_vctr'</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Flatten into gaps between spans</span></span></span>
 <span class="r-in"><span><span class="fu">phint_flatten</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">monday</span>, <span class="va">thurs_and_sat</span><span class="op">)</span>, what <span class="op">=</span> <span class="st">"holes"</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in phint_flatten(c(monday, thurs_and_sat), what = "holes"):</span> could not find function "phint_flatten"</span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in FUN(X[[i]], ...):</span> as.interval is not defined for class 'phinterval'as.interval is not defined for class 'vctrs_rcrd'as.interval is not defined for class 'vctrs_vctr'</span>
 <span class="r-in"><span><span class="fu">phint_flatten</span><span class="op">(</span><span class="va">thurs_and_sat</span>, what <span class="op">=</span> <span class="st">"holes"</span><span class="op">)</span> <span class="op">==</span> <span class="va">friday</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in phint_flatten(thurs_and_sat, what = "holes"):</span> could not find function "phint_flatten"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] TRUE</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Overlapping or adjacent elements are merged before flattening</span></span></span>
 <span class="r-in"><span><span class="fu">phint_flatten</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">monday</span>, <span class="va">tuesday</span>, <span class="va">friday</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in phint_flatten(c(monday, tuesday, friday)):</span> could not find function "phint_flatten"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;phinterval&lt;UTC&gt;[2]&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] {2025-11-10--2025-11-12} {2025-11-14--2025-11-15}</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># NA elements are ignored</span></span></span>
 <span class="r-in"><span><span class="fu">phint_flatten</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">monday</span>, <span class="cn">NA</span>, <span class="va">friday</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in phint_flatten(c(monday, NA, friday)):</span> could not find function "phint_flatten"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;phinterval&lt;UTC&gt;[2]&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] {2025-11-10--2025-11-11} {2025-11-14--2025-11-15}</span>
 <span class="r-in"><span><span class="fu">phint_flatten</span><span class="op">(</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="cn">NA</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in phint_flatten(interval(NA, NA)):</span> could not find function "phint_flatten"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;phinterval&lt;UTC&gt;[0]&gt;</span>
+<span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

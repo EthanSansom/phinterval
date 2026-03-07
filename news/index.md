@@ -32,6 +32,10 @@
   no longer creates a malformed phinterval when `phint2` contains
   instants ([\#3](https://github.com/EthanSansom/phinterval/issues/3)).
 
+- [`phint_invert()`](https://ethansansom.github.io/phinterval/reference/phint_invert.md)
+  no longer creates a malformed phinterval when `phint` contains
+  instants ([\#9](https://github.com/EthanSansom/phinterval/issues/9)).
+
 ## phinterval 1.0.0
 
 CRAN release: 2026-02-03

@@ -63,9 +63,9 @@ to and including <code>phint[i]</code>.</p></li>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">phint_cumunion</span><span class="op">(</span><span class="va">phint</span>, na_propogate <span class="op">=</span> <span class="cn">FALSE</span>, reverse <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">phint_cumunion</span><span class="op">(</span><span class="va">phint</span>, na_propogate <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">phint_cumintersect</span><span class="op">(</span><span class="va">phint</span>, na_propogate <span class="op">=</span> <span class="cn">FALSE</span>, reverse <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">phint_cumintersect</span><span class="op">(</span><span class="va">phint</span>, na_propogate <span class="op">=</span> <span class="cn">FALSE</span>, bounds <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"[]"</span>, <span class="st">"()"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -86,18 +86,23 @@ affect subsequent results.</p></li>
 </ul></dd>
 
 
-<dt id="arg-reverse">reverse<a class="anchor" aria-label="anchor" href="#arg-reverse"></a></dt>
-<dd><p><code>[FALSE / TRUE]</code></p>
-<p>Whether to accumulate from right to left instead of left to right:</p><ul><li><p><code>FALSE</code> (default): Each element <code>result[i]</code> is the cumulative set
-operation over <code>phint[1:i]</code>.</p></li>
-<li><p><code>TRUE</code>: Each element <code>result[i]</code> is the cumulative set operation over
-<code>phint[i:length(phint)]</code>.</p></li>
-</ul></dd>
+<dt id="arg-bounds">bounds<a class="anchor" aria-label="anchor" href="#arg-bounds"></a></dt>
+<dd><p><code>["[]" / "()"]</code></p>
+<p>For <code>phint_cumintersect()</code>, whether span endpoints are inclusive or exclusive:</p><ul><li><p><code>"[]"</code> (default): Closed intervals - both endpoints are included</p></li>
+<li><p><code>"()"</code>: Open intervals - both endpoints are excluded</p></li>
+</ul><p>This affects adjacency and overlap detection. For example, with <code>bounds = "[]"</code>,
+the intervals <code>[1, 5]</code> and <code>[5, 10]</code> are considered adjacent (they share the
+endpoint 5), while with <code>bounds = "()"</code>, <code>(1, 5)</code> and <code>(5, 10)</code> are disjoint
+(neither includes 5).</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A <code>&lt;phinterval&gt;</code> vector the same length as <code>phint</code>.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
+    <div class="dont-index"><p><code><a href="phinterval-set-operations.html">phint_union()</a></code> and <code><a href="phinterval-set-operations.html">phint_intersect()</a></code> for the elementwise versions.</p></div>
     </div>
 
     <div class="section level2">
@@ -106,19 +111,11 @@ operation over <code>phint[1:i]</code>.</p></li>
 <span class="r-in"><span><span class="va">tuesday</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2025-11-11"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2025-11-12"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">wednesday</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2025-11-12"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2025-11-13"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">mon_to_wed</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2025-11-10"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2025-11-13"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">jan_1_to_5</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2000-01-01"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2000-01-05"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">jan_3_to_9</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2000-01-03"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2000-01-09"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">jan_6_to_9</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/interval.html" class="external-link">interval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2000-01-06"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2000-01-09"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Cumulative union expands with each new element</span></span></span>
 <span class="r-in"><span><span class="fu">phint_cumunion</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">monday</span>, <span class="va">tuesday</span>, <span class="va">wednesday</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;phinterval&lt;UTC&gt;[3]&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] {2025-11-10--2025-11-11} {2025-11-10--2025-11-12} {2025-11-10--2025-11-13}</span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Accumulate from right to left</span></span></span>
-<span class="r-in"><span><span class="fu">phint_cumunion</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">monday</span>, <span class="va">tuesday</span>, <span class="va">wednesday</span><span class="op">)</span>, reverse <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;phinterval&lt;UTC&gt;[3]&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] {2025-11-10--2025-11-13} {2025-11-11--2025-11-13} {2025-11-12--2025-11-13}</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># NA elements are treated as holes by default</span></span></span>
 <span class="r-in"><span><span class="fu">phint_cumunion</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">monday</span>, <span class="cn">NA</span>, <span class="va">wednesday</span><span class="op">)</span><span class="op">)</span></span></span>
@@ -133,29 +130,22 @@ operation over <code>phint[1:i]</code>.</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] {2025-11-10--2025-11-11} &lt;NA&gt;                     &lt;NA&gt;                    </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Cumulative intersection narrows with each new element</span></span></span>
-<span class="r-in"><span><span class="fu">phint_cumintersect</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">mon_to_wed</span>, <span class="va">jan_1_to_5</span>, <span class="va">jan_3_to_9</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">phint_cumintersect</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">mon_to_wed</span>, <span class="va">monday</span>, <span class="va">tuesday</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;phinterval&lt;UTC&gt;[3]&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] {2025-11-10--2025-11-13} &lt;hole&gt;                   &lt;hole&gt;                  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] {2025-11-10--2025-11-13} {2025-11-10--2025-11-11} {2025-11-11--2025-11-11}</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Once the intersection becomes a hole, it remains a hole</span></span></span>
 <span class="r-in"><span><span class="fu">phint_cumintersect</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">monday</span>, <span class="va">tuesday</span>, <span class="va">wednesday</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;phinterval&lt;UTC&gt;[3]&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] {2025-11-10--2025-11-11} {2025-11-11--2025-11-11} &lt;hole&gt;                  </span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Accumulate from right to left</span></span></span>
-<span class="r-in"><span><span class="fu">phint_cumintersect</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">monday</span>, <span class="va">tuesday</span>, <span class="va">wednesday</span><span class="op">)</span>, reverse <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;phinterval&lt;UTC&gt;[3]&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] &lt;hole&gt;                   {2025-11-12--2025-11-12} {2025-11-12--2025-11-13}</span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># NA elements are treated as holes by default</span></span></span>
-<span class="r-in"><span><span class="fu">phint_cumintersect</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">jan_1_to_5</span>, <span class="cn">NA</span>, <span class="va">jan_3_to_9</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;phinterval&lt;UTC&gt;[3]&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] {2000-01-01--2000-01-05} &lt;hole&gt;                   &lt;hole&gt;                  </span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># NA elements propagate forward with na_propogate = TRUE</span></span></span>
-<span class="r-in"><span><span class="fu">phint_cumintersect</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">jan_1_to_5</span>, <span class="cn">NA</span>, <span class="va">jan_3_to_9</span><span class="op">)</span>, na_propogate <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;phinterval&lt;UTC&gt;[3]&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] {2000-01-01--2000-01-05} &lt;NA&gt;                     &lt;NA&gt;                    </span>
+<span class="r-in"><span><span class="co"># Bounds affect the intersection of adjacent intervals</span></span></span>
+<span class="r-in"><span><span class="fu">phint_cumintersect</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">monday</span>, <span class="va">tuesday</span><span class="op">)</span>, bounds <span class="op">=</span> <span class="st">"[]"</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;phinterval&lt;UTC&gt;[2]&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] {2025-11-10--2025-11-11} {2025-11-11--2025-11-11}</span>
+<span class="r-in"><span><span class="fu">phint_cumintersect</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">monday</span>, <span class="va">tuesday</span><span class="op">)</span>, bounds <span class="op">=</span> <span class="st">"()"</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;phinterval&lt;UTC&gt;[2]&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] {2025-11-10--2025-11-11} &lt;hole&gt;                  </span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
