@@ -41,6 +41,22 @@ as_phint_point_cpp <- function(points) {
     .Call(`_phinterval_as_phint_point_cpp`, points)
 }
 
+phint_cumunion_cpp <- function(size, starts, ends, na_propogate) {
+    .Call(`_phinterval_phint_cumunion_cpp`, size, starts, ends, na_propogate)
+}
+
+intvl_cumunion_cpp <- function(starts, spans, na_propogate) {
+    .Call(`_phinterval_intvl_cumunion_cpp`, starts, spans, na_propogate)
+}
+
+phint_cumintersect_cpp <- function(size, starts, ends, na_propogate, bounds) {
+    .Call(`_phinterval_phint_cumintersect_cpp`, size, starts, ends, na_propogate, bounds)
+}
+
+intvl_cumintersect_cpp <- function(starts, spans, na_propogate, bounds) {
+    .Call(`_phinterval_intvl_cumintersect_cpp`, starts, spans, na_propogate, bounds)
+}
+
 phint_sift_cpp <- function(size, starts, ends) {
     .Call(`_phinterval_phint_sift_cpp`, size, starts, ends)
 }

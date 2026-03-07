@@ -4,6 +4,30 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
+inline List phint_result_hole() {
+  return List::create(
+    Named("size") = IntegerVector::create(0),
+    Named("starts") = List::create(NumericVector()),
+    Named("ends") = List::create(NumericVector())
+  );
+}
+
+inline List phint_result_na() {
+  return List::create(
+    Named("size") = IntegerVector::create(NA_INTEGER),
+    Named("starts") = List::create(R_NilValue),
+    Named("ends") = List::create(R_NilValue)
+  );
+}
+
+inline List phint_result_empty() {
+  return List::create(
+    Named("size") = IntegerVector(0),
+    Named("starts") = List(0),
+    Named("ends") = List(0)
+  );
+}
+
 struct ScalarView {
   const int size;
   const double starts;
@@ -25,6 +49,15 @@ struct ScalarView {
   inline double end(int) const { return ends; }
   inline bool is_empty() const { return false; }
   inline bool is_scalar() const { return !is_na; }
+
+  List get_results() const {
+    if (is_na) return phint_result_na();
+    return List::create(
+      Named("size") = Rf_ScalarInteger(size),
+      Named("starts") = List::create(Rf_ScalarReal(starts)),
+      Named("ends") = List::create(Rf_ScalarReal(ends))
+    );
+  }
 
 private:
   // Private constructor for the NA case
@@ -55,6 +88,23 @@ struct SetView {
   inline double end(int i) const { return ends[i]; }
   inline bool is_empty() const { return !size; }
   inline bool is_scalar() const { return size == 1; }
+
+  List get_results() const {
+    if (is_na) return phint_result_na();
+    if (size == 0) return phint_result_hole();
+    if (size == 1) {
+      return List::create(
+        Named("size") = Rf_ScalarInteger(size),
+        Named("starts") = List::create(Rf_ScalarReal(starts[0])),
+        Named("ends") = List::create(Rf_ScalarReal(ends[0]))
+      );
+    }
+    return List::create(
+      Named("size") = Rf_ScalarInteger(size),
+      Named("starts") = List::create(NumericVector(starts, starts + size)),
+      Named("ends") = List::create(NumericVector(ends, ends + size))
+    );
+  }
 
 private:
   // Private constructor for the NA case

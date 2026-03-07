@@ -268,4 +268,12 @@ void Setdiff::apply_to_set(const XView& x, const YView& y, PhintBuffer& out) {
   out.finish_element();
 }
 
+// type predicates -------------------------------------------------------------
+
+template <typename T>
+inline constexpr bool is_intersect_op = false;
+
+template <bool IsInclusive>
+inline constexpr bool is_intersect_op<Intersect<IsInclusive>> = true;
+
 #endif

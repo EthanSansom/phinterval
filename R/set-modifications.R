@@ -128,15 +128,20 @@ phint_sift <- function(phint) {
 #'   affect subsequent results.
 #' - `TRUE`: An `NA` element causes all subsequent elements to become `NA`.
 #'
-#' @param reverse `[FALSE / TRUE]`
+#' @param bounds `["[]" / "()"]`
 #'
-#' Whether to accumulate from right to left instead of left to right:
-#' - `FALSE` (default): Each element `result[i]` is the cumulative set
-#'   operation over `phint[1:i]`.
-#' - `TRUE`: Each element `result[i]` is the cumulative set operation over
-#'   `phint[i:length(phint)]`.
+#' For `phint_cumintersect()`, whether span endpoints are inclusive or exclusive:
+#' - `"[]"` (default): Closed intervals - both endpoints are included.
+#' - `"()"`: Open intervals - both endpoints are excluded.
+#'
+#' This affects adjacency and overlap detection. For example, with `bounds = "[]"`,
+#' the intervals `[1, 5]` and `[5, 10]` are considered adjacent (they share the
+#' endpoint 5), while with `bounds = "()"`, `(1, 5)` and `(5, 10)` are disjoint
+#' (neither includes 5).
 #'
 #' @return A `<phinterval>` vector the same length as `phint`.
+#'
+#' @seealso [phint_union()] and [phint_intersect()] for the elementwise versions.
 #'
 #' @examples
 #' monday <- interval(as.Date("2025-11-10"), as.Date("2025-11-11"))
@@ -146,9 +151,6 @@ phint_sift <- function(phint) {
 #'
 #' # Cumulative union expands with each new element
 #' phint_cumunion(c(monday, tuesday, wednesday))
-#'
-#' # Accumulate from right to left
-#' phint_cumunion(c(monday, tuesday, wednesday), reverse = TRUE)
 #'
 #' # NA elements are treated as holes by default
 #' phint_cumunion(c(monday, NA, wednesday))
@@ -162,53 +164,42 @@ phint_sift <- function(phint) {
 #' # Once the intersection becomes a hole, it remains a hole
 #' phint_cumintersect(c(monday, tuesday, wednesday))
 #'
-#' # Accumulate from right to left
-#' phint_cumintersect(c(monday, tuesday, wednesday), reverse = TRUE)
+#' # Bounds affect the intersection of adjacent intervals
+#' phint_cumintersect(c(monday, tuesday), bounds = "[]")
+#' phint_cumintersect(c(monday, tuesday), bounds = "()")
 #'
 #' @name phinterval-cumset-operations
 NULL
 
 #' @rdname phinterval-cumset-operations
 #' @export
-phint_cumunion <- function(phint, na_propogate = FALSE, reverse = FALSE) {
-  check_phintish(phint)
+phint_cumunion <- function(phint, na_propogate = FALSE) {
   check_bool(na_propogate)
-  check_bool(reverse)
-
-  if (is_empty(phint)) {
-    return(phint)
-  }
-
-  phint <- as_phinterval(phint)
-  if (!na_propogate) {
-    phint[is.na(phint)] <- hole(tzone = get_tzone(phint))
-  }
-
-  phint_accumulate(phint, phint_union, reverse = reverse)
+  out <- phint_unary_dispatch(
+    x = phint,
+    x_type = validate_type_phintish(phint),
+    funs_cpp = list(
+      phint = phint_cumunion_cpp,
+      intvl = intvl_cumunion_cpp
+    ),
+    na_propogate = na_propogate
+  )
+  new_phinterval_bare(out, tzone = get_tzone(phint))
 }
 
 #' @rdname phinterval-cumset-operations
 #' @export
-phint_cumintersect <- function(phint, na_propogate = FALSE, reverse = FALSE) {
-  check_phintish(phint)
+phint_cumintersect <- function(phint, na_propogate = FALSE, bounds = c("[]", "()")) {
   check_bool(na_propogate)
-  check_bool(reverse)
-
-  if (is_empty(phint)) {
-    return(phint)
-  }
-
-  phint <- as_phinterval(phint)
-  if (!na_propogate) {
-    phint[is.na(phint)] <- hole(tzone = get_tzone(phint))
-  }
-
-  phint_accumulate(phint, phint_intersect, reverse = reverse)
-}
-
-# helpers ----------------------------------------------------------------------
-
-phint_accumulate <- function(.x, .f, ..., reverse = FALSE) {
-  f <- function(x, y) .f(x, y, ...)
-  list_unchop(Reduce(f, .x, accumulate = TRUE, right = reverse, simplify = FALSE))
+  out <- phint_unary_dispatch(
+    x = phint,
+    x_type = validate_type_phintish(phint),
+    funs_cpp = list(
+      phint = phint_cumintersect_cpp,
+      intvl = intvl_cumintersect_cpp
+    ),
+    na_propogate = na_propogate,
+    bounds = arg_match0(bounds, c("[]", "()"))
+  )
+  new_phinterval_bare(out, tzone = get_tzone(phint))
 }

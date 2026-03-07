@@ -65,10 +65,9 @@ test_that("Unary functions error on invalid inputs", {
   expect_error(phint_invert(intvl, hole_to = "span"))
   expect_error(phint_cumunion(as.POSIXct(0)))
   expect_error(phint_cumunion(intvl, na_propogate = "no"))
-  expect_error(phint_cumunion(intvl, reverse = "yes"))
   expect_error(phint_cumintersect(as.POSIXct(0)))
   expect_error(phint_cumintersect(intvl, na_propogate = "no"))
-  expect_error(phint_cumintersect(intvl, reverse = "yes"))
+  expect_error(phint_cumintersect(intvl, bounds = TRUE))
 })
 
 # phint_sift -------------------------------------------------------------------
@@ -287,20 +286,6 @@ test_that("phint_cumunion() works as expected", {
     phint_cumunion(phint),
     c(int12, int12, phint_squash(c(int12, int34)))
   )
-
-  # reverse = TRUE accumulates from right to left
-  phint <- c(int12, int23, int34)
-  expect_equal(
-    phint_cumunion(phint, reverse = TRUE),
-    c(phinterval(t1, t4), phinterval(t2, t4), int34)
-  )
-
-  # reverse = TRUE with hole
-  phint <- c(int12, hole, int34)
-  expect_equal(
-    phint_cumunion(phint, reverse = TRUE),
-    c(phint_squash(c(int12, int34)), int34, int34)
-  )
 })
 
 test_that("phint_cumunion() respects na_propogate argument", {
@@ -338,16 +323,6 @@ test_that("phint_cumunion() respects na_propogate argument", {
   expect_equal(
     phint_cumunion(c(int12, int23, na_phint), na_propogate = TRUE),
     c(int12, phinterval(t1, t3), na_phint)
-  )
-
-  # na_propogate = TRUE with reverse = TRUE: NA infects leftward
-  expect_equal(
-    phint_cumunion(c(int12, na_phint, int34), na_propogate = TRUE, reverse = TRUE),
-    c(na_phint, na_phint, int34)
-  )
-  expect_equal(
-    phint_cumunion(c(int12, int23, na_phint), na_propogate = TRUE, reverse = TRUE),
-    c(na_phint, na_phint, na_phint)
   )
 
   # All NA input
@@ -415,20 +390,6 @@ test_that("phint_cumintersect() works as expected", {
     phint_cumintersect(phint),
     c(int25, hole, hole)
   )
-
-  # reverse = TRUE accumulates from right to left
-  phint <- c(int25, int36, phinterval(t3, t5))
-  expect_equal(
-    phint_cumintersect(phint, reverse = TRUE),
-    c(phinterval(t3, t5), phinterval(t3, t5), phinterval(t3, t5))
-  )
-
-  # reverse = TRUE with non-overlapping: collapses to hole
-  phint <- c(int12, int34)
-  expect_equal(
-    phint_cumintersect(phint, reverse = TRUE),
-    c(hole, int34)
-  )
 })
 
 test_that("phint_cumintersect() respects na_propogate argument", {
@@ -469,16 +430,6 @@ test_that("phint_cumintersect() respects na_propogate argument", {
     c(int25, int34, na_phint)
   )
 
-  # na_propogate = TRUE with reverse = TRUE: NA infects leftward
-  expect_equal(
-    phint_cumintersect(c(int25, na_phint, int34), na_propogate = TRUE, reverse = TRUE),
-    c(na_phint, na_phint, int34)
-  )
-  expect_equal(
-    phint_cumintersect(c(int25, int34, na_phint), na_propogate = TRUE, reverse = TRUE),
-    c(na_phint, na_phint, na_phint)
-  )
-
   # All NA input
   expect_equal(
     phint_cumintersect(c(na_phint, na_phint), na_propogate = TRUE),
@@ -487,5 +438,65 @@ test_that("phint_cumintersect() respects na_propogate argument", {
   expect_equal(
     phint_cumintersect(c(na_phint, na_phint), na_propogate = FALSE),
     c(hole, hole)
+  )
+})
+
+test_that("phint_cumintersect() respects bounds argument", {
+  t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
+  t2 <- as.POSIXct("2021-01-01 00:00:45", tz = "UTC")
+  t3 <- as.POSIXct("2021-01-01 00:00:55", tz = "UTC")
+  t4 <- as.POSIXct("2021-01-01 00:01:00", tz = "UTC")
+  t5 <- as.POSIXct("2021-01-01 00:04:00", tz = "UTC")
+  int12 <- phinterval(t1, t2)
+  int23 <- phinterval(t2, t3)
+  int34 <- phinterval(t3, t4)
+  int25 <- phinterval(t2, t5)
+  int22 <- phinterval(t2, t2)
+  hole  <- hole(tzone = "UTC")
+
+  # Abutting intervals: bounds = "[]" produces an instant, bounds = "()" produces a hole
+  expect_equal(
+    phint_cumintersect(c(int12, int23)),
+    c(int12, int22)
+  )
+  expect_equal(
+    phint_cumintersect(c(int12, int23), bounds = "()"),
+    c(int12, hole)
+  )
+
+  # Chain of abutting intervals: bounds = "[]" collapses to instants, "()" to holes
+  expect_equal(
+    phint_cumintersect(c(int12, int23, int34)),
+    c(int12, int22, hole)
+  )
+  expect_equal(
+    phint_cumintersect(c(int12, int23, int34), bounds = "()"),
+    c(int12, hole, hole)
+  )
+
+  # Instant inputs: bounds = "[]" preserves instant, bounds = "()" produces hole
+  expect_equal(
+    phint_cumintersect(c(int25, int22)),
+    c(int25, int22)
+  )
+  expect_equal(
+    phint_cumintersect(c(int25, int22), bounds = "()"),
+    c(int25, hole)
+  )
+
+  # Once hole, always hole regardless of bounds
+  expect_equal(
+    phint_cumintersect(c(int12, int34, int23)),
+    c(int12, hole, hole)
+  )
+  expect_equal(
+    phint_cumintersect(c(int12, int34, int23), bounds = "()"),
+    c(int12, hole, hole)
+  )
+
+  # Non-abutting overlapping intervals are unaffected by bounds
+  expect_equal(
+    phint_cumintersect(c(int12, int34, int25)),
+    phint_cumintersect(c(int12, int34, int25), bounds = "()")
   )
 })

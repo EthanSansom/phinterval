@@ -6,9 +6,9 @@
 \alias{phint_cumintersect}
 \title{Cumulative set operations}
 \usage{
-phint_cumunion(phint, na_propogate = FALSE, reverse = FALSE)
+phint_cumunion(phint, na_propogate = FALSE)
 
-phint_cumintersect(phint, na_propogate = FALSE, reverse = FALSE)
+phint_cumintersect(phint, na_propogate = FALSE, bounds = c("[]", "()"))
 }
 \arguments{
 \item{phint}{\verb{[phinterval / Interval]}
@@ -25,15 +25,18 @@ affect subsequent results.
 \item \code{TRUE}: An \code{NA} element causes all subsequent elements to become \code{NA}.
 }}
 
-\item{reverse}{\verb{[FALSE / TRUE]}
+\item{bounds}{\verb{["[]" / "()"]}
 
-Whether to accumulate from right to left instead of left to right:
+For \code{phint_cumintersect()}, whether span endpoints are inclusive or exclusive:
 \itemize{
-\item \code{FALSE} (default): Each element \code{result[i]} is the cumulative set
-operation over \code{phint[1:i]}.
-\item \code{TRUE}: Each element \code{result[i]} is the cumulative set operation over
-\code{phint[i:length(phint)]}.
-}}
+\item \code{"[]"} (default): Closed intervals - both endpoints are included
+\item \code{"()"}: Open intervals - both endpoints are excluded
+}
+
+This affects adjacency and overlap detection. For example, with \code{bounds = "[]"},
+the intervals \verb{[1, 5]} and \verb{[5, 10]} are considered adjacent (they share the
+endpoint 5), while with \code{bounds = "()"}, \verb{(1, 5)} and \verb{(5, 10)} are disjoint
+(neither includes 5).}
 }
 \value{
 A \verb{<phinterval>} vector the same length as \code{phint}.
@@ -55,15 +58,9 @@ monday <- interval(as.Date("2025-11-10"), as.Date("2025-11-11"))
 tuesday <- interval(as.Date("2025-11-11"), as.Date("2025-11-12"))
 wednesday <- interval(as.Date("2025-11-12"), as.Date("2025-11-13"))
 mon_to_wed <- interval(as.Date("2025-11-10"), as.Date("2025-11-13"))
-jan_1_to_5 <- interval(as.Date("2000-01-01"), as.Date("2000-01-05"))
-jan_3_to_9 <- interval(as.Date("2000-01-03"), as.Date("2000-01-09"))
-jan_6_to_9 <- interval(as.Date("2000-01-06"), as.Date("2000-01-09"))
 
 # Cumulative union expands with each new element
 phint_cumunion(c(monday, tuesday, wednesday))
-
-# Accumulate from right to left
-phint_cumunion(c(monday, tuesday, wednesday), reverse = TRUE)
 
 # NA elements are treated as holes by default
 phint_cumunion(c(monday, NA, wednesday))
@@ -72,18 +69,16 @@ phint_cumunion(c(monday, NA, wednesday))
 phint_cumunion(c(monday, NA, wednesday), na_propogate = TRUE)
 
 # Cumulative intersection narrows with each new element
-phint_cumintersect(c(mon_to_wed, jan_1_to_5, jan_3_to_9))
+phint_cumintersect(c(mon_to_wed, monday, tuesday))
 
 # Once the intersection becomes a hole, it remains a hole
 phint_cumintersect(c(monday, tuesday, wednesday))
 
-# Accumulate from right to left
-phint_cumintersect(c(monday, tuesday, wednesday), reverse = TRUE)
+# Bounds affect the intersection of adjacent intervals
+phint_cumintersect(c(monday, tuesday), bounds = "[]")
+phint_cumintersect(c(monday, tuesday), bounds = "()")
 
-# NA elements are treated as holes by default
-phint_cumintersect(c(jan_1_to_5, NA, jan_3_to_9))
-
-# NA elements propagate forward with na_propogate = TRUE
-phint_cumintersect(c(jan_1_to_5, NA, jan_3_to_9), na_propogate = TRUE)
-
+}
+\seealso{
+\code{\link[=phint_union]{phint_union()}} and \code{\link[=phint_intersect]{phint_intersect()}} for the elementwise versions.
 }

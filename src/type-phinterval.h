@@ -67,31 +67,18 @@ public:
   void add_set_element(const ScalarView& view);
   void add_span(double start, double end);
   void finish_element();
+  PhintView view(R_xlen_t i) const;
   List get_results();
 };
 
-inline List phint_result_hole() {
-  return List::create(
-    Named("size") = IntegerVector::create(0),
-    Named("starts") = List::create(NumericVector()),
-    Named("ends") = List::create(NumericVector())
-  );
-}
-
-inline List phint_result_na() {
-  return List::create(
-    Named("size") = IntegerVector::create(NA_INTEGER),
-    Named("starts") = List::create(R_NilValue),
-    Named("ends") = List::create(R_NilValue)
-  );
-}
-
-inline List phint_result_empty() {
-  return List::create(
-    Named("size") = IntegerVector(0),
-    Named("starts") = List(0),
-    Named("ends") = List(0)
-  );
+inline PhintView PhintBuffer::view(R_xlen_t i) const {
+  int size = p_size[i];
+  if (size == NA_INTEGER) {
+    return SetView::na_view();
+  }
+  SEXP starts_i = VECTOR_ELT(starts, i);
+  SEXP ends_i = VECTOR_ELT(ends, i);
+  return { size, REAL(starts_i), REAL(ends_i) };
 }
 
 #endif

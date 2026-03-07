@@ -21,6 +21,7 @@ List phint_squash_cpp(IntegerVector size, List starts, List ends, bool na_rm) {
   if (n == 0) {
     return phint_result_hole();
   }
+  // TODO: Early return for size-1 as well
   const int* p_size = INTEGER(size);
 
   // First pass: count the total number of spans and test for NA values
