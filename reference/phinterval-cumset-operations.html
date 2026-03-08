@@ -88,8 +88,8 @@ affect subsequent results.</p></li>
 
 <dt id="arg-bounds">bounds<a class="anchor" aria-label="anchor" href="#arg-bounds"></a></dt>
 <dd><p><code>["[]" / "()"]</code></p>
-<p>For <code>phint_cumintersect()</code>, whether span endpoints are inclusive or exclusive:</p><ul><li><p><code>"[]"</code> (default): Closed intervals - both endpoints are included</p></li>
-<li><p><code>"()"</code>: Open intervals - both endpoints are excluded</p></li>
+<p>For <code>phint_cumintersect()</code>, whether span endpoints are inclusive or exclusive:</p><ul><li><p><code>"[]"</code> (default): Closed intervals - both endpoints are included.</p></li>
+<li><p><code>"()"</code>: Open intervals - both endpoints are excluded.</p></li>
 </ul><p>This affects adjacency and overlap detection. For example, with <code>bounds = "[]"</code>,
 the intervals <code>[1, 5]</code> and <code>[5, 10]</code> are considered adjacent (they share the
 endpoint 5), while with <code>bounds = "()"</code>, <code>(1, 5)</code> and <code>(5, 10)</code> are disjoint

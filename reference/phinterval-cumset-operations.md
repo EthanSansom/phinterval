@@ -49,9 +49,9 @@ phint_cumintersect(phint, na_propogate = FALSE, bounds = c("[]", "()"))
   For `phint_cumintersect()`, whether span endpoints are inclusive or
   exclusive:
 
-  - `"[]"` (default): Closed intervals - both endpoints are included
+  - `"[]"` (default): Closed intervals - both endpoints are included.
 
-  - `"()"`: Open intervals - both endpoints are excluded
+  - `"()"`: Open intervals - both endpoints are excluded.
 
   This affects adjacency and overlap detection. For example, with
   `bounds = "[]"`, the intervals `[1, 5]` and `[5, 10]` are considered
