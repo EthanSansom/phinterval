@@ -166,3 +166,53 @@ List intvl_intvl_setdiff_cpp(
     Setdiff{}
   );
 }
+
+// symmetric setdiff -----------------------------------------------------------
+
+// [[Rcpp::export]]
+List phint_phint_symmetric_setdiff_cpp(
+    IntegerVector x_size, List x_starts, List x_ends,
+    IntegerVector y_size, List y_starts, List y_ends
+) {
+  return phint_operate(
+    PhintVectorView{x_size, x_starts, x_ends},
+    PhintVectorView{y_size, y_starts, y_ends},
+    SymmetricSetdiff{}
+  );
+}
+
+// [[Rcpp::export]]
+List phint_intvl_symmetric_setdiff_cpp(
+    IntegerVector x_size, List x_starts, List x_ends,
+    DatetimeVector y_starts, NumericVector y_spans
+) {
+  return phint_operate(
+    PhintVectorView{x_size, x_starts, x_ends},
+    IntvlVectorView{y_starts, y_spans},
+    SymmetricSetdiff{}
+  );
+}
+
+// [[Rcpp::export]]
+List intvl_phint_symmetric_setdiff_cpp(
+    DatetimeVector x_starts, NumericVector x_spans,
+    IntegerVector y_size, List y_starts, List y_ends
+) {
+  return phint_operate(
+    IntvlVectorView{x_starts, x_spans},
+    PhintVectorView{y_size, y_starts, y_ends},
+    SymmetricSetdiff{}
+  );
+}
+
+// [[Rcpp::export]]
+List intvl_intvl_symmetric_setdiff_cpp(
+    DatetimeVector x_starts, NumericVector x_spans,
+    DatetimeVector y_starts, NumericVector y_spans
+) {
+  return phint_operate(
+    IntvlVectorView{x_starts, x_spans},
+    IntvlVectorView{y_starts, y_spans},
+    SymmetricSetdiff{}
+  );
+}

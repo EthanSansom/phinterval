@@ -14,13 +14,13 @@
 #' - `phint_symmetric_setdiff()` returns intervals which are within either
 #'    `phint1` or `phint2`, but which are not within both `phint1` and `phint2`.
 #'
-#' `phint_symmetric_setdiff(phint1, phint2, bounds)` is roughly equivalent to
-#' (but usually faster than) the following:
+#' `phint_symmetric_setdiff(phint1, phint2)` is equivalent to (but usually faster
+#' than) the following:
 #'
 #' ```
 #' phint_setdiff(
 #'  phint_union(phint1, phint2),
-#'  phint_intersect(phint1, phint2, bounds = bounds)
+#'  phint_intersect(phint1, phint2)
 #' )
 #' ```
 #'
@@ -34,10 +34,9 @@
 #'
 #' @param bounds `["[]" / "()"]`
 #'
-#' For `phint_intersect()` and `phint_symmetric_setdiff()`, whether span
-#' endpoints are inclusive or exclusive:
-#' - `"[]"` (default for `phint_intersect()`): Closed intervals - both endpoints are included
-#' - `"()"` (default for `phint_symmetric_setdiff()`): Open intervals - both endpoints are excluded
+#' For `phint_intersect()`, whether span endpoints are inclusive or exclusive:
+#' - `"[]"` (default): Closed intervals - both endpoints are included.
+#' - `"()"`: Open intervals - both endpoints are excluded.
 #'
 #' This affects adjacency and overlap detection. For example, with `bounds = "[]"`,
 #' the intervals `[1, 5]` and `[5, 10]` are considered adjacent (they share the
@@ -169,9 +168,18 @@ phint_setdiff <- function(phint1, phint2) {
 
 #' @rdname phinterval-set-operations
 #' @export
-phint_symmetric_setdiff <- function(phint1, phint2, bounds = c("()", "[]")) {
-  phint_setdiff(
-    phint_union(phint1, phint2),
-    phint_intersect(phint1, phint2, bounds = bounds)
+phint_symmetric_setdiff <- function(phint1, phint2) {
+  out <- phint_binary_dispatch(
+    x = phint1,
+    y = phint2,
+    x_type = validate_type_phintish(phint1),
+    y_type = validate_type_phintish(phint2),
+    funs_cpp = list(
+      phint_phint = phint_phint_symmetric_setdiff_cpp,
+      phint_intvl = phint_intvl_symmetric_setdiff_cpp,
+      intvl_phint = intvl_phint_symmetric_setdiff_cpp,
+      intvl_intvl = intvl_intvl_symmetric_setdiff_cpp
+    )
   )
+  new_phinterval_bare(out, tzone = tz_union(phint1, phint2))
 }

@@ -129,6 +129,22 @@ intvl_intvl_setdiff_cpp <- function(x_starts, x_spans, y_starts, y_spans) {
     .Call(`_phinterval_intvl_intvl_setdiff_cpp`, x_starts, x_spans, y_starts, y_spans)
 }
 
+phint_phint_symmetric_setdiff_cpp <- function(x_size, x_starts, x_ends, y_size, y_starts, y_ends) {
+    .Call(`_phinterval_phint_phint_symmetric_setdiff_cpp`, x_size, x_starts, x_ends, y_size, y_starts, y_ends)
+}
+
+phint_intvl_symmetric_setdiff_cpp <- function(x_size, x_starts, x_ends, y_starts, y_spans) {
+    .Call(`_phinterval_phint_intvl_symmetric_setdiff_cpp`, x_size, x_starts, x_ends, y_starts, y_spans)
+}
+
+intvl_phint_symmetric_setdiff_cpp <- function(x_starts, x_spans, y_size, y_starts, y_ends) {
+    .Call(`_phinterval_intvl_phint_symmetric_setdiff_cpp`, x_starts, x_spans, y_size, y_starts, y_ends)
+}
+
+intvl_intvl_symmetric_setdiff_cpp <- function(x_starts, x_spans, y_starts, y_spans) {
+    .Call(`_phinterval_intvl_intvl_symmetric_setdiff_cpp`, x_starts, x_spans, y_starts, y_spans)
+}
+
 phint_phint_within_cpp <- function(x_size, x_starts, x_ends, y_size, y_starts, y_ends, bounds) {
     .Call(`_phinterval_phint_phint_within_cpp`, x_size, x_starts, x_ends, y_size, y_starts, y_ends, bounds)
 }

@@ -81,4 +81,49 @@ inline PhintView PhintBuffer::view(R_xlen_t i) const {
   return { size, REAL(starts_i), REAL(ends_i) };
 }
 
+struct SetBuffer {
+private:
+  std::vector<double> starts;
+  std::vector<double> ends;
+
+public:
+  SetBuffer(int reserve_size = 8) {
+    starts.reserve(reserve_size);
+    ends.reserve(reserve_size);
+  }
+  void add_empty_element() {
+    return;
+  };
+  void add_scalar_element(double start, double end) {
+    starts.push_back(start);
+    ends.push_back(end);
+  };
+  void add_set_element(const SetView& view) {
+    for (int i = 0; i < view.size; i++) {
+      starts.push_back(view.start(i));
+      ends.push_back(view.end(i));
+    }
+  };
+  void add_set_element(const ScalarView& view) {
+    starts.push_back(view.start(0));
+    ends.push_back(view.end(0));
+  };
+  void add_span(double start, double end) {
+    starts.push_back(start);
+    ends.push_back(end);
+  };
+  void finish_element() {
+    return;
+  };
+
+  // The pointers returned by view() will be invalidated if the buffer grows,
+  // so this should only be called after the buffer has been filled.
+  PhintView view() const;
+};
+
+inline PhintView SetBuffer::view() const {
+  int size = starts.size();
+  return { size, starts.data(), ends.data() };
+}
+
 #endif

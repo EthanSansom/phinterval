@@ -453,6 +453,66 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// phint_phint_symmetric_setdiff_cpp
+List phint_phint_symmetric_setdiff_cpp(IntegerVector x_size, List x_starts, List x_ends, IntegerVector y_size, List y_starts, List y_ends);
+RcppExport SEXP _phinterval_phint_phint_symmetric_setdiff_cpp(SEXP x_sizeSEXP, SEXP x_startsSEXP, SEXP x_endsSEXP, SEXP y_sizeSEXP, SEXP y_startsSEXP, SEXP y_endsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerVector >::type x_size(x_sizeSEXP);
+    Rcpp::traits::input_parameter< List >::type x_starts(x_startsSEXP);
+    Rcpp::traits::input_parameter< List >::type x_ends(x_endsSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type y_size(y_sizeSEXP);
+    Rcpp::traits::input_parameter< List >::type y_starts(y_startsSEXP);
+    Rcpp::traits::input_parameter< List >::type y_ends(y_endsSEXP);
+    rcpp_result_gen = Rcpp::wrap(phint_phint_symmetric_setdiff_cpp(x_size, x_starts, x_ends, y_size, y_starts, y_ends));
+    return rcpp_result_gen;
+END_RCPP
+}
+// phint_intvl_symmetric_setdiff_cpp
+List phint_intvl_symmetric_setdiff_cpp(IntegerVector x_size, List x_starts, List x_ends, DatetimeVector y_starts, NumericVector y_spans);
+RcppExport SEXP _phinterval_phint_intvl_symmetric_setdiff_cpp(SEXP x_sizeSEXP, SEXP x_startsSEXP, SEXP x_endsSEXP, SEXP y_startsSEXP, SEXP y_spansSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerVector >::type x_size(x_sizeSEXP);
+    Rcpp::traits::input_parameter< List >::type x_starts(x_startsSEXP);
+    Rcpp::traits::input_parameter< List >::type x_ends(x_endsSEXP);
+    Rcpp::traits::input_parameter< DatetimeVector >::type y_starts(y_startsSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type y_spans(y_spansSEXP);
+    rcpp_result_gen = Rcpp::wrap(phint_intvl_symmetric_setdiff_cpp(x_size, x_starts, x_ends, y_starts, y_spans));
+    return rcpp_result_gen;
+END_RCPP
+}
+// intvl_phint_symmetric_setdiff_cpp
+List intvl_phint_symmetric_setdiff_cpp(DatetimeVector x_starts, NumericVector x_spans, IntegerVector y_size, List y_starts, List y_ends);
+RcppExport SEXP _phinterval_intvl_phint_symmetric_setdiff_cpp(SEXP x_startsSEXP, SEXP x_spansSEXP, SEXP y_sizeSEXP, SEXP y_startsSEXP, SEXP y_endsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< DatetimeVector >::type x_starts(x_startsSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type x_spans(x_spansSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type y_size(y_sizeSEXP);
+    Rcpp::traits::input_parameter< List >::type y_starts(y_startsSEXP);
+    Rcpp::traits::input_parameter< List >::type y_ends(y_endsSEXP);
+    rcpp_result_gen = Rcpp::wrap(intvl_phint_symmetric_setdiff_cpp(x_starts, x_spans, y_size, y_starts, y_ends));
+    return rcpp_result_gen;
+END_RCPP
+}
+// intvl_intvl_symmetric_setdiff_cpp
+List intvl_intvl_symmetric_setdiff_cpp(DatetimeVector x_starts, NumericVector x_spans, DatetimeVector y_starts, NumericVector y_spans);
+RcppExport SEXP _phinterval_intvl_intvl_symmetric_setdiff_cpp(SEXP x_startsSEXP, SEXP x_spansSEXP, SEXP y_startsSEXP, SEXP y_spansSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< DatetimeVector >::type x_starts(x_startsSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type x_spans(x_spansSEXP);
+    Rcpp::traits::input_parameter< DatetimeVector >::type y_starts(y_startsSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type y_spans(y_spansSEXP);
+    rcpp_result_gen = Rcpp::wrap(intvl_intvl_symmetric_setdiff_cpp(x_starts, x_spans, y_starts, y_spans));
+    return rcpp_result_gen;
+END_RCPP
+}
 // phint_phint_within_cpp
 LogicalVector phint_phint_within_cpp(IntegerVector x_size, List x_starts, List x_ends, IntegerVector y_size, List y_starts, List y_ends, String bounds);
 RcppExport SEXP _phinterval_phint_phint_within_cpp(SEXP x_sizeSEXP, SEXP x_startsSEXP, SEXP x_endsSEXP, SEXP y_sizeSEXP, SEXP y_startsSEXP, SEXP y_endsSEXP, SEXP boundsSEXP) {
@@ -769,6 +829,10 @@ static const R_CallMethodDef CallEntries[] = {
     {"_phinterval_phint_intvl_setdiff_cpp", (DL_FUNC) &_phinterval_phint_intvl_setdiff_cpp, 5},
     {"_phinterval_intvl_phint_setdiff_cpp", (DL_FUNC) &_phinterval_intvl_phint_setdiff_cpp, 5},
     {"_phinterval_intvl_intvl_setdiff_cpp", (DL_FUNC) &_phinterval_intvl_intvl_setdiff_cpp, 4},
+    {"_phinterval_phint_phint_symmetric_setdiff_cpp", (DL_FUNC) &_phinterval_phint_phint_symmetric_setdiff_cpp, 6},
+    {"_phinterval_phint_intvl_symmetric_setdiff_cpp", (DL_FUNC) &_phinterval_phint_intvl_symmetric_setdiff_cpp, 5},
+    {"_phinterval_intvl_phint_symmetric_setdiff_cpp", (DL_FUNC) &_phinterval_intvl_phint_symmetric_setdiff_cpp, 5},
+    {"_phinterval_intvl_intvl_symmetric_setdiff_cpp", (DL_FUNC) &_phinterval_intvl_intvl_symmetric_setdiff_cpp, 4},
     {"_phinterval_phint_phint_within_cpp", (DL_FUNC) &_phinterval_phint_phint_within_cpp, 7},
     {"_phinterval_phint_intvl_within_cpp", (DL_FUNC) &_phinterval_phint_intvl_within_cpp, 6},
     {"_phinterval_intvl_phint_within_cpp", (DL_FUNC) &_phinterval_intvl_phint_within_cpp, 6},

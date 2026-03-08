@@ -465,9 +465,6 @@ test_that("phint_setdiff() handles instants and identical spans correctly", {
 
 # phint_symmetric_setdiff ------------------------------------------------------
 
-# TODO: Turn this back on after C++ implementation
-if (FALSE) {
-
 # Symmetric set-difference assumes exclusive `()` intervals
 test_that("phint_symmetric_setdiff() works as expected", {
   t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
@@ -541,6 +538,96 @@ test_that("phint_symmetric_setdiff() works as expected", {
   )
 })
 
+test_that("phint_symmetric_setdiff() matches the union, intersect, setdiff identity", {
+  t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
+  t2 <- as.POSIXct("2021-01-01 00:00:45", tz = "UTC")
+  t3 <- as.POSIXct("2021-01-01 00:00:55", tz = "UTC")
+  t4 <- as.POSIXct("2021-01-01 00:01:00", tz = "UTC")
+  t5 <- as.POSIXct("2021-01-01 00:04:00", tz = "UTC")
+  t6 <- as.POSIXct("2021-01-01 00:08:00", tz = "UTC")
+  int12 <- phinterval(t1, t2)
+  int23 <- phinterval(t2, t3)
+  int34 <- phinterval(t3, t4)
+  int45 <- phinterval(t4, t5)
+  int56 <- phinterval(t5, t6)
+  int13 <- phinterval(t1, t3)
+  int25 <- phinterval(t2, t5)
+  int36 <- phinterval(t3, t6)
+  int22 <- phinterval(t2, t2)
+  int44 <- phinterval(t4, t4)
+  hole  <- hole(tzone = "UTC")
+
+  ident_symmetric_setdiff <- function(x, y) {
+    phint_setdiff(phint_union(x, y), phint_intersect(x, y))
+  }
+
+  expect_all_true(c(
+    # Non-overlapping
+    phint_symmetric_setdiff(int12, int34) == ident_symmetric_setdiff(int12, int34),
+    phint_symmetric_setdiff(int12, int56) == ident_symmetric_setdiff(int12, int56),
+
+    # Adjacent
+    phint_symmetric_setdiff(int12, int23) == ident_symmetric_setdiff(int12, int23),
+    phint_symmetric_setdiff(int23, int12) == ident_symmetric_setdiff(int23, int12),
+
+    # Overlapping
+    phint_symmetric_setdiff(int13, int23) == ident_symmetric_setdiff(int13, int23),
+    phint_symmetric_setdiff(int25, int36) == ident_symmetric_setdiff(int25, int36),
+
+    # One contains the other
+    phint_symmetric_setdiff(int25, int34) == ident_symmetric_setdiff(int25, int34),
+    phint_symmetric_setdiff(int34, int25) == ident_symmetric_setdiff(int34, int25),
+
+    # Identical
+    phint_symmetric_setdiff(int12, int12) == ident_symmetric_setdiff(int12, int12),
+
+    # With hole
+    phint_symmetric_setdiff(int12, hole) == ident_symmetric_setdiff(int12, hole),
+    phint_symmetric_setdiff(hole, int12) == ident_symmetric_setdiff(hole, int12),
+
+    # Instants
+    phint_symmetric_setdiff(int13, int22) == ident_symmetric_setdiff(int13, int22),
+    phint_symmetric_setdiff(int22, int22) == ident_symmetric_setdiff(int22, int22),
+    phint_symmetric_setdiff(int12, int22) == ident_symmetric_setdiff(int12, int22),
+    phint_symmetric_setdiff(int22, int12) == ident_symmetric_setdiff(int22, int12),
+    phint_symmetric_setdiff(int22, int44) == ident_symmetric_setdiff(int22, int44)
+  ))
+
+  # Holey phinterval inputs
+  phint12_45 <- phint_squash(c(int12, int45))
+  phint23_56 <- phint_squash(c(int23, int56))
+  phint13_45 <- phint_squash(c(int13, int45))
+
+  expect_equal(
+    phint_symmetric_setdiff(phint12_45, int25),
+    ident_symmetric_setdiff(phint12_45, int25)
+  )
+  expect_equal(
+    phint_symmetric_setdiff(phint12_45, phint23_56),
+    ident_symmetric_setdiff(phint12_45, phint23_56)
+  )
+  expect_equal(
+    phint_symmetric_setdiff(phint13_45, phint12_45),
+    ident_symmetric_setdiff(phint13_45, phint12_45)
+  )
+
+  # Holey input with instant
+  expect_equal(
+    phint_symmetric_setdiff(phint12_45, int22),
+    ident_symmetric_setdiff(phint12_45, int22)
+  )
+  expect_equal(
+    phint_symmetric_setdiff(phint12_45, int44),
+    ident_symmetric_setdiff(phint12_45, int44)
+  )
+
+  # Vectorized
+  expect_equal(
+    phint_symmetric_setdiff(c(int12, int25, phint12_45), c(int34, int36, phint23_56)),
+    ident_symmetric_setdiff(c(int12, int25, phint12_45), c(int34, int36, phint23_56))
+  )
+})
+
 test_that("phint_symmetric_setdiff() handles instants and identical spans correctly", {
   t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
   t2 <- as.POSIXct("2021-01-01 00:00:45", tz = "UTC")
@@ -603,58 +690,6 @@ test_that("phint_symmetric_setdiff() handles instants and identical spans correc
     )
   )
 })
-
-test_that("phint_symmetric_setdiff() respects bounds argument", {
-  t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
-  t2 <- as.POSIXct("2021-01-01 00:00:45", tz = "UTC")
-  t3 <- as.POSIXct("2021-01-01 00:00:55", tz = "UTC")
-  t4 <- as.POSIXct("2021-01-01 00:01:00", tz = "UTC")
-  hole <- hole(tzone = "UTC")
-
-  phint12 <- phinterval(t1, t2)
-  phint23 <- phinterval(t2, t3)
-  phint34 <- phinterval(t3, t4)
-  phint22 <- phinterval(t2, t2)
-  phint44 <- phinterval(t4, t4)
-
-  phint22_44 <- phint_union(phint22, phint44)
-  phint22_34 <- phint_union(phint22, phint34)
-
-  # Default bounds = "()" is consistent with phint_setdiff instant behavior
-  expect_equal(phint_symmetric_setdiff(phint22, phint22), phint22)
-  expect_equal(phint_symmetric_setdiff(phint22, phint22, bounds = "()"), phint22)
-
-  # bounds = "[]": instant self-symmetric-difference is a hole
-  expect_equal(phint_symmetric_setdiff(phint22, phint22, bounds = "[]"), hole)
-  expect_equal(phint_symmetric_setdiff(phint22_44, phint22_44, bounds = "[]"), hole)
-  expect_equal(phint_symmetric_setdiff(phint22_34, phint22_34, bounds = "[]"), hole)
-  expect_equal(phint_symmetric_setdiff(phint22, phint22_44, bounds = "[]"), phint44)
-  expect_equal(phint_symmetric_setdiff(phint22_44, phint22, bounds = "[]"), phint22)
-  expect_equal(phint_symmetric_setdiff(phint22_34, phint22, bounds = "[]"), phint34)
-  expect_equal(phint_symmetric_setdiff(phint22, phint22_34, bounds = "[]"), phint34)
-
-  # Adjacent intervals: bounds = "()" and bounds = "[]" both result in a merge
-  expect_equal(
-    phint_symmetric_setdiff(phint12, phint23, bounds = "()"),
-    phinterval(t1, t3)
-  )
-  expect_equal(
-    phint_symmetric_setdiff(phint12, phint23, bounds = "[]"),
-    phinterval(t1, t3)
-  )
-
-  # Non-adjacent intervals are unaffected by bounds
-  expect_equal(
-    phint_symmetric_setdiff(phint12, phint34, bounds = "()"),
-    phint_squash(c(phint12, phint34))
-  )
-  expect_equal(
-    phint_symmetric_setdiff(phint12, phint34, bounds = "[]"),
-    phint_squash(c(phint12, phint34))
-  )
-})
-
-}
 
 # phint_intersect --------------------------------------------------------------
 

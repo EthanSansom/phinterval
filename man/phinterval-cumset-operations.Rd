@@ -29,8 +29,8 @@ affect subsequent results.
 
 For \code{phint_cumintersect()}, whether span endpoints are inclusive or exclusive:
 \itemize{
-\item \code{"[]"} (default): Closed intervals - both endpoints are included
-\item \code{"()"}: Open intervals - both endpoints are excluded
+\item \code{"[]"} (default): Closed intervals - both endpoints are included.
+\item \code{"()"}: Open intervals - both endpoints are excluded.
 }
 
 This affects adjacency and overlap detection. For example, with \code{bounds = "[]"},

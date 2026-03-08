@@ -17,7 +17,7 @@ phint_intersect(phint1, phint2, bounds = c("[]", "()"))
 
 phint_setdiff(phint1, phint2)
 
-phint_symmetric_setdiff(phint1, phint2, bounds = c("()", "[]"))
+phint_symmetric_setdiff(phint1, phint2)
 }
 \arguments{
 \item{phint}{\verb{[phinterval / Interval]}
@@ -31,11 +31,10 @@ are recycled to a common length using vctrs-style recycling.}
 
 \item{bounds}{\verb{["[]" / "()"]}
 
-For \code{phint_intersect()} and \code{phint_symmetric_setdiff()}, whether span
-endpoints are inclusive or exclusive:
+For \code{phint_intersect()}, whether span endpoints are inclusive or exclusive:
 \itemize{
-\item \code{"[]"} (default for \code{phint_intersect()}): Closed intervals - both endpoints are included
-\item \code{"()"} (default for \code{phint_symmetric_setdiff()}): Open intervals - both endpoints are excluded
+\item \code{"[]"} (default): Closed intervals - both endpoints are included.
+\item \code{"()"}: Open intervals - both endpoints are excluded.
 }
 
 This affects adjacency and overlap detection. For example, with \code{bounds = "[]"},
@@ -60,12 +59,12 @@ operation. All functions follow vctrs-style recycling rules.
 \code{phint1} or \code{phint2}, but which are not within both \code{phint1} and \code{phint2}.
 }
 
-\code{phint_symmetric_setdiff(phint1, phint2, bounds)} is roughly equivalent to
-(but usually faster than) the following:
+\code{phint_symmetric_setdiff(phint1, phint2)} is equivalent to (but usually faster
+than) the following:
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{phint_setdiff(
  phint_union(phint1, phint2),
- phint_intersect(phint1, phint2, bounds = bounds)
+ phint_intersect(phint1, phint2)
 )
 }\if{html}{\out{</div>}}
 }

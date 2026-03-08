@@ -10,34 +10,42 @@
 
 template <bool IsInclusive>
 struct Intersect {
-  template <typename XView, typename YView>
-  void apply_to_set(const XView& x, const YView& y, PhintBuffer& out);
+  template <typename XView, typename YView, typename Buffer>
+  void apply_to_set(const XView& x, const YView& y, Buffer& out);
 
-  template <typename XView, typename YView>
-  void apply_to_span(const XView& x, const YView& y, PhintBuffer& out);
+  template <typename XView, typename YView, typename Buffer>
+  void apply_to_span(const XView& x, const YView& y, Buffer& out);
 };
 
 struct Union {
-  template <typename XView, typename YView>
-  void apply_to_set(const XView& x, const YView& y, PhintBuffer& out);
+  template <typename XView, typename YView, typename Buffer>
+  void apply_to_set(const XView& x, const YView& y, Buffer& out);
 
-  template <typename XView, typename YView>
-  void apply_to_span(const XView& x, const YView& y, PhintBuffer& out);
+  template <typename XView, typename YView, typename Buffer>
+  void apply_to_span(const XView& x, const YView& y, Buffer& out);
 };
 
 struct Setdiff {
-  template <typename XView, typename YView>
-  void apply_to_set(const XView& x, const YView& y, PhintBuffer& out);
+  template <typename XView, typename YView, typename Buffer>
+  void apply_to_set(const XView& x, const YView& y, Buffer& out);
 
-  template <typename XView, typename YView>
-  void apply_to_span(const XView& x, const YView& y, PhintBuffer& out);
+  template <typename XView, typename YView, typename Buffer>
+  void apply_to_span(const XView& x, const YView& y, Buffer& out);
+};
+
+struct SymmetricSetdiff {
+  template <typename XView, typename YView, typename Buffer>
+  void apply_to_set(const XView& x, const YView& y, Buffer& out);
+
+  template <typename XView, typename YView, typename Buffer>
+  void apply_to_span(const XView& x, const YView& y, Buffer& out);
 };
 
 // intersect -------------------------------------------------------------------
 
 template <bool IsInclusive>
-template <typename XView, typename YView>
-void Intersect<IsInclusive>::apply_to_span(const XView& x, const YView& y, PhintBuffer& out) {
+template <typename XView, typename YView, typename Buffer>
+void Intersect<IsInclusive>::apply_to_span(const XView& x, const YView& y, Buffer& out) {
   double start { std::max(x.start(0), y.start(0)) };
   double end { std::min(x.end(0), y.end(0)) };
 
@@ -57,8 +65,8 @@ void Intersect<IsInclusive>::apply_to_span(const XView& x, const YView& y, Phint
 };
 
 template <bool IsInclusive>
-template <typename XView, typename YView>
-void Intersect<IsInclusive>::apply_to_set(const XView& x, const YView& y, PhintBuffer& out) {
+template <typename XView, typename YView, typename Buffer>
+void Intersect<IsInclusive>::apply_to_set(const XView& x, const YView& y, Buffer& out) {
   if (x.is_empty() || y.is_empty()) {
     out.add_empty_element();
     return;
@@ -91,8 +99,8 @@ void Intersect<IsInclusive>::apply_to_set(const XView& x, const YView& y, PhintB
 
 // union -----------------------------------------------------------------------
 
-template <typename XView, typename YView>
-void Union::apply_to_span(const XView& x, const YView& y, PhintBuffer& out) {
+template <typename XView, typename YView, typename Buffer>
+void Union::apply_to_span(const XView& x, const YView& y, Buffer& out) {
   if (x.end(0) < y.start(0)) {
     // x before y, add x first to maintain sorting
     out.add_span(x.start(0), x.end(0));
@@ -110,8 +118,8 @@ void Union::apply_to_span(const XView& x, const YView& y, PhintBuffer& out) {
   }
 };
 
-template <typename XView, typename YView>
-void Union::apply_to_set(const XView& x, const YView& y, PhintBuffer& out) {
+template <typename XView, typename YView, typename Buffer>
+void Union::apply_to_set(const XView& x, const YView& y, Buffer& out) {
   const bool x_empty = x.is_empty();
   const bool y_empty = y.is_empty();
 
@@ -180,8 +188,8 @@ void Union::apply_to_set(const XView& x, const YView& y, PhintBuffer& out) {
 
 // setdiff ---------------------------------------------------------------------
 
-template <typename XView, typename YView>
-void Setdiff::apply_to_span(const XView& x, const YView& y, PhintBuffer& out) {
+template <typename XView, typename YView, typename Buffer>
+void Setdiff::apply_to_span(const XView& x, const YView& y, Buffer& out) {
   double x_start = x.start(0);
   double x_end = x.end(0);
   double y_start = y.start(0);
@@ -212,8 +220,8 @@ void Setdiff::apply_to_span(const XView& x, const YView& y, PhintBuffer& out) {
   }
 };
 
-template <typename XView, typename YView>
-void Setdiff::apply_to_set(const XView& x, const YView& y, PhintBuffer& out) {
+template <typename XView, typename YView, typename Buffer>
+void Setdiff::apply_to_set(const XView& x, const YView& y, Buffer& out) {
   if (x.is_empty()) {
     out.add_empty_element();
     return;
@@ -266,6 +274,63 @@ void Setdiff::apply_to_set(const XView& x, const YView& y, PhintBuffer& out) {
   }
 
   out.finish_element();
+}
+
+// symmetric setdiff -----------------------------------------------------------
+
+template <typename XView, typename YView, typename Buffer>
+void SymmetricSetdiff::apply_to_span(const XView& x, const YView& y, Buffer& out) {
+  // Union of spans is at most size-2, intersection at most size-1
+  SetBuffer union_buffer(2);
+  SetBuffer intersect_buffer(1);
+  Union union_op;
+  Intersect<true> intersect_op;
+
+  union_op.apply_to_span(x, y, union_buffer);
+  intersect_op.apply_to_span(x, y, intersect_buffer);
+
+  auto union_view = union_buffer.view();
+  auto intersect_view = intersect_buffer.view();
+  if (intersect_view.is_empty()) {
+    out.add_set_element(union_view);
+  } else {
+    Setdiff setdiff_op;
+    setdiff_op.apply_to_set(union_view, intersect_view, out);
+  }
+};
+
+template <typename XView, typename YView, typename Buffer>
+void SymmetricSetdiff::apply_to_set(const XView& x, const YView& y, Buffer& out) {
+  const bool x_empty = x.is_empty();
+  const bool y_empty = y.is_empty();
+
+  if (x_empty && y_empty) {
+    out.add_empty_element();
+    return;
+  } else if (x_empty) {
+    out.add_set_element(y);
+    return;
+  } else if (y_empty) {
+    out.add_set_element(x);
+    return;
+  }
+
+  SetBuffer union_buffer;
+  SetBuffer intersect_buffer;
+  Union union_op;
+  Intersect<true> intersect_op;
+
+  union_op.apply_to_set(x, y, union_buffer);
+  intersect_op.apply_to_set(x, y, intersect_buffer);
+
+  auto union_view = union_buffer.view();
+  auto intersect_view = intersect_buffer.view();
+  if (intersect_view.is_empty()) {
+    out.add_set_element(union_view);
+  } else {
+    Setdiff setdiff_op;
+    setdiff_op.apply_to_set(union_view, intersect_view, out);
+  }
 }
 
 // type predicates -------------------------------------------------------------
