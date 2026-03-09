@@ -91,5 +91,6 @@ version from GitHub using `pak::pak("EthanSansom/phinterval")`.
 - [`phint_cumunion()`](https://ethansansom.github.io/phinterval/reference/phinterval-cumset-operations.md)
   [`phint_cumintersect()`](https://ethansansom.github.io/phinterval/reference/phinterval-cumset-operations.md)
   : Cumulative set operations
-- [`phint_flatten()`](https://ethansansom.github.io/phinterval/reference/phint_flatten.md)
+- [`phint_flatten()`](https://ethansansom.github.io/phinterval/reference/flatten.md)
+  [`datetime_flatten()`](https://ethansansom.github.io/phinterval/reference/flatten.md)
   : Flatten a phinterval vector into a vector of spans or gaps

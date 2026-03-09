@@ -22,7 +22,7 @@
     takes the symmetric set-difference of two phintervals.
 
 - New
-  [`phint_flatten()`](https://ethansansom.github.io/phinterval/reference/phint_flatten.md)
+  [`phint_flatten()`](https://ethansansom.github.io/phinterval/reference/flatten.md)
   returns all spans or gaps within an entire phinterval vector as a
   vector of intervals.
 

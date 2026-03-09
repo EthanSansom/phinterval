@@ -10,6 +10,7 @@
 <url><loc>https://ethansansom.github.io/phinterval/news/index.html</loc></url>
 <url><loc>https://ethansansom.github.io/phinterval/reference/as_duration.html</loc></url>
 <url><loc>https://ethansansom.github.io/phinterval/reference/as_phinterval.html</loc></url>
+<url><loc>https://ethansansom.github.io/phinterval/reference/flatten.html</loc></url>
 <url><loc>https://ethansansom.github.io/phinterval/reference/hole.html</loc></url>
 <url><loc>https://ethansansom.github.io/phinterval/reference/index.html</loc></url>
 <url><loc>https://ethansansom.github.io/phinterval/reference/is_hole.html</loc></url>
@@ -18,7 +19,6 @@
 <url><loc>https://ethansansom.github.io/phinterval/reference/is_recognized_tzone.html</loc></url>
 <url><loc>https://ethansansom.github.io/phinterval/reference/n_spans.html</loc></url>
 <url><loc>https://ethansansom.github.io/phinterval/reference/params.html</loc></url>
-<url><loc>https://ethansansom.github.io/phinterval/reference/phint_flatten.html</loc></url>
 <url><loc>https://ethansansom.github.io/phinterval/reference/phint_invert.html</loc></url>
 <url><loc>https://ethansansom.github.io/phinterval/reference/phint_length.html</loc></url>
 <url><loc>https://ethansansom.github.io/phinterval/reference/phint_overlaps.html</loc></url>
