@@ -57,6 +57,18 @@ intvl_cumintersect_cpp <- function(starts, spans, na_propogate, bounds) {
     .Call(`_phinterval_intvl_cumintersect_cpp`, starts, spans, na_propogate, bounds)
 }
 
+phint_flatten_cpp <- function(size, starts, ends, what) {
+    .Call(`_phinterval_phint_flatten_cpp`, size, starts, ends, what)
+}
+
+intvl_flatten_cpp <- function(starts, spans, what) {
+    .Call(`_phinterval_intvl_flatten_cpp`, starts, spans, what)
+}
+
+range_flatten_cpp <- function(starts, ends, what) {
+    .Call(`_phinterval_range_flatten_cpp`, starts, ends, what)
+}
+
 phint_sift_cpp <- function(size, starts, ends) {
     .Call(`_phinterval_phint_sift_cpp`, size, starts, ends)
 }

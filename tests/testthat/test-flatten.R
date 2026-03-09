@@ -1,3 +1,5 @@
+# phint_flatten ----------------------------------------------------------------
+
 test_that("phint_flatten() works as expected", {
   t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
   t2 <- as.POSIXct("2021-01-01 00:00:45", tz = "UTC")
@@ -63,12 +65,15 @@ test_that("phint_flatten() handles instantaneous inputs correctly", {
   t2 <- as.POSIXct("2021-01-01 00:00:45", tz = "UTC")
   t3 <- as.POSIXct("2021-01-01 00:00:55", tz = "UTC")
   t4 <- as.POSIXct("2021-01-01 00:01:00", tz = "UTC")
+  t5 <- as.POSIXct("2021-01-01 00:01:05", tz = "UTC")
   int12 <- phinterval(t1, t2)
   int23 <- phinterval(t2, t3)
   int34 <- phinterval(t3, t4)
+  int45 <- phinterval(t4, t5)
   int11 <- phinterval(t1, t1)
   int22 <- phinterval(t2, t2)
   int33 <- phinterval(t3, t3)
+  int44 <- phinterval(t4, t4)
   empty <- phinterval(tzone = "UTC")
 
   # Single instant
@@ -79,14 +84,14 @@ test_that("phint_flatten() handles instantaneous inputs correctly", {
   expect_equal(phint_flatten(c(int22, int33)), c(int22, int33))
   expect_equal(phint_flatten(rep(int22, 3)), int22)
 
-  # Instant within a span: what = "spans" does not split the span
-  expect_equal(phint_flatten(c(int12, int22)), int12)
+  # Instant within a span
+  expect_equal(phint_flatten(c(int12, int22), what = "spans"), int12)
+  expect_equal(phint_flatten(c(int12, int22), what = "holes"), empty)
 
-  # Instant between two spans: what = "holes" returns spans on either side
-  # of the instant, split at the instant boundary
+  # Instant between two spans: what = "holes" ignores the instant
   expect_equal(
-    phint_flatten(c(int11, int22, int33), what = "holes"),
-    c(phinterval(t1, t2), phinterval(t2, t3))
+    phint_flatten(c(int12, int33, int45), what = "holes"),
+    phinterval(t2, t4)
   )
 
   # Instant at the boundary of a span: what = "holes" returns the gap on the
@@ -94,13 +99,21 @@ test_that("phint_flatten() handles instantaneous inputs correctly", {
   expect_equal(phint_flatten(c(int11, int34), what = "holes"), phinterval(t1, t3))
   expect_equal(phint_flatten(c(int12, int33), what = "holes"), phinterval(t2, t3))
 
-  # Only instants: what = "holes" returns spans between them
+  # Only instants
   expect_equal(
     phint_flatten(c(int22, int33), what = "holes"),
     phinterval(t2, t3)
   )
   expect_equal(
     phint_flatten(c(int11, int22, int33), what = "holes"),
-    c(phinterval(t1, t2), phinterval(t2, t3))
+    phinterval(t1, t3)
+  )
+  expect_equal(
+    phint_flatten(c(int11, int22, int33, int44), what = "holes"),
+    phinterval(t1, t4)
   )
 })
+
+# datetime_flatten -------------------------------------------------------------
+
+# TODO: Do a subset of the phint_flatten() unit tests + check recycling

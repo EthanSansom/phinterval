@@ -30,6 +30,7 @@
 #'   interval(as.Date("2025-11-13"), as.Date("2025-11-14")),
 #'   interval(as.Date("2025-11-15"), as.Date("2025-11-16"))
 #' )
+#' noon_wednesday <- as_phinterval(as.POSIXct("2025-11-12 12:00:00"))
 #'
 #' # Flatten into individual spans
 #' phint_flatten(c(monday, thurs_and_sat))
@@ -45,19 +46,51 @@
 #' phint_flatten(c(monday, NA, friday))
 #' phint_flatten(interval(NA, NA))
 #'
+#' # Instants are preserved when flattening into spans
+#' phint_flatten(c(monday, noon_wednesday, friday), what = "spans")
+#'
+#' # Instants between two spans are ignored when flattening into gaps
+#' phint_flatten(c(monday, noon_wednesday, friday), what = "holes")
+#'
+#' @name flatten
+NULL
+
+#' @rdname flatten
 #' @export
 phint_flatten <- function(phint, what = c("spans", "holes")) {
-  check_phintish(phint)
+  out <- phint_unary_dispatch(
+    x = phint,
+    x_type = validate_type_phintish(phint),
+    funs_cpp = list(
+      phint = phint_flatten_cpp,
+      intvl = intvl_flatten_cpp
+    ),
+    what = arg_match(what, c("spans", "holes"))
+  )
+  new_phinterval_bare(out, tzone = get_tzone(phint))
+}
+
+#' @rdname flatten
+#' @export
+datetime_flatten <- function(start, end, what = c("spans", "holes")) {
+  check_instant(start)
+  check_instant(end)
+  check_recycleable(start, end)
   what <- arg_match(what, c("spans", "holes"))
 
-  squashed <- phint_squash(phint)
-  if (is.na(squashed)) {
-    return(phinterval(tzone = get_tzone(phint)))
+  if (length(starts) == length(ends)) {
+    out <- range_flatten_cpp(
+      starts = start,
+      ends = end,
+      what = what
+    )
+  } else {
+    range <- vec_recycle_common(start = start, end = end)
+    out <- range_flatten_cpp(
+      starts = range$start,
+      ends = range$end,
+      what = what
+    )
   }
-  if (what == "holes") {
-    squashed <- phint_invert(squashed)
-  }
-
-  unnested <- phint_unnest(squashed)
-  phinterval(unnested$start, unnested$end)
+  new_phinterval_bare(out, tzone = tz_union(start, end))
 }

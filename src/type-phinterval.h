@@ -91,6 +91,9 @@ public:
     starts.reserve(reserve_size);
     ends.reserve(reserve_size);
   }
+  R_xlen_t n_spans() {
+    return starts.size();
+  }
   void add_empty_element() {
     return;
   };
@@ -119,6 +122,16 @@ public:
   // The pointers returned by view() will be invalidated if the buffer grows,
   // so this should only be called after the buffer has been filled.
   PhintView view() const;
+  const std::vector<double>& view_starts() const { return starts; }
+  const std::vector<double>& view_ends() const { return ends; }
+
+  List get_results() {
+    return List::create(
+      Named("size") = Rf_ScalarInteger(starts.size()),
+      Named("starts") = List::create(wrap(starts)),
+      Named("ends") = List::create(wrap(ends))
+    );
+  }
 };
 
 inline PhintView SetBuffer::view() const {

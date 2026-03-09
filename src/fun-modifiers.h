@@ -8,36 +8,36 @@
 // - apply_to_span() takes a single-span PhintView or a ScalarView type
 
 struct Sift {
-  template <typename XView>
-  void apply_to_set(const XView& x, PhintBuffer& out);
+  template <typename XView, typename Buffer>
+  void apply_to_set(const XView& x, Buffer& out);
 
-  template <typename XView>
-  void apply_to_span(const XView& x, PhintBuffer& out);
+  template <typename XView, typename Buffer>
+  void apply_to_span(const XView& x, Buffer& out);
 };
 
 struct Complement {
-  template <typename XView>
-  void apply_to_set(const XView& x, PhintBuffer& out);
+  template <typename XView, typename Buffer>
+  void apply_to_set(const XView& x, Buffer& out);
 
-  template <typename XView>
-  void apply_to_span(const XView& x, PhintBuffer& out);
+  template <typename XView, typename Buffer>
+  void apply_to_span(const XView& x, Buffer& out);
 };
 
 enum class HoleTo : int { Hole = 0, Inf = 1, NA = 2 };
 
 template <HoleTo hole_to>
 struct Invert {
-  template <typename XView>
-  void apply_to_set(const XView& x, PhintBuffer& out);
+  template <typename XView, typename Buffer>
+  void apply_to_set(const XView& x, Buffer& out);
 
-  template <typename XView>
-  void apply_to_span(const XView& x, PhintBuffer& out);
+  template <typename XView, typename Buffer>
+  void apply_to_span(const XView& x, Buffer& out);
 };
 
 // sift ------------------------------------------------------------------------
 
-template <typename XView>
-void Sift::apply_to_span(const XView& x, PhintBuffer& out) {
+template <typename XView, typename Buffer>
+void Sift::apply_to_span(const XView& x, Buffer& out) {
   if (x.start(0) == x.end(0)) {
     out.add_empty_element();
   } else {
@@ -45,8 +45,8 @@ void Sift::apply_to_span(const XView& x, PhintBuffer& out) {
   }
 };
 
-template <typename XView>
-void Sift::apply_to_set(const XView& x, PhintBuffer& out) {
+template <typename XView, typename Buffer>
+void Sift::apply_to_set(const XView& x, Buffer& out) {
   if (x.is_empty()) {
     out.add_empty_element();
     return;
@@ -62,8 +62,8 @@ void Sift::apply_to_set(const XView& x, PhintBuffer& out) {
 
 // complement ------------------------------------------------------------------
 
-template <typename XView>
-void Complement::apply_to_span(const XView& x, PhintBuffer& out) {
+template <typename XView, typename Buffer>
+void Complement::apply_to_span(const XView& x, Buffer& out) {
   if (x.start(0) == x.end(0)) {
     out.add_inf_element();
     return;
@@ -86,8 +86,8 @@ void Complement::apply_to_span(const XView& x, PhintBuffer& out) {
   }
 };
 
-template <typename XView>
-void Complement::apply_to_set(const XView& x, PhintBuffer& out) {
+template <typename XView, typename Buffer>
+void Complement::apply_to_set(const XView& x, Buffer& out) {
   if (x.is_empty()) {
     out.add_inf_element();
     return;
@@ -110,14 +110,14 @@ void Complement::apply_to_set(const XView& x, PhintBuffer& out) {
 // invert ----------------------------------------------------------------------
 
 template <HoleTo hole_to>
-template <typename XView>
-void Invert<hole_to>::apply_to_span(const XView& x, PhintBuffer& out) {
+template <typename XView, typename Buffer>
+void Invert<hole_to>::apply_to_span(const XView& x, Buffer& out) {
   out.add_empty_element();
 };
 
 template <HoleTo hole_to>
-template <typename XView>
-void Invert<hole_to>::apply_to_set(const XView& x, PhintBuffer& out) {
+template <typename XView, typename Buffer>
+void Invert<hole_to>::apply_to_set(const XView& x, Buffer& out) {
   if (x.is_empty()) {
     if constexpr (hole_to == HoleTo::Hole) {
       out.add_empty_element();

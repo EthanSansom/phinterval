@@ -192,6 +192,46 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// phint_flatten_cpp
+List phint_flatten_cpp(IntegerVector size, List starts, List ends, String what);
+RcppExport SEXP _phinterval_phint_flatten_cpp(SEXP sizeSEXP, SEXP startsSEXP, SEXP endsSEXP, SEXP whatSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerVector >::type size(sizeSEXP);
+    Rcpp::traits::input_parameter< List >::type starts(startsSEXP);
+    Rcpp::traits::input_parameter< List >::type ends(endsSEXP);
+    Rcpp::traits::input_parameter< String >::type what(whatSEXP);
+    rcpp_result_gen = Rcpp::wrap(phint_flatten_cpp(size, starts, ends, what));
+    return rcpp_result_gen;
+END_RCPP
+}
+// intvl_flatten_cpp
+List intvl_flatten_cpp(DatetimeVector starts, NumericVector spans, String what);
+RcppExport SEXP _phinterval_intvl_flatten_cpp(SEXP startsSEXP, SEXP spansSEXP, SEXP whatSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< DatetimeVector >::type starts(startsSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type spans(spansSEXP);
+    Rcpp::traits::input_parameter< String >::type what(whatSEXP);
+    rcpp_result_gen = Rcpp::wrap(intvl_flatten_cpp(starts, spans, what));
+    return rcpp_result_gen;
+END_RCPP
+}
+// range_flatten_cpp
+List range_flatten_cpp(DatetimeVector starts, DatetimeVector ends, String what);
+RcppExport SEXP _phinterval_range_flatten_cpp(SEXP startsSEXP, SEXP endsSEXP, SEXP whatSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< DatetimeVector >::type starts(startsSEXP);
+    Rcpp::traits::input_parameter< DatetimeVector >::type ends(endsSEXP);
+    Rcpp::traits::input_parameter< String >::type what(whatSEXP);
+    rcpp_result_gen = Rcpp::wrap(range_flatten_cpp(starts, ends, what));
+    return rcpp_result_gen;
+END_RCPP
+}
 // phint_sift_cpp
 List phint_sift_cpp(IntegerVector size, List starts, List ends);
 RcppExport SEXP _phinterval_phint_sift_cpp(SEXP sizeSEXP, SEXP startsSEXP, SEXP endsSEXP) {
@@ -811,6 +851,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_phinterval_intvl_cumunion_cpp", (DL_FUNC) &_phinterval_intvl_cumunion_cpp, 3},
     {"_phinterval_phint_cumintersect_cpp", (DL_FUNC) &_phinterval_phint_cumintersect_cpp, 5},
     {"_phinterval_intvl_cumintersect_cpp", (DL_FUNC) &_phinterval_intvl_cumintersect_cpp, 4},
+    {"_phinterval_phint_flatten_cpp", (DL_FUNC) &_phinterval_phint_flatten_cpp, 4},
+    {"_phinterval_intvl_flatten_cpp", (DL_FUNC) &_phinterval_intvl_flatten_cpp, 3},
+    {"_phinterval_range_flatten_cpp", (DL_FUNC) &_phinterval_range_flatten_cpp, 3},
     {"_phinterval_phint_sift_cpp", (DL_FUNC) &_phinterval_phint_sift_cpp, 3},
     {"_phinterval_intvl_sift_cpp", (DL_FUNC) &_phinterval_intvl_sift_cpp, 2},
     {"_phinterval_phint_complement_cpp", (DL_FUNC) &_phinterval_phint_complement_cpp, 3},
