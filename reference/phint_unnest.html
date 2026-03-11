@@ -66,8 +66,8 @@ for details.</p></dd>
 <dt id="arg-hole-to">hole_to<a class="anchor" aria-label="anchor" href="#arg-hole-to"></a></dt>
 <dd><p><code>["na" / "drop"]</code></p>
 <p>How to handle hole elements (phintervals with zero spans). If <code>"na"</code> (the
-default), a row with <code>NA</code> start and end times is included for each hole. If
-<code>"drop"</code>, holes are excluded from the output.</p></dd>
+default), a row with <code>NA</code> start and end times and a size of <code>0</code> is included
+for each hole. If <code>"drop"</code>, holes are excluded from the output.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -83,13 +83,14 @@ default), a row with <code>NA</code> start and end times is included for each ho
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p><code>phint_unnest()</code> expands each phinterval element into its constituent time
 spans, creating one row per span. The resulting data frame contains a <code>key</code>
-column identifying which phinterval element each span came from, a <code>size</code>
-column counting the number of elements, and a <code>start</code> and <code>end</code> column for
-the span boundaries.</p>
+column identifying which phinterval element each span came from, a <code>start</code> and
+<code>end</code> column for each span's boundaries, and a <code>size</code> column counting the
+number of spans in the phinterval element.</p>
 <p>For phinterval elements containing multiple disjoint spans, all spans are
-included with the same <code>key</code> value. Scalar phinterval elements (single spans)
-produce a single row. Both <code>NA</code> elements and <code><a href="hole.html">hole()</a></code>s produce <code>NA</code> values in
-the <code>start</code> and <code>end</code> columns, but have a <code>size</code> of <code>NA</code> and <code>0</code> respectively.</p>
+included with the same <code>key</code> value and <code>size</code>. Scalar phinterval elements
+(single spans) produce a single row. Both <code>NA</code> elements and <code><a href="hole.html">hole()</a></code>s produce
+<code>NA</code> values in the <code>start</code> and <code>end</code> columns, but have a <code>size</code> of <code>NA</code> and <code>0</code>
+respectively.</p>
     </div>
 
     <div class="section level2">

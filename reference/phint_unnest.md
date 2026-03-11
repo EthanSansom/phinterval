@@ -36,8 +36,9 @@ phint_unnest(phint, key = NULL, hole_to = c("na", "drop"))
   `["na" / "drop"]`
 
   How to handle hole elements (phintervals with zero spans). If `"na"`
-  (the default), a row with `NA` start and end times is included for
-  each hole. If `"drop"`, holes are excluded from the output.
+  (the default), a row with `NA` start and end times and a size of `0`
+  is included for each hole. If `"drop"`, holes are excluded from the
+  output.
 
 ## Value
 
@@ -64,12 +65,12 @@ with columns:
 `phint_unnest()` expands each phinterval element into its constituent
 time spans, creating one row per span. The resulting data frame contains
 a `key` column identifying which phinterval element each span came from,
-a `size` column counting the number of elements, and a `start` and `end`
-column for the span boundaries.
+a `start` and `end` column for each span's boundaries, and a `size`
+column counting the number of spans in the phinterval element.
 
 For phinterval elements containing multiple disjoint spans, all spans
-are included with the same `key` value. Scalar phinterval elements
-(single spans) produce a single row. Both `NA` elements and
+are included with the same `key` value and `size`. Scalar phinterval
+elements (single spans) produce a single row. Both `NA` elements and
 [`hole()`](https://ethansansom.github.io/phinterval/reference/hole.md)s
 produce `NA` values in the `start` and `end` columns, but have a `size`
 of `NA` and `0` respectively.
