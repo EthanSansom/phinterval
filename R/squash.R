@@ -5,8 +5,8 @@
 #' `phint_squash()` and `datetime_squash()` merge overlapping or adjacent
 #' intervals into a minimal set of non-overlapping, non-adjacent time spans.
 #'
-#' - `phint_squash()` takes a `<phinterval>` or `<Interval>` vector
-#' - `datetime_squash()` takes separate `start` and `end` datetime vectors
+#' - `phint_squash()` takes a `<phinterval>` or `<Interval>` vector.
+#' - `datetime_squash()` takes separate `start` and `end` datetime vectors.
 #'
 #' When `by = NULL` (the default), all intervals are merged into a single
 #' phinterval element. When `by` is provided, intervals are grouped and merged
@@ -77,6 +77,10 @@
 #'   value of `by`
 #'
 #' When `keep_by = TRUE`: A [tibble::tibble()] with columns `by` and `phint`.
+#'
+#' @seealso [phint_flatten()] and [datetime_flatten()] to merge a `<phinterval>`
+#'   vector of overlapping or adjacent elements into a vector of non-overlapping,
+#'   non-adjacent spans.
 #'
 #' @examples
 #' jan_1_to_5 <- interval(as.Date("2000-01-01"), as.Date("2000-01-05"))

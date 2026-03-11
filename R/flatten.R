@@ -1,15 +1,29 @@
 #' Flatten a phinterval vector into a vector of spans or gaps
 #'
 #' @description
-#' `phint_flatten()` collapses all elements of `phint` into a single set of
-#' non-overlapping time spans, then returns them as a flat `<phinterval>` vector
-#' with one span per element. `NA` elements are ignored.
+#'
+#' `phint_flatten()` and `datetime_flatten()` collapse all elements into a
+#' single set of non-overlapping time spans, then return them as a flat
+#' `<phinterval>` vector with one span per element. `NA` elements are ignored.
+#'
+#' - `phint_flatten()` takes a `<phinterval>` or `<Interval>` vector.
+#' - `datetime_flatten()` takes separate `start` and `end` datetime vectors.
 #'
 #' - `what = "spans"` (default): returns the time spans covered by any element
 #'   of `phint`.
 #' - `what = "holes"`: returns the gaps between those spans.
 #'
 #' @inheritParams params
+#'
+#' @param start `[POSIXct / POSIXlt / Date]`
+#'
+#' A vector of start times. Must be recyclable with `end`. Only used in
+#' `datetime_flatten()`.
+#'
+#' @param end `[POSIXct / POSIXlt / Date]`
+#'
+#' A vector of end times. Must be recyclable with `start`. Only used in
+#' `datetime_flatten()`.
 #'
 #' @param what `["spans" / "holes"]`
 #'
@@ -20,7 +34,10 @@
 #'
 #' @return
 #'
-#' A `<phinterval>` vector with the invariant `all(n_spans(phint) == 1L)`.
+#' A `<phinterval>` vector with the invariant `all(n_spans(result) == 1L)`.
+#'
+#' @seealso [phint_squash()] and [datetime_squash()] to collapse into a single
+#'   `<phinterval>` element rather than a vector of scalar spans.
 #'
 #' @examples
 #' monday <- interval(as.Date("2025-11-10"), as.Date("2025-11-11"))
@@ -32,8 +49,14 @@
 #' )
 #' noon_wednesday <- as_phinterval(as.POSIXct("2025-11-12 12:00:00"))
 #'
-#' # Flatten into individual spans
+#' # phint_flatten: flatten a phinterval/Interval vector
 #' phint_flatten(c(monday, thurs_and_sat))
+#'
+#' # datetime_flatten: flatten from start/end vectors
+#' datetime_flatten(
+#'   start = as.Date(c("2025-11-10", "2025-11-13", "2025-11-15")),
+#'   end = as.Date(c("2025-11-11", "2025-11-14", "2025-11-16"))
+#' )
 #'
 #' # Flatten into gaps between spans
 #' phint_flatten(c(monday, thurs_and_sat), what = "holes")
@@ -78,7 +101,7 @@ datetime_flatten <- function(start, end, what = c("spans", "holes")) {
   check_recycleable(start, end)
   what <- arg_match(what, c("spans", "holes"))
 
-  if (length(starts) == length(ends)) {
+  if (length(start) == length(end)) {
     out <- range_flatten_cpp(
       starts = start,
       ends = end,

@@ -73,3 +73,4 @@ reference:
       - phint_cumunion
       - phint_cumintersect
       - phint_flatten
+      - datetime_flatten
