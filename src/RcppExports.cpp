@@ -137,58 +137,58 @@ BEGIN_RCPP
 END_RCPP
 }
 // phint_cumunion_cpp
-List phint_cumunion_cpp(IntegerVector size, List starts, List ends, bool na_propogate);
-RcppExport SEXP _phinterval_phint_cumunion_cpp(SEXP sizeSEXP, SEXP startsSEXP, SEXP endsSEXP, SEXP na_propogateSEXP) {
+List phint_cumunion_cpp(IntegerVector size, List starts, List ends, bool na_propagate);
+RcppExport SEXP _phinterval_phint_cumunion_cpp(SEXP sizeSEXP, SEXP startsSEXP, SEXP endsSEXP, SEXP na_propagateSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< IntegerVector >::type size(sizeSEXP);
     Rcpp::traits::input_parameter< List >::type starts(startsSEXP);
     Rcpp::traits::input_parameter< List >::type ends(endsSEXP);
-    Rcpp::traits::input_parameter< bool >::type na_propogate(na_propogateSEXP);
-    rcpp_result_gen = Rcpp::wrap(phint_cumunion_cpp(size, starts, ends, na_propogate));
+    Rcpp::traits::input_parameter< bool >::type na_propagate(na_propagateSEXP);
+    rcpp_result_gen = Rcpp::wrap(phint_cumunion_cpp(size, starts, ends, na_propagate));
     return rcpp_result_gen;
 END_RCPP
 }
 // intvl_cumunion_cpp
-List intvl_cumunion_cpp(DatetimeVector starts, NumericVector spans, bool na_propogate);
-RcppExport SEXP _phinterval_intvl_cumunion_cpp(SEXP startsSEXP, SEXP spansSEXP, SEXP na_propogateSEXP) {
+List intvl_cumunion_cpp(DatetimeVector starts, NumericVector spans, bool na_propagate);
+RcppExport SEXP _phinterval_intvl_cumunion_cpp(SEXP startsSEXP, SEXP spansSEXP, SEXP na_propagateSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< DatetimeVector >::type starts(startsSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type spans(spansSEXP);
-    Rcpp::traits::input_parameter< bool >::type na_propogate(na_propogateSEXP);
-    rcpp_result_gen = Rcpp::wrap(intvl_cumunion_cpp(starts, spans, na_propogate));
+    Rcpp::traits::input_parameter< bool >::type na_propagate(na_propagateSEXP);
+    rcpp_result_gen = Rcpp::wrap(intvl_cumunion_cpp(starts, spans, na_propagate));
     return rcpp_result_gen;
 END_RCPP
 }
 // phint_cumintersect_cpp
-List phint_cumintersect_cpp(IntegerVector size, List starts, List ends, bool na_propogate, String bounds);
-RcppExport SEXP _phinterval_phint_cumintersect_cpp(SEXP sizeSEXP, SEXP startsSEXP, SEXP endsSEXP, SEXP na_propogateSEXP, SEXP boundsSEXP) {
+List phint_cumintersect_cpp(IntegerVector size, List starts, List ends, bool na_propagate, String bounds);
+RcppExport SEXP _phinterval_phint_cumintersect_cpp(SEXP sizeSEXP, SEXP startsSEXP, SEXP endsSEXP, SEXP na_propagateSEXP, SEXP boundsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< IntegerVector >::type size(sizeSEXP);
     Rcpp::traits::input_parameter< List >::type starts(startsSEXP);
     Rcpp::traits::input_parameter< List >::type ends(endsSEXP);
-    Rcpp::traits::input_parameter< bool >::type na_propogate(na_propogateSEXP);
+    Rcpp::traits::input_parameter< bool >::type na_propagate(na_propagateSEXP);
     Rcpp::traits::input_parameter< String >::type bounds(boundsSEXP);
-    rcpp_result_gen = Rcpp::wrap(phint_cumintersect_cpp(size, starts, ends, na_propogate, bounds));
+    rcpp_result_gen = Rcpp::wrap(phint_cumintersect_cpp(size, starts, ends, na_propagate, bounds));
     return rcpp_result_gen;
 END_RCPP
 }
 // intvl_cumintersect_cpp
-List intvl_cumintersect_cpp(DatetimeVector starts, NumericVector spans, bool na_propogate, String bounds);
-RcppExport SEXP _phinterval_intvl_cumintersect_cpp(SEXP startsSEXP, SEXP spansSEXP, SEXP na_propogateSEXP, SEXP boundsSEXP) {
+List intvl_cumintersect_cpp(DatetimeVector starts, NumericVector spans, bool na_propagate, String bounds);
+RcppExport SEXP _phinterval_intvl_cumintersect_cpp(SEXP startsSEXP, SEXP spansSEXP, SEXP na_propagateSEXP, SEXP boundsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< DatetimeVector >::type starts(startsSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type spans(spansSEXP);
-    Rcpp::traits::input_parameter< bool >::type na_propogate(na_propogateSEXP);
+    Rcpp::traits::input_parameter< bool >::type na_propagate(na_propagateSEXP);
     Rcpp::traits::input_parameter< String >::type bounds(boundsSEXP);
-    rcpp_result_gen = Rcpp::wrap(intvl_cumintersect_cpp(starts, spans, na_propogate, bounds));
+    rcpp_result_gen = Rcpp::wrap(intvl_cumintersect_cpp(starts, spans, na_propagate, bounds));
     return rcpp_result_gen;
 END_RCPP
 }

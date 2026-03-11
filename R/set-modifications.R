@@ -120,7 +120,7 @@ phint_sift <- function(phint) {
 #'
 #' @inheritParams params
 #'
-#' @param na_propogate `[FALSE / TRUE]`
+#' @param na_propagate `[FALSE / TRUE]`
 #'
 #' Whether `NA` values propagate forward (or backward, if `reverse = TRUE`)
 #' through the cumulative result:
@@ -155,8 +155,8 @@ phint_sift <- function(phint) {
 #' # NA elements are treated as holes by default
 #' phint_cumunion(c(monday, NA, wednesday))
 #'
-#' # NA elements propagate forward with na_propogate = TRUE
-#' phint_cumunion(c(monday, NA, wednesday), na_propogate = TRUE)
+#' # NA elements propagate forward with na_propagate = TRUE
+#' phint_cumunion(c(monday, NA, wednesday), na_propagate = TRUE)
 #'
 #' # Cumulative intersection narrows with each new element
 #' phint_cumintersect(c(mon_to_wed, monday, tuesday))
@@ -173,8 +173,8 @@ NULL
 
 #' @rdname phinterval-cumset-operations
 #' @export
-phint_cumunion <- function(phint, na_propogate = FALSE) {
-  check_bool(na_propogate)
+phint_cumunion <- function(phint, na_propagate = FALSE) {
+  check_bool(na_propagate)
   out <- phint_unary_dispatch(
     x = phint,
     x_type = validate_type_phintish(phint),
@@ -182,15 +182,15 @@ phint_cumunion <- function(phint, na_propogate = FALSE) {
       phint = phint_cumunion_cpp,
       intvl = intvl_cumunion_cpp
     ),
-    na_propogate = na_propogate
+    na_propagate = na_propagate
   )
   new_phinterval_bare(out, tzone = get_tzone(phint))
 }
 
 #' @rdname phinterval-cumset-operations
 #' @export
-phint_cumintersect <- function(phint, na_propogate = FALSE, bounds = c("[]", "()")) {
-  check_bool(na_propogate)
+phint_cumintersect <- function(phint, na_propagate = FALSE, bounds = c("[]", "()")) {
+  check_bool(na_propagate)
   out <- phint_unary_dispatch(
     x = phint,
     x_type = validate_type_phintish(phint),
@@ -198,7 +198,7 @@ phint_cumintersect <- function(phint, na_propogate = FALSE, bounds = c("[]", "()
       phint = phint_cumintersect_cpp,
       intvl = intvl_cumintersect_cpp
     ),
-    na_propogate = na_propogate,
+    na_propagate = na_propagate,
     bounds = arg_match0(bounds, c("[]", "()"))
   )
   new_phinterval_bare(out, tzone = get_tzone(phint))

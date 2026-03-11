@@ -64,9 +64,9 @@ test_that("Unary functions error on invalid inputs", {
   expect_error(phint_invert(as.POSIXct(0)))
   expect_error(phint_invert(intvl, hole_to = "span"))
   expect_error(phint_cumunion(as.POSIXct(0)))
-  expect_error(phint_cumunion(intvl, na_propogate = "no"))
+  expect_error(phint_cumunion(intvl, na_propagate = "no"))
   expect_error(phint_cumintersect(as.POSIXct(0)))
-  expect_error(phint_cumintersect(intvl, na_propogate = "no"))
+  expect_error(phint_cumintersect(intvl, na_propagate = "no"))
   expect_error(phint_cumintersect(intvl, bounds = TRUE))
 })
 
@@ -280,7 +280,7 @@ test_that("phint_cumunion() works as expected", {
     c(int25, int25, phinterval(t2, t6))
   )
 
-  # Holes in input are treated as empty (na_propogate = FALSE default)
+  # Holes in input are treated as empty (na_propagate = FALSE default)
   phint <- c(int12, hole, int34)
   expect_equal(
     phint_cumunion(phint),
@@ -288,7 +288,7 @@ test_that("phint_cumunion() works as expected", {
   )
 })
 
-test_that("phint_cumunion() respects na_propogate argument", {
+test_that("phint_cumunion() respects na_propagate argument", {
   t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
   t2 <- as.POSIXct("2021-01-01 00:00:45", tz = "UTC")
   t3 <- as.POSIXct("2021-01-01 00:00:55", tz = "UTC")
@@ -299,7 +299,7 @@ test_that("phint_cumunion() respects na_propogate argument", {
   na_phint <- phinterval(NA_POSIXct_, NA_POSIXct_, tzone = "UTC")
   hole  <- hole(tzone = "UTC")
 
-  # na_propogate = FALSE (default): NA treated as hole, does not infect result
+  # na_propagate = FALSE (default): NA treated as hole, does not infect result
   expect_equal(
     phint_cumunion(c(int12, na_phint, int34)),
     c(int12, int12, phint_squash(c(int12, int34)))
@@ -309,29 +309,29 @@ test_that("phint_cumunion() respects na_propogate argument", {
     c(hole, int12, phinterval(t1, t3))
   )
 
-  # na_propogate = TRUE: NA infects all subsequent elements
+  # na_propagate = TRUE: NA infects all subsequent elements
   expect_equal(
-    phint_cumunion(c(int12, na_phint, int34), na_propogate = TRUE),
+    phint_cumunion(c(int12, na_phint, int34), na_propagate = TRUE),
     c(int12, na_phint, na_phint)
   )
   expect_equal(
-    phint_cumunion(c(na_phint, int12, int23), na_propogate = TRUE),
+    phint_cumunion(c(na_phint, int12, int23), na_propagate = TRUE),
     c(na_phint, na_phint, na_phint)
   )
 
-  # na_propogate = TRUE: elements before the NA are unaffected
+  # na_propagate = TRUE: elements before the NA are unaffected
   expect_equal(
-    phint_cumunion(c(int12, int23, na_phint), na_propogate = TRUE),
+    phint_cumunion(c(int12, int23, na_phint), na_propagate = TRUE),
     c(int12, phinterval(t1, t3), na_phint)
   )
 
   # All NA input
   expect_equal(
-    phint_cumunion(c(na_phint, na_phint), na_propogate = TRUE),
+    phint_cumunion(c(na_phint, na_phint), na_propagate = TRUE),
     c(na_phint, na_phint)
   )
   expect_equal(
-    phint_cumunion(c(na_phint, na_phint), na_propogate = FALSE),
+    phint_cumunion(c(na_phint, na_phint), na_propagate = FALSE),
     c(hole, hole)
   )
 })
@@ -384,7 +384,7 @@ test_that("phint_cumintersect() works as expected", {
     c(int12, hole, hole)
   )
 
-  # Holes in input treated as empty (na_propogate = FALSE default)
+  # Holes in input treated as empty (na_propagate = FALSE default)
   phint <- c(int25, hole, int36)
   expect_equal(
     phint_cumintersect(phint),
@@ -392,7 +392,7 @@ test_that("phint_cumintersect() works as expected", {
   )
 })
 
-test_that("phint_cumintersect() respects na_propogate argument", {
+test_that("phint_cumintersect() respects na_propagate argument", {
   t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
   t2 <- as.POSIXct("2021-01-01 00:00:45", tz = "UTC")
   t3 <- as.POSIXct("2021-01-01 00:00:55", tz = "UTC")
@@ -404,7 +404,7 @@ test_that("phint_cumintersect() respects na_propogate argument", {
   na_phint <- phinterval(NA_POSIXct_, NA_POSIXct_, tzone = "UTC")
   hole  <- hole(tzone = "UTC")
 
-  # na_propogate = FALSE (default): NA treated as hole, does not infect result
+  # na_propagate = FALSE (default): NA treated as hole, does not infect result
   expect_equal(
     phint_cumintersect(c(int25, na_phint, int34)),
     c(int25, hole, hole)
@@ -414,29 +414,29 @@ test_that("phint_cumintersect() respects na_propogate argument", {
     c(hole, hole, hole)
   )
 
-  # na_propogate = TRUE: NA infects all subsequent elements
+  # na_propagate = TRUE: NA infects all subsequent elements
   expect_equal(
-    phint_cumintersect(c(int25, na_phint, int34), na_propogate = TRUE),
+    phint_cumintersect(c(int25, na_phint, int34), na_propagate = TRUE),
     c(int25, na_phint, na_phint)
   )
   expect_equal(
-    phint_cumintersect(c(na_phint, int25, int34), na_propogate = TRUE),
+    phint_cumintersect(c(na_phint, int25, int34), na_propagate = TRUE),
     c(na_phint, na_phint, na_phint)
   )
 
-  # na_propogate = TRUE: elements before the NA are unaffected
+  # na_propagate = TRUE: elements before the NA are unaffected
   expect_equal(
-    phint_cumintersect(c(int25, int34, na_phint), na_propogate = TRUE),
+    phint_cumintersect(c(int25, int34, na_phint), na_propagate = TRUE),
     c(int25, int34, na_phint)
   )
 
   # All NA input
   expect_equal(
-    phint_cumintersect(c(na_phint, na_phint), na_propogate = TRUE),
+    phint_cumintersect(c(na_phint, na_phint), na_propagate = TRUE),
     c(na_phint, na_phint)
   )
   expect_equal(
-    phint_cumintersect(c(na_phint, na_phint), na_propogate = FALSE),
+    phint_cumintersect(c(na_phint, na_phint), na_propagate = FALSE),
     c(hole, hole)
   )
 })

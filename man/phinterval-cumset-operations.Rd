@@ -6,16 +6,16 @@
 \alias{phint_cumintersect}
 \title{Cumulative set operations}
 \usage{
-phint_cumunion(phint, na_propogate = FALSE)
+phint_cumunion(phint, na_propagate = FALSE)
 
-phint_cumintersect(phint, na_propogate = FALSE, bounds = c("[]", "()"))
+phint_cumintersect(phint, na_propagate = FALSE, bounds = c("[]", "()"))
 }
 \arguments{
 \item{phint}{\verb{[phinterval / Interval]}
 
 A \verb{<phinterval>} or \verb{<Interval>} vector.}
 
-\item{na_propogate}{\verb{[FALSE / TRUE]}
+\item{na_propagate}{\verb{[FALSE / TRUE]}
 
 Whether \code{NA} values propagate forward (or backward, if \code{reverse = TRUE})
 through the cumulative result:
@@ -65,8 +65,8 @@ phint_cumunion(c(monday, tuesday, wednesday))
 # NA elements are treated as holes by default
 phint_cumunion(c(monday, NA, wednesday))
 
-# NA elements propagate forward with na_propogate = TRUE
-phint_cumunion(c(monday, NA, wednesday), na_propogate = TRUE)
+# NA elements propagate forward with na_propagate = TRUE
+phint_cumunion(c(monday, NA, wednesday), na_propagate = TRUE)
 
 # Cumulative intersection narrows with each new element
 phint_cumintersect(c(mon_to_wed, monday, tuesday))

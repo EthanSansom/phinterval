@@ -21,11 +21,11 @@
 # - `phint_has_blockers(phint, ...)`, synonym of `phint_has_overlaps`, same invariant for phint_unblock
 # - phint_any_overlaps(phint, ...), phint_any_blockers(phint, ...), scalar versions (e.g. TRUE or FALSE)
 
-# TODO: Argument, `propogate_na = FALSE`
+# TODO: Argument, `propagate_na = FALSE`
 # Should NA values from previous elements (e.g. phint[i - 1]) or groups
 # (e.g. phint[priority < priority[i]]) propagate to `phint[i]` while
 # unoverlapping. In the implementation, we'll have to resolve each interval
-# in order of priority, so if we hit an NA and `propogate_na = TRUE`, we can
+# in order of priority, so if we hit an NA and `propagate_na = TRUE`, we can
 # return the rest of the results as NA.
 
 # todo unoverlap ---------------------------------------------------------------

@@ -5,28 +5,22 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
-// TODO: Test!!!
-// TODO: phint_intersect_cpp, be sure to add a bounds = c("[]", "()") option
-// TODO: intvl_*_cpp versions for receiving <Interval> vectors.
-
-// TODO: Spell-check "Propogate"
-
 // exports ---------------------------------------------------------------------
 
-template <bool PropogateNA, typename VectorX, typename Op>
+template <bool PropagateNA, typename VectorX, typename Op>
 List phint_accumulate(const VectorX& x, Op op);
 
 // [[Rcpp::export]]
-List phint_cumunion_cpp(IntegerVector size, List starts, List ends, bool na_propogate) {
+List phint_cumunion_cpp(IntegerVector size, List starts, List ends, bool na_propagate) {
   PhintVectorView x {size, starts, ends};
-  if (na_propogate) return phint_accumulate<true>(x, Union{});
+  if (na_propagate) return phint_accumulate<true>(x, Union{});
   return phint_accumulate<false>(x, Union{});
 }
 
 // [[Rcpp::export]]
-List intvl_cumunion_cpp(DatetimeVector starts, NumericVector spans, bool na_propogate) {
+List intvl_cumunion_cpp(DatetimeVector starts, NumericVector spans, bool na_propagate) {
   IntvlVectorView x {starts, spans};
-  if (na_propogate) return phint_accumulate<true>(x, Union{});
+  if (na_propagate) return phint_accumulate<true>(x, Union{});
   return phint_accumulate<false>(x, Union{});
 }
 
@@ -35,11 +29,11 @@ List phint_cumintersect_cpp(
     IntegerVector size,
     List starts,
     List ends,
-    bool na_propogate,
+    bool na_propagate,
     String bounds
 ) {
   PhintVectorView x {size, starts, ends};
-  if (na_propogate) {
+  if (na_propagate) {
     if (bounds == "[]") {
       return phint_accumulate<true>(x, Intersect<true>{});
     } else {
@@ -57,11 +51,11 @@ List phint_cumintersect_cpp(
 List intvl_cumintersect_cpp(
     DatetimeVector starts,
     NumericVector spans,
-    bool na_propogate,
+    bool na_propagate,
     String bounds
 ) {
   IntvlVectorView x {starts, spans};
-  if (na_propogate) {
+  if (na_propagate) {
     if (bounds == "[]") {
       return phint_accumulate<true>(x, Intersect<true>{});
     } else {
@@ -77,7 +71,7 @@ List intvl_cumintersect_cpp(
 
 // implementation --------------------------------------------------------------
 
-template <bool PropogateNA, typename VectorX, typename Op>
+template <bool PropagateNA, typename VectorX, typename Op>
 List phint_accumulate(const VectorX& x, Op op) {
   R_xlen_t n = x.n_sets();
   if (n == 0) return phint_result_empty();
@@ -86,8 +80,8 @@ List phint_accumulate(const VectorX& x, Op op) {
   R_xlen_t i = 0;
   auto view_elm = x.view(i);
 
-  // Initiate the first element of the buffer, branching on PropogateNA
-  if constexpr (PropogateNA) {
+  // Initiate the first element of the buffer, branching on PropagateNA
+  if constexpr (PropagateNA) {
     if (view_elm.is_na) {
       goto fill_with_na;
     } else if (view_elm.is_empty()) {
@@ -113,8 +107,8 @@ List phint_accumulate(const VectorX& x, Op op) {
     auto view_elm = x.view(i);
     auto view_lag = buffer.view(i - 1);
 
-    // Handling the empty and NA cases, branching on PropogateNA
-    if constexpr (PropogateNA) {
+    // Handling the empty and NA cases, branching on PropagateNA
+    if constexpr (PropagateNA) {
       if (view_elm.is_na) goto fill_with_na;
 
       // Handling the empty case, branching on Intersect vs. Union
@@ -137,7 +131,7 @@ List phint_accumulate(const VectorX& x, Op op) {
         }
       }
     } else {
-      // Empty and NA handling, not PropogateNA
+      // Empty and NA handling, not PropagateNA
       if (view_elm.is_na || view_elm.is_empty()) {
         if constexpr (is_intersect_op<Op>) {
           goto fill_with_empty;
@@ -155,7 +149,6 @@ List phint_accumulate(const VectorX& x, Op op) {
     }
   }
 
-  // TODO: Find out if the buffer is *already* full of NA elements
   fill_with_na:
     for (; i < n; i++) buffer.add_na_element();
 

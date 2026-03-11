@@ -41,20 +41,20 @@ as_phint_point_cpp <- function(points) {
     .Call(`_phinterval_as_phint_point_cpp`, points)
 }
 
-phint_cumunion_cpp <- function(size, starts, ends, na_propogate) {
-    .Call(`_phinterval_phint_cumunion_cpp`, size, starts, ends, na_propogate)
+phint_cumunion_cpp <- function(size, starts, ends, na_propagate) {
+    .Call(`_phinterval_phint_cumunion_cpp`, size, starts, ends, na_propagate)
 }
 
-intvl_cumunion_cpp <- function(starts, spans, na_propogate) {
-    .Call(`_phinterval_intvl_cumunion_cpp`, starts, spans, na_propogate)
+intvl_cumunion_cpp <- function(starts, spans, na_propagate) {
+    .Call(`_phinterval_intvl_cumunion_cpp`, starts, spans, na_propagate)
 }
 
-phint_cumintersect_cpp <- function(size, starts, ends, na_propogate, bounds) {
-    .Call(`_phinterval_phint_cumintersect_cpp`, size, starts, ends, na_propogate, bounds)
+phint_cumintersect_cpp <- function(size, starts, ends, na_propagate, bounds) {
+    .Call(`_phinterval_phint_cumintersect_cpp`, size, starts, ends, na_propagate, bounds)
 }
 
-intvl_cumintersect_cpp <- function(starts, spans, na_propogate, bounds) {
-    .Call(`_phinterval_intvl_cumintersect_cpp`, starts, spans, na_propogate, bounds)
+intvl_cumintersect_cpp <- function(starts, spans, na_propagate, bounds) {
+    .Call(`_phinterval_intvl_cumintersect_cpp`, starts, spans, na_propagate, bounds)
 }
 
 phint_flatten_cpp <- function(size, starts, ends, what) {
