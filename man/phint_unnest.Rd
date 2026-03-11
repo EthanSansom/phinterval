@@ -23,8 +23,8 @@ for details.}
 \item{hole_to}{\verb{["na" / "drop"]}
 
 How to handle hole elements (phintervals with zero spans). If \code{"na"} (the
-default), a row with \code{NA} start and end times is included for each hole. If
-\code{"drop"}, holes are excluded from the output.}
+default), a row with \code{NA} start and end times and a size of \code{0} is included
+for each hole. If \code{"drop"}, holes are excluded from the output.}
 }
 \value{
 A \code{\link[tibble:tibble]{tibble::tibble()}} with columns:
@@ -46,14 +46,15 @@ where each time span becomes a row.
 \details{
 \code{phint_unnest()} expands each phinterval element into its constituent time
 spans, creating one row per span. The resulting data frame contains a \code{key}
-column identifying which phinterval element each span came from, a \code{size}
-column counting the number of elements, and a \code{start} and \code{end} column for
-the span boundaries.
+column identifying which phinterval element each span came from, a \code{start} and
+\code{end} column for each span's boundaries, and a \code{size} column counting the
+number of spans in the phinterval element.
 
 For phinterval elements containing multiple disjoint spans, all spans are
-included with the same \code{key} value. Scalar phinterval elements (single spans)
-produce a single row. Both \code{NA} elements and \code{\link[=hole]{hole()}}s produce \code{NA} values in
-the \code{start} and \code{end} columns, but have a \code{size} of \code{NA} and \code{0} respectively.
+included with the same \code{key} value and \code{size}. Scalar phinterval elements
+(single spans) produce a single row. Both \code{NA} elements and \code{\link[=hole]{hole()}}s produce
+\code{NA} values in the \code{start} and \code{end} columns, but have a \code{size} of \code{NA} and \code{0}
+respectively.
 }
 \examples{
 # Unnest scalar phintervals

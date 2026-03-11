@@ -9,14 +9,15 @@
 #'
 #' `phint_unnest()` expands each phinterval element into its constituent time
 #' spans, creating one row per span. The resulting data frame contains a `key`
-#' column identifying which phinterval element each span came from, a `size`
-#' column counting the number of elements, and a `start` and `end` column for
-#' the span boundaries.
+#' column identifying which phinterval element each span came from, a `start` and
+#' `end` column for each span's boundaries, and a `size` column counting the
+#' number of spans in the phinterval element.
 #'
 #' For phinterval elements containing multiple disjoint spans, all spans are
-#' included with the same `key` value. Scalar phinterval elements (single spans)
-#' produce a single row. Both `NA` elements and [hole()]s produce `NA` values in
-#' the `start` and `end` columns, but have a `size` of `NA` and `0` respectively.
+#' included with the same `key` value and `size`. Scalar phinterval elements
+#' (single spans) produce a single row. Both `NA` elements and [hole()]s produce
+#' `NA` values in the `start` and `end` columns, but have a `size` of `NA` and `0`
+#' respectively.
 #'
 #' @param phint `[phinterval / Interval]`
 #'
@@ -25,8 +26,8 @@
 #' @param hole_to `["na" / "drop"]`
 #'
 #' How to handle hole elements (phintervals with zero spans). If `"na"` (the
-#' default), a row with `NA` start and end times is included for each hole. If
-#' `"drop"`, holes are excluded from the output.
+#' default), a row with `NA` start and end times and a size of `0` is included
+#' for each hole. If `"drop"`, holes are excluded from the output.
 #'
 #' @param key `[vector / data.frame / NULL]`
 #'
