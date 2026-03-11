@@ -274,13 +274,13 @@ which converts each `<phinterval>` element into separate rows:
 ``` r
 employment |>
   reframe(phint_unnest(employed, key = name))
-#> # A tibble: 4 × 3
-#>   key   start               end                
-#>   <chr> <dttm>              <dttm>             
-#> 1 Greg  2018-01-01 00:00:00 2018-06-03 00:00:00
-#> 2 Greg  2018-06-10 00:00:00 2020-11-28 00:00:00
-#> 3 Shiv  2017-01-01 00:00:00 2019-04-01 00:00:00
-#> 4 Tom   2019-05-01 00:00:00 2020-12-31 00:00:00
+#> # A tibble: 4 × 4
+#>   key   start               end                  size
+#>   <chr> <dttm>              <dttm>              <int>
+#> 1 Greg  2018-01-01 00:00:00 2018-06-03 00:00:00     2
+#> 2 Greg  2018-06-10 00:00:00 2020-11-28 00:00:00     2
+#> 3 Shiv  2017-01-01 00:00:00 2019-04-01 00:00:00     1
+#> 4 Tom   2019-05-01 00:00:00 2020-12-31 00:00:00     1
 ```
 
 ### Finding Gaps

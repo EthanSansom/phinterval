@@ -1,8 +1,14 @@
 # Flatten a phinterval vector into a vector of spans or gaps
 
-`phint_flatten()` collapses all elements of `phint` into a single set of
-non-overlapping time spans, then returns them as a flat `<phinterval>`
-vector with one span per element. `NA` elements are ignored.
+`phint_flatten()` and `datetime_flatten()` collapse all elements into a
+single set of non-overlapping time spans, then return them as a flat
+`<phinterval>` vector with one span per element. `NA` elements are
+ignored.
+
+- `phint_flatten()` takes a `<phinterval>` or `<Interval>` vector.
+
+- `datetime_flatten()` takes separate `start` and `end` datetime
+  vectors.
 
 - `what = "spans"` (default): returns the time spans covered by any
   element of `phint`.
@@ -37,9 +43,31 @@ datetime_flatten(start, end, what = c("spans", "holes"))
   - `"holes"`: Gaps between covered spans (excludes the infinite extents
     before the first span and after the last span).
 
+- start:
+
+  `[POSIXct / POSIXlt / Date]`
+
+  A vector of start times. Must be recyclable with `end`. Only used in
+  `datetime_flatten()`.
+
+- end:
+
+  `[POSIXct / POSIXlt / Date]`
+
+  A vector of end times. Must be recyclable with `start`. Only used in
+  `datetime_flatten()`.
+
 ## Value
 
-A `<phinterval>` vector with the invariant `all(n_spans(phint) == 1L)`.
+A `<phinterval>` vector with the invariant `all(n_spans(result) == 1L)`.
+
+## See also
+
+[`phint_squash()`](https://ethansansom.github.io/phinterval/reference/squash.md)
+and
+[`datetime_squash()`](https://ethansansom.github.io/phinterval/reference/squash.md)
+to collapse into a single `<phinterval>` element rather than a vector of
+scalar spans.
 
 ## Examples
 
@@ -53,9 +81,19 @@ thurs_and_sat <- phint_union(
 )
 noon_wednesday <- as_phinterval(as.POSIXct("2025-11-12 12:00:00"))
 
-# Flatten into individual spans
+# phint_flatten: flatten a phinterval/Interval vector
 phint_flatten(c(monday, thurs_and_sat))
 #> Error in FUN(X[[i]], ...): as.interval is not defined for class 'phinterval'as.interval is not defined for class 'vctrs_rcrd'as.interval is not defined for class 'vctrs_vctr'
+
+# datetime_flatten: flatten from start/end vectors
+datetime_flatten(
+  start = as.Date(c("2025-11-10", "2025-11-13", "2025-11-15")),
+  end = as.Date(c("2025-11-11", "2025-11-14", "2025-11-16"))
+)
+#> <phinterval<local>[3]>
+#> [1] {1970-01-01 05:40:02--1970-01-01 05:40:03}
+#> [2] {1970-01-01 05:40:05--1970-01-01 05:40:06}
+#> [3] {1970-01-01 05:40:07--1970-01-01 05:40:08}
 
 # Flatten into gaps between spans
 phint_flatten(c(monday, thurs_and_sat), what = "holes")

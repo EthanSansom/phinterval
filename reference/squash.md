@@ -4,9 +4,9 @@
 intervals into a minimal set of non-overlapping, non-adjacent time
 spans.
 
-- `phint_squash()` takes a `<phinterval>` or `<Interval>` vector
+- `phint_squash()` takes a `<phinterval>` or `<Interval>` vector.
 
-- `datetime_squash()` takes separate `start` and `end` datetime vectors
+- `datetime_squash()` takes separate `start` and `end` datetime vectors.
 
 When `by = NULL` (the default), all intervals are merged into a single
 phinterval element. When `by` is provided, intervals are grouped and
@@ -132,6 +132,14 @@ with columns `by` and `phint`.
 These functions are particularly useful in aggregation workflows with
 [`dplyr::summarize()`](https://dplyr.tidyverse.org/reference/summarise.html)
 to combine intervals within groups.
+
+## See also
+
+[`phint_flatten()`](https://ethansansom.github.io/phinterval/reference/flatten.md)
+and
+[`datetime_flatten()`](https://ethansansom.github.io/phinterval/reference/flatten.md)
+to merge a `<phinterval>` vector of overlapping or adjacent elements
+into a vector of non-overlapping, non-adjacent spans.
 
 ## Examples
 

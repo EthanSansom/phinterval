@@ -48,6 +48,17 @@
 <ul><li><p><code><a href="../reference/phinterval-set-operations.html">phint_setdiff()</a></code> no longer creates a malformed phinterval when <code>phint2</code> contains instants (<a href="https://github.com/EthanSansom/phinterval/issues/3" class="external-link">#3</a>).</p></li>
 <li><p><code><a href="../reference/phint_invert.html">phint_invert()</a></code> no longer creates a malformed phinterval when <code>phint</code> contains instants (<a href="https://github.com/EthanSansom/phinterval/issues/9" class="external-link">#9</a>).</p></li>
 </ul></div>
+<div class="section level3">
+<h3 id="breaking-changes-development-version">Breaking changes:<a class="anchor" aria-label="anchor" href="#breaking-changes-development-version"></a></h3>
+<ul><li>
+<code><a href="../reference/phint_unnest.html">phint_unnest()</a></code> now always returns a dataframe with columns <code>key</code>, <code>start</code>, <code>end</code> and <code>size</code>.</li>
+</ul><p>The <code>keep_size</code> argument has been removed from <code><a href="../reference/phint_unnest.html">phint_unnest()</a></code> and the function signature has been revised:</p>
+<pre><code><span><span class="co"># Old Usage</span></span>
+<span><span class="fu"><a href="../reference/phint_unnest.html">phint_unnest</a></span><span class="op">(</span><span class="va">phint</span>, hole_to <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"drop"</span>, <span class="st">"na"</span><span class="op">)</span>, keep_size <span class="op">=</span> <span class="cn">FALSE</span>, key <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># New Usage</span></span>
+<span><span class="fu"><a href="../reference/phint_unnest.html">phint_unnest</a></span><span class="op">(</span><span class="va">phint</span>, key <span class="op">=</span> <span class="cn">NULL</span>, hole_to <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"na"</span>, <span class="st">"drop"</span><span class="op">)</span><span class="op">)</span></span></code></pre>
+</div>
 </div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.0.0" id="phinterval-100">phinterval 1.0.0<a class="anchor" aria-label="anchor" href="#phinterval-100"></a></h2><p class="text-muted">CRAN release: 2026-02-03</p>
