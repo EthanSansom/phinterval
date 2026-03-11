@@ -805,8 +805,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // phint_unnest_cpp
-DataFrame phint_unnest_cpp(IntegerVector size, List starts, List ends, String tzone, String hole_to, bool keep_size);
-RcppExport SEXP _phinterval_phint_unnest_cpp(SEXP sizeSEXP, SEXP startsSEXP, SEXP endsSEXP, SEXP tzoneSEXP, SEXP hole_toSEXP, SEXP keep_sizeSEXP) {
+DataFrame phint_unnest_cpp(IntegerVector size, List starts, List ends, String tzone, String hole_to);
+RcppExport SEXP _phinterval_phint_unnest_cpp(SEXP sizeSEXP, SEXP startsSEXP, SEXP endsSEXP, SEXP tzoneSEXP, SEXP hole_toSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -815,14 +815,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< List >::type ends(endsSEXP);
     Rcpp::traits::input_parameter< String >::type tzone(tzoneSEXP);
     Rcpp::traits::input_parameter< String >::type hole_to(hole_toSEXP);
-    Rcpp::traits::input_parameter< bool >::type keep_size(keep_sizeSEXP);
-    rcpp_result_gen = Rcpp::wrap(phint_unnest_cpp(size, starts, ends, tzone, hole_to, keep_size));
+    rcpp_result_gen = Rcpp::wrap(phint_unnest_cpp(size, starts, ends, tzone, hole_to));
     return rcpp_result_gen;
 END_RCPP
 }
 // intvl_unnest_cpp
-DataFrame intvl_unnest_cpp(DatetimeVector starts, NumericVector spans, String tzone, String hole_to, bool keep_size);
-RcppExport SEXP _phinterval_intvl_unnest_cpp(SEXP startsSEXP, SEXP spansSEXP, SEXP tzoneSEXP, SEXP hole_toSEXP, SEXP keep_sizeSEXP) {
+DataFrame intvl_unnest_cpp(DatetimeVector starts, NumericVector spans, String tzone, String hole_to);
+RcppExport SEXP _phinterval_intvl_unnest_cpp(SEXP startsSEXP, SEXP spansSEXP, SEXP tzoneSEXP, SEXP hole_toSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -830,8 +829,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< NumericVector >::type spans(spansSEXP);
     Rcpp::traits::input_parameter< String >::type tzone(tzoneSEXP);
     Rcpp::traits::input_parameter< String >::type hole_to(hole_toSEXP);
-    Rcpp::traits::input_parameter< bool >::type keep_size(keep_sizeSEXP);
-    rcpp_result_gen = Rcpp::wrap(intvl_unnest_cpp(starts, spans, tzone, hole_to, keep_size));
+    rcpp_result_gen = Rcpp::wrap(intvl_unnest_cpp(starts, spans, tzone, hole_to));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -893,8 +891,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_phinterval_intvl_squash_by_cpp", (DL_FUNC) &_phinterval_intvl_squash_by_cpp, 4},
     {"_phinterval_range_squash_by_cpp", (DL_FUNC) &_phinterval_range_squash_by_cpp, 4},
     {"_phinterval_tzone_is_valid_cpp", (DL_FUNC) &_phinterval_tzone_is_valid_cpp, 1},
-    {"_phinterval_phint_unnest_cpp", (DL_FUNC) &_phinterval_phint_unnest_cpp, 6},
-    {"_phinterval_intvl_unnest_cpp", (DL_FUNC) &_phinterval_intvl_unnest_cpp, 5},
+    {"_phinterval_phint_unnest_cpp", (DL_FUNC) &_phinterval_phint_unnest_cpp, 5},
+    {"_phinterval_intvl_unnest_cpp", (DL_FUNC) &_phinterval_intvl_unnest_cpp, 4},
     {NULL, NULL, 0}
 };
 

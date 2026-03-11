@@ -17,7 +17,8 @@ test_that("phint_unnest() respects hole_to argument", {
     tibble::tibble(
       key = c(1, 3),
       start = c(t1, t3),
-      end = c(t2, t4)
+      end = c(t2, t4),
+      size = c(1L, 1L)
     )
   )
   expect_equal(
@@ -25,7 +26,8 @@ test_that("phint_unnest() respects hole_to argument", {
     tibble::tibble(
       key = c(2, 4),
       start = c(t1, t3),
-      end = c(t2, t4)
+      end = c(t2, t4),
+      size = c(1L, 1L)
     )
   )
   expect_equal(
@@ -33,7 +35,8 @@ test_that("phint_unnest() respects hole_to argument", {
     tibble::tibble(
       key = c(1, 2, 3),
       start = c(t1, NA_POSIXct_, t3),
-      end = c(t2, NA_POSIXct_, t4)
+      end = c(t2, NA_POSIXct_, t4),
+      size = c(1L, 0L, 1L)
     )
   )
 
@@ -42,7 +45,8 @@ test_that("phint_unnest() respects hole_to argument", {
     tibble::tibble(
       key = integer(),
       start = as.POSIXct(numeric(), tz = "UTC"),
-      end = as.POSIXct(numeric(), tz = "UTC")
+      end = as.POSIXct(numeric(), tz = "UTC"),
+      size = integer()
     )
   )
   expect_equal(
@@ -50,46 +54,8 @@ test_that("phint_unnest() respects hole_to argument", {
     tibble::tibble(
       key = c(1, 2, 3),
       start = c(NA_POSIXct_, NA_POSIXct_, NA_POSIXct_),
-      end = c(NA_POSIXct_, NA_POSIXct_, NA_POSIXct_)
-    )
-  )
-})
-
-test_that("phint_unnest() respects keep_size argument", {
-  t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
-  t2 <- as.POSIXct("2021-01-01 00:05:00", tz = "UTC")
-  t3 <- as.POSIXct("2021-01-01 00:10:00", tz = "UTC")
-  t4 <- as.POSIXct("2021-01-01 00:15:00", tz = "UTC")
-  t5 <- as.POSIXct("2021-01-01 00:20:00", tz = "UTC")
-  t6 <- as.POSIXct("2021-01-01 00:25:00", tz = "UTC")
-
-  int12 <- phinterval(t1, t2)
-  phint <- phinterval(c(t1, t3, t5), c(t2, t4, t6), by = c(1, 1, 2))
-
-  expect_equal(
-    phint_unnest(phint, keep_size = FALSE),
-    tibble::tibble(
-      key = c(1, 1, 2),
-      start = c(t1, t3, t5),
-      end = c(t2, t4, t6)
-    )
-  )
-  expect_equal(
-    phint_unnest(phint, keep_size = TRUE),
-    tibble::tibble(
-      key = c(1, 1, 2),
-      start = c(t1, t3, t5),
-      end = c(t2, t4, t6),
-      size = c(2, 2, 1)
-    )
-  )
-  expect_equal(
-    phint_unnest(int12, keep_size = TRUE),
-    tibble::tibble(
-      key = 1,
-      start = t1,
-      end = t2,
-      size = 1
+      end = c(NA_POSIXct_, NA_POSIXct_, NA_POSIXct_),
+      size = c(0L, 0L, 0L)
     )
   )
 })
@@ -105,21 +71,24 @@ test_that("phint_unnest() works with <Interval> or <phinterval> inputs", {
 
   expect_equal(phint_unnest(intvl), phint_unnest(phint))
   expect_equal(
-    phint_unnest(intvl, keep_size = TRUE),
-    phint_unnest(phint, keep_size = TRUE)
+    phint_unnest(intvl),
+    phint_unnest(phint)
   )
   expect_equal(
-    phint_unnest(intvl, hole_to = "na"),
-    phint_unnest(phint, hole_to = "na")
+    phint_unnest(intvl, hole_to = "drop"),
+    phint_unnest(phint, hole_to = "drop")
   )
 })
 
 test_that("phint_unnest() errors on invalid inputs", {
+  phint <- phinterval(
+    as.POSIXct("2021-01-01 00:00:00", tz = "UTC"),
+    as.POSIXct("2021-01-01 00:05:00", tz = "UTC")
+  )
   expect_error(phint_unnest(as.Date("2020-01-01")))
   expect_error(phint_unnest(phinterval(), hole_to = ""))
   expect_error(phint_unnest(phinterval(), hole_to = 10))
-  expect_error(phint_unnest(phinterval(), keep_size = NA))
-  expect_error(phint_unnest(phinterval(), keep_size = "yes"))
+  expect_error(phint_unnest(phint, key = 1:2))
 })
 
 test_that("phint_unnest() works as expected", {
@@ -147,7 +116,8 @@ test_that("phint_unnest() works as expected", {
     tibble::tibble(
       key = integer(),
       start = as.POSIXct(numeric(), tz = "UTC"),
-      end = as.POSIXct(numeric(), tz = "UTC")
+      end = as.POSIXct(numeric(), tz = "UTC"),
+      size = integer()
     )
   )
 
@@ -157,7 +127,8 @@ test_that("phint_unnest() works as expected", {
     tibble::tibble(
       key = 1,
       start = t1,
-      end = t2
+      end = t2,
+      size = 1L
     )
   )
   expect_equal(
@@ -165,7 +136,8 @@ test_that("phint_unnest() works as expected", {
     tibble::tibble(
       key = c(1, 2, 3),
       start = c(t1, t3, t5),
-      end = c(t2, t4, t6)
+      end = c(t2, t4, t6),
+      size = c(1L, 1L, 1L)
     )
   )
 
@@ -175,7 +147,8 @@ test_that("phint_unnest() works as expected", {
     tibble::tibble(
       key = c(1, 1),
       start = c(t1, t3),
-      end = c(t2, t4)
+      end = c(t2, t4),
+      size = c(2L, 2L)
     )
   )
   expect_equal(
@@ -183,7 +156,8 @@ test_that("phint_unnest() works as expected", {
     tibble::tibble(
       key = c(1, 1, 1),
       start = c(t1, t3, t5),
-      end = c(t2, t4, t6)
+      end = c(t2, t4, t6),
+      size = rep(3L, 3)
     )
   )
 
@@ -193,7 +167,8 @@ test_that("phint_unnest() works as expected", {
     tibble::tibble(
       key = c(1, 2, 2, 3),
       start = c(t1, t1, t3, t5),
-      end = c(t2, t2, t4, t6)
+      end = c(t2, t2, t4, t6),
+      size = c(1L, rep(2L, 2), 1L)
     )
   )
   expect_equal(
@@ -201,7 +176,8 @@ test_that("phint_unnest() works as expected", {
     tibble::tibble(
       key = c(1, 1, 2, 3, 3, 3),
       start = c(t1, t3, t5, t1, t3, t5),
-      end = c(t2, t4, t6, t2, t4, t6)
+      end = c(t2, t4, t6, t2, t4, t6),
+      size = c(rep(2L, 2), 1L, rep(3L, 3))
     )
   )
 
@@ -211,7 +187,8 @@ test_that("phint_unnest() works as expected", {
     tibble::tibble(
       key = c(1, 3),
       start = c(t1, t3),
-      end = c(t2, t4)
+      end = c(t2, t4),
+      size = c(1L, 1L)
     )
   )
   expect_equal(
@@ -219,19 +196,12 @@ test_that("phint_unnest() works as expected", {
     tibble::tibble(
       key = c(2, 2),
       start = c(t1, t3),
-      end = c(t2, t4)
+      end = c(t2, t4),
+      size = c(2L, 2L)
     )
   )
   expect_equal(
     phint_unnest(c(int12, hole, int34), hole_to = "na"),
-    tibble::tibble(
-      key = c(1, 2, 3),
-      start = c(t1, NA_POSIXct_, t3),
-      end = c(t2, NA_POSIXct_, t4)
-    )
-  )
-  expect_equal(
-    phint_unnest(c(int12, hole, int34), hole_to = "na", keep_size = TRUE),
     tibble::tibble(
       key = c(1, 2, 3),
       start = c(t1, NA_POSIXct_, t3),
@@ -241,14 +211,6 @@ test_that("phint_unnest() works as expected", {
   )
   expect_equal(
     phint_unnest(c(phint12_34, hole, int56), hole_to = "na"),
-    tibble::tibble(
-      key = c(1, 1, 2, 3),
-      start = c(t1, t3, NA_POSIXct_, t5),
-      end = c(t2, t4, NA_POSIXct_, t6)
-    )
-  )
-  expect_equal(
-    phint_unnest(c(phint12_34, hole, int56), hole_to = "na", keep_size = TRUE),
     tibble::tibble(
       key = c(1, 1, 2, 3),
       start = c(t1, t3, NA_POSIXct_, t5),
@@ -263,14 +225,6 @@ test_that("phint_unnest() works as expected", {
     tibble::tibble(
       key = c(1, 2, 3),
       start = c(t1, NA_POSIXct_, t3),
-      end = c(t2, NA_POSIXct_, t4)
-    )
-  )
-  expect_equal(
-    phint_unnest(c(int12, na_phint, int34), keep_size = TRUE),
-    tibble::tibble(
-      key = c(1, 2, 3),
-      start = c(t1, NA_POSIXct_, t3),
       end = c(t2, NA_POSIXct_, t4),
       size = c(1L, NA_integer_, 1L)
     )
@@ -282,7 +236,8 @@ test_that("phint_unnest() works as expected", {
     tibble::tibble(
       key = 1,
       start = t1,
-      end = t1
+      end = t1,
+      size = 1L
     )
   )
   expect_equal(
@@ -290,7 +245,8 @@ test_that("phint_unnest() works as expected", {
     tibble::tibble(
       key = c(1, 2),
       start = c(t1, t1),
-      end = c(t1, t2)
+      end = c(t1, t2),
+      size = c(1L, 1L)
     )
   )
 })
@@ -311,7 +267,8 @@ test_that("phint_unnest() handles infinite bounds", {
     tibble::tibble(
       key = 1,
       start = t_neg_inf,
-      end = t_pos_inf
+      end = t_pos_inf,
+      size = 1L
     )
   )
   expect_equal(
@@ -319,7 +276,8 @@ test_that("phint_unnest() handles infinite bounds", {
     tibble::tibble(
       key = c(1, 2),
       start = c(t_neg_inf, t1),
-      end = c(t2, t_pos_inf)
+      end = c(t2, t_pos_inf),
+      size = c(1L, 1L)
     )
   )
   expect_equal(
@@ -327,7 +285,8 @@ test_that("phint_unnest() handles infinite bounds", {
     tibble::tibble(
       key = c(1, 1),
       start = c(t_neg_inf, t2),
-      end = c(t1, t_pos_inf)
+      end = c(t1, t_pos_inf),
+      size = c(2L, 2L)
     )
   )
 })
@@ -368,52 +327,7 @@ test_that("phint_unnest() works with large multi-span elements", {
 
   expect_equal(
     phint_unnest(c(phint_large, phinterval(t1, t2))),
-    rbind(result, tibble::tibble(key = 2, start = t1, end = t2))
-  )
-})
-
-test_that("phint_unnest() with keep_size shows correct size for all rows", {
-  t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
-  t2 <- as.POSIXct("2021-01-01 00:05:00", tz = "UTC")
-  t3 <- as.POSIXct("2021-01-01 00:10:00", tz = "UTC")
-  t4 <- as.POSIXct("2021-01-01 00:15:00", tz = "UTC")
-  t5 <- as.POSIXct("2021-01-01 00:20:00", tz = "UTC")
-  t_neg_inf <- as.POSIXct(-Inf, tz = "UTC")
-  t_pos_inf <- as.POSIXct(Inf, tz = "UTC")
-  t_na <- as.POSIXct(NA, tz = "UTC")
-
-  int12 <- phinterval(t1, t2)
-  phint34_55 <- phinterval(c(t3, t5), c(t4, t5), by = 1)
-  hole <- hole(tzone = "UTC")
-  phint_inf1 <- phinterval(t_neg_inf, t_pos_inf)
-  phint_inf2 <- phinterval(c(t_neg_inf, t2), c(t1, t_pos_inf), by = 1L)
-  phint_na <- phinterval(t_na, t_na)
-
-  expect_equal(
-    phint_unnest(
-      c(int12, phint34_55, hole, phint_inf1, phint_inf2, phint_na),
-      keep_size = TRUE,
-      hole_to = "na"
-    ),
-    tibble::tibble(
-      key = c(1, 2, 2, 3, 4, 5, 5, 6),
-      start = c(t1, t3, t5, t_na, t_neg_inf, t_neg_inf, t2, t_na),
-      end = c(t2, t4, t5, t_na, t_pos_inf, t1, t_pos_inf, t_na),
-      size = c(1L, 2L, 2L, 0L, 1L, 2L, 2L, NA_integer_)
-    )
-  )
-  expect_equal(
-    phint_unnest(
-      c(int12, phint34_55, hole, phint_inf1, phint_inf2, phint_na),
-      keep_size = TRUE,
-      hole_to = "drop"
-    ),
-    tibble::tibble(
-      key = c(1, 2, 2, 4, 5, 5, 6),
-      start = c(t1, t3, t5, t_neg_inf, t_neg_inf, t2, t_na),
-      end = c(t2, t4, t5, t_pos_inf, t1, t_pos_inf, t_na),
-      size = c(1L, 2L, 2L, 1L, 2L, 2L, NA_integer_)
-    )
+    rbind(result, tibble::tibble(key = 2, start = t1, end = t2, size = 1L))
   )
 })
 
@@ -441,7 +355,8 @@ test_that("phint_unnest() works with `key` as expected", {
     tibble::tibble(
       key = c("A", "B", "C"),
       start = c(t1, t3, t5),
-      end = c(t2, t4, t6)
+      end = c(t2, t4, t6),
+      size = c(1L, 1L, 1L)
     )
   )
 
@@ -451,7 +366,8 @@ test_that("phint_unnest() works with `key` as expected", {
     tibble::tibble(
       key = c("A", "B", "B", "C"),
       start = c(t1, t1, t3, t5),
-      end = c(t2, t2, t4, t6)
+      end = c(t2, t2, t4, t6),
+      size = c(1L, 2L, 2L, 1L)
     )
   )
   expect_equal(
@@ -459,7 +375,8 @@ test_that("phint_unnest() works with `key` as expected", {
     tibble::tibble(
       key = c(1, 1, 2, 3, 3, 3),
       start = c(t1, t3, t5, t1, t3, t5),
-      end = c(t2, t4, t6, t2, t4, t6)
+      end = c(t2, t4, t6, t2, t4, t6),
+      size = c(rep(2L, 2), 1L, rep(3L, 3))
     )
   )
 
@@ -469,7 +386,8 @@ test_that("phint_unnest() works with `key` as expected", {
     tibble::tibble(
       key = c("A", "C"),
       start = c(t1, t3),
-      end = c(t2, t4)
+      end = c(t2, t4),
+      size = c(1L, 1L)
     )
   )
   expect_equal(
@@ -477,7 +395,8 @@ test_that("phint_unnest() works with `key` as expected", {
     tibble::tibble(
       key = c("B", "B"),
       start = c(t1, t3),
-      end = c(t2, t4)
+      end = c(t2, t4),
+      size = c(2L, 2L)
     )
   )
 
@@ -487,7 +406,8 @@ test_that("phint_unnest() works with `key` as expected", {
     tibble::tibble(
       key = c("A", "B", "C"),
       start = c(t1, NA_POSIXct_, t3),
-      end = c(t2, NA_POSIXct_, t4)
+      end = c(t2, NA_POSIXct_, t4),
+      size = c(1L, 0L, 1L)
     )
   )
   expect_equal(
@@ -495,18 +415,8 @@ test_that("phint_unnest() works with `key` as expected", {
     tibble::tibble(
       key = c("A", "A", "B", "C"),
       start = c(t1, t3, NA_POSIXct_, t5),
-      end = c(t2, t4, NA_POSIXct_, t6)
-    )
-  )
-
-  # key with keep_size = TRUE
-  expect_equal(
-    phint_unnest(c(int12, phint12_34, int56), key = c("A", "B", "C"), keep_size = TRUE),
-    tibble::tibble(
-      key = c("A", "B", "B", "C"),
-      start = c(t1, t1, t3, t5),
-      end = c(t2, t2, t4, t6),
-      size = c(1L, 2L, 2L, 1L)
+      end = c(t2, t4, NA_POSIXct_, t6),
+      size = c(2L, 2L, 0L, 1L)
     )
   )
 
@@ -516,7 +426,8 @@ test_that("phint_unnest() works with `key` as expected", {
     tibble::tibble(
       key = factor(c("A", "B", "A"), levels = c("A", "B")),
       start = c(t1, t3, t5),
-      end = c(t2, t4, t6)
+      end = c(t2, t4, t6),
+      size = c(1L, 1L, 1L)
     )
   )
 
@@ -531,7 +442,8 @@ test_that("phint_unnest() works with `key` as expected", {
     tibble::tibble(
       key = set_rownames(key[c(1, 2, 2), ], 1:3),
       start = c(t1, t1, t3),
-      end = c(t2, t2, t4)
+      end = c(t2, t2, t4),
+      size = c(1L, 2L, 2L)
     )
   )
 
@@ -547,10 +459,8 @@ test_that("phint_unnest() works with `key` as expected", {
     tibble::tibble(
       key = character(),
       start = as.POSIXct(numeric(), tz = "UTC"),
-      end = as.POSIXct(numeric(), tz = "UTC")
+      end = as.POSIXct(numeric(), tz = "UTC"),
+      size = integer()
     )
   )
-
-  # key errors when length doesn't match
-  expect_error(phint_unnest(c(int12, int34), key = c("A", "B", "C")))
 })

@@ -16,6 +16,21 @@
 
 * `phint_invert()` no longer creates a malformed phinterval when `phint` contains instants (#9).
 
+## Breaking changes:
+
+* `phint_unnest()` now always returns a dataframe with columns `key`, `start`, `end` and `size`.
+
+The `keep_size` argument has been removed from `phint_unnest()` and the function
+signature has been revised:
+
+```
+# Old Usage
+phint_unnest(phint, hole_to = c("drop", "na"), keep_size = FALSE, key = NULL)
+
+# New Usage
+phint_unnest(phint, key = NULL, hole_to = c("na", "drop"))
+```
+
 # phinterval 1.0.0
 
 * Initial CRAN submission.

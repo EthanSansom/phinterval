@@ -4,25 +4,12 @@
 \alias{phint_unnest}
 \title{Unnest a phinterval into a data frame}
 \usage{
-phint_unnest(phint, hole_to = c("drop", "na"), keep_size = FALSE, key = NULL)
+phint_unnest(phint, key = NULL, hole_to = c("na", "drop"))
 }
 \arguments{
 \item{phint}{\verb{[phinterval / Interval]}
 
 A \verb{<phinterval>} or \verb{<Interval>} vector to unnest.}
-
-\item{hole_to}{\verb{["drop" / "na"]}
-
-How to handle hole elements (phintervals with zero spans). If \code{"drop"}
-(the default), holes are excluded from the output. If \code{"na"}, a row with
-\code{NA} start and end times is included for each hole.}
-
-\item{keep_size}{\verb{[TRUE / FALSE]}
-
-Should a \code{size} column be included in the output? If \code{TRUE}, the output
-includes a \code{size} column containing the number of spans in the original
-phinterval element. If \code{FALSE} (the default), only \code{key}, \code{start}, and
-\code{end} columns are returned.}
 
 \item{key}{\verb{[vector / data.frame / NULL]}
 
@@ -32,18 +19,24 @@ the \code{key} column contains row indices (position in \code{phint}).
 
 \code{key} may be any vector in the vctrs sense. See \code{\link[vctrs:vector-checks]{vctrs::obj_is_vector()}}
 for details.}
+
+\item{hole_to}{\verb{["na" / "drop"]}
+
+How to handle hole elements (phintervals with zero spans). If \code{"na"} (the
+default), a row with \code{NA} start and end times is included for each hole. If
+\code{"drop"}, holes are excluded from the output.}
 }
 \value{
 A \code{\link[tibble:tibble]{tibble::tibble()}} with columns:
 \itemize{
 \item \code{key}:
 \itemize{
-\item If \code{key = NULL}: A numeric vector identifying the index of the phinterval element
-\item Otherwise: The element of \code{key} corresponding to the phinterval element
+\item If \code{key = NULL}: A numeric vector identifying the index of the phinterval element.
+\item Otherwise: The element of \code{key} corresponding to the phinterval element.
 }
-\item \code{start}: POSIXct start time of the span
-\item \code{end}: POSIXct end time of the span
-\item \code{size}: (if \code{keep_size = TRUE}) Integer count of spans in the phinterval element
+\item \code{start}: POSIXct start time of the span.
+\item \code{end}: POSIXct end time of the span.
+\item \code{size}: Integer count of spans in the phinterval element.
 }
 }
 \description{
@@ -53,12 +46,14 @@ where each time span becomes a row.
 \details{
 \code{phint_unnest()} expands each phinterval element into its constituent time
 spans, creating one row per span. The resulting data frame contains a \code{key}
-column identifying which phinterval element each span came from, along with
-\code{start} and \code{end} columns for the span boundaries.
+column identifying which phinterval element each span came from, a \code{size}
+column counting the number of elements, and a \code{start} and \code{end} column for
+the span boundaries.
 
 For phinterval elements containing multiple disjoint spans, all spans are
 included with the same \code{key} value. Scalar phinterval elements (single spans)
-produce a single row.
+produce a single row. Both \code{NA} elements and \code{\link[=hole]{hole()}}s produce \code{NA} values in
+the \code{start} and \code{end} columns, but have a \code{size} of \code{NA} and \code{0} respectively.
 }
 \examples{
 # Unnest scalar phintervals
@@ -82,11 +77,8 @@ phint <- c(
   hole(),
   phinterval(as.Date("2000-02-01"), as.Date("2000-02-15"))
 )
-phint_unnest(phint, hole_to = "drop")
 phint_unnest(phint, hole_to = "na")
-
-# Include size column
-phint_unnest(phint, keep_size = TRUE, hole_to = "na")
+phint_unnest(phint, hole_to = "drop")
 
 # Use a custom `key`
 phint_unnest(phint, key = c("A", "B", "C"), hole_to = "na")

@@ -225,11 +225,11 @@ tzone_is_valid_cpp <- function(tzone) {
     .Call(`_phinterval_tzone_is_valid_cpp`, tzone)
 }
 
-phint_unnest_cpp <- function(size, starts, ends, tzone, hole_to, keep_size) {
-    .Call(`_phinterval_phint_unnest_cpp`, size, starts, ends, tzone, hole_to, keep_size)
+phint_unnest_cpp <- function(size, starts, ends, tzone, hole_to) {
+    .Call(`_phinterval_phint_unnest_cpp`, size, starts, ends, tzone, hole_to)
 }
 
-intvl_unnest_cpp <- function(starts, spans, tzone, hole_to, keep_size) {
-    .Call(`_phinterval_intvl_unnest_cpp`, starts, spans, tzone, hole_to, keep_size)
+intvl_unnest_cpp <- function(starts, spans, tzone, hole_to) {
+    .Call(`_phinterval_intvl_unnest_cpp`, starts, spans, tzone, hole_to)
 }
 

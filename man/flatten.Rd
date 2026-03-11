@@ -23,15 +23,27 @@ Whether to return the covered spans or the intervening gaps:
 \item \code{"holes"}: Gaps between covered spans (excludes the infinite extents before
 the first span and after the last span).
 }}
+
+\item{start}{\verb{[POSIXct / POSIXlt / Date]}
+
+A vector of start times. Must be recyclable with \code{end}. Only used in
+\code{datetime_flatten()}.}
+
+\item{end}{\verb{[POSIXct / POSIXlt / Date]}
+
+A vector of end times. Must be recyclable with \code{start}. Only used in
+\code{datetime_flatten()}.}
 }
 \value{
-A \verb{<phinterval>} vector with the invariant \code{all(n_spans(phint) == 1L)}.
+A \verb{<phinterval>} vector with the invariant \code{all(n_spans(result) == 1L)}.
 }
 \description{
-\code{phint_flatten()} collapses all elements of \code{phint} into a single set of
-non-overlapping time spans, then returns them as a flat \verb{<phinterval>} vector
-with one span per element. \code{NA} elements are ignored.
+\code{phint_flatten()} and \code{datetime_flatten()} collapse all elements into a
+single set of non-overlapping time spans, then return them as a flat
+\verb{<phinterval>} vector with one span per element. \code{NA} elements are ignored.
 \itemize{
+\item \code{phint_flatten()} takes a \verb{<phinterval>} or \verb{<Interval>} vector.
+\item \code{datetime_flatten()} takes separate \code{start} and \code{end} datetime vectors.
 \item \code{what = "spans"} (default): returns the time spans covered by any element
 of \code{phint}.
 \item \code{what = "holes"}: returns the gaps between those spans.
@@ -47,8 +59,14 @@ thurs_and_sat <- phint_union(
 )
 noon_wednesday <- as_phinterval(as.POSIXct("2025-11-12 12:00:00"))
 
-# Flatten into individual spans
+# phint_flatten: flatten a phinterval/Interval vector
 phint_flatten(c(monday, thurs_and_sat))
+
+# datetime_flatten: flatten from start/end vectors
+datetime_flatten(
+  start = as.Date(c("2025-11-10", "2025-11-13", "2025-11-15")),
+  end = as.Date(c("2025-11-11", "2025-11-14", "2025-11-16"))
+)
 
 # Flatten into gaps between spans
 phint_flatten(c(monday, thurs_and_sat), what = "holes")
@@ -67,4 +85,8 @@ phint_flatten(c(monday, noon_wednesday, friday), what = "spans")
 # Instants between two spans are ignored when flattening into gaps
 phint_flatten(c(monday, noon_wednesday, friday), what = "holes")
 
+}
+\seealso{
+\code{\link[=phint_squash]{phint_squash()}} and \code{\link[=datetime_squash]{datetime_squash()}} to collapse into a single
+\verb{<phinterval>} element rather than a vector of scalar spans.
 }

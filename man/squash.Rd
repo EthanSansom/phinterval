@@ -95,8 +95,8 @@ When \code{keep_by = TRUE}: A \code{\link[tibble:tibble]{tibble::tibble()}} with
 \code{phint_squash()} and \code{datetime_squash()} merge overlapping or adjacent
 intervals into a minimal set of non-overlapping, non-adjacent time spans.
 \itemize{
-\item \code{phint_squash()} takes a \verb{<phinterval>} or \verb{<Interval>} vector
-\item \code{datetime_squash()} takes separate \code{start} and \code{end} datetime vectors
+\item \code{phint_squash()} takes a \verb{<phinterval>} or \verb{<Interval>} vector.
+\item \code{datetime_squash()} takes separate \code{start} and \code{end} datetime vectors.
 }
 
 When \code{by = NULL} (the default), all intervals are merged into a single
@@ -154,4 +154,9 @@ phint_squash(empty, empty_to = "hole")
 phint_squash(empty, empty_to = "na")
 phint_squash(empty, empty_to = "empty")
 
+}
+\seealso{
+\code{\link[=phint_flatten]{phint_flatten()}} and \code{\link[=datetime_flatten]{datetime_flatten()}} to merge a \verb{<phinterval>}
+vector of overlapping or adjacent elements into a vector of non-overlapping,
+non-adjacent spans.
 }

@@ -4,7 +4,7 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
-template <bool KeepSize, bool DropHoles, typename VectorType>
+template <bool DropHoles, typename VectorType>
 DataFrame phint_unnest_impl(const VectorType& vec, String tzone);
 
 // [[Rcpp::export]]
@@ -13,20 +13,13 @@ DataFrame phint_unnest_cpp(
     List starts,
     List ends,
     String tzone,
-    String hole_to,
-    bool keep_size
+    String hole_to
 ) {
   PhintVectorView vec { size, starts, ends };
-  bool drop_holes = (hole_to == "drop");
-
-  if (keep_size && drop_holes) {
-    return phint_unnest_impl<true, true>(vec, tzone);
-  } else if (keep_size && !drop_holes) {
-    return phint_unnest_impl<true, false>(vec, tzone);
-  } else if (!keep_size && drop_holes) {
-    return phint_unnest_impl<false, true>(vec, tzone);
+  if (hole_to == "drop") {
+    return phint_unnest_impl<true>(vec, tzone);
   } else {
-    return phint_unnest_impl<false, false>(vec, tzone);
+    return phint_unnest_impl<false>(vec, tzone);
   }
 }
 
@@ -35,24 +28,17 @@ DataFrame intvl_unnest_cpp(
     DatetimeVector starts,
     NumericVector spans,
     String tzone,
-    String hole_to,
-    bool keep_size
+    String hole_to
 ) {
   IntvlVectorView vec { starts, spans };
-  bool drop_holes = (hole_to == "drop");
-
-  if (keep_size && drop_holes) {
-    return phint_unnest_impl<true, true>(vec, tzone);
-  } else if (keep_size && !drop_holes) {
-    return phint_unnest_impl<true, false>(vec, tzone);
-  } else if (!keep_size && drop_holes) {
-    return phint_unnest_impl<false, true>(vec, tzone);
+  if (hole_to == "drop") {
+    return phint_unnest_impl<true>(vec, tzone);
   } else {
-    return phint_unnest_impl<false, false>(vec, tzone);
+    return phint_unnest_impl<false>(vec, tzone);
   }
 }
 
-template <bool KeepSize, bool DropHoles, typename VectorType>
+template <bool DropHoles, typename VectorType>
 DataFrame phint_unnest_impl(const VectorType& vec, String tzone) {
   const R_xlen_t n = vec.n_sets();
 
@@ -78,7 +64,6 @@ DataFrame phint_unnest_impl(const VectorType& vec, String tzone) {
     total_rows += view.size;
   }
 
-  // Allocate exact size needed, `out_key` is numeric to support longer vectors
   NumericVector out_key = no_init(total_rows);
   NumericVector out_starts = no_init(total_rows);
   NumericVector out_ends = no_init(total_rows);
@@ -86,8 +71,8 @@ DataFrame phint_unnest_impl(const VectorType& vec, String tzone) {
   double* p_out_starts = REAL(out_starts);
   double* p_out_ends = REAL(out_ends);
 
-  IntegerVector out_size = KeepSize ? no_init(total_rows) : IntegerVector();
-  int* p_out_size = KeepSize ? INTEGER(out_size) : nullptr;
+  IntegerVector out_size = no_init(total_rows);
+  int* p_out_size = INTEGER(out_size);
 
   R_xlen_t row = 0;
   for (R_xlen_t i = 0; i < n; i++) {
@@ -100,9 +85,7 @@ DataFrame phint_unnest_impl(const VectorType& vec, String tzone) {
       p_out_key[row] = key;
       p_out_starts[row] = NA_REAL;
       p_out_ends[row] = NA_REAL;
-      if constexpr (KeepSize) {
-        p_out_size[row] = NA_INTEGER;
-      }
+      p_out_size[row] = NA_INTEGER;
       row++;
       continue;
     }
@@ -114,9 +97,7 @@ DataFrame phint_unnest_impl(const VectorType& vec, String tzone) {
         p_out_key[row] = key;
         p_out_starts[row] = NA_REAL;
         p_out_ends[row] = NA_REAL;
-        if constexpr (KeepSize) {
-          p_out_size[row] = 0;
-        }
+        p_out_size[row] = 0;
         row++;
       }
       continue;
@@ -127,18 +108,14 @@ DataFrame phint_unnest_impl(const VectorType& vec, String tzone) {
       p_out_key[row] = key;
       p_out_starts[row] = view.start(0);
       p_out_ends[row] = view.end(0);
-      if constexpr (KeepSize) {
-        p_out_size[row] = 1;
-      }
+      p_out_size[row] = 1;
       row++;
     } else {
       for (int k = 0; k < view.size; k++) {
         p_out_key[row] = key;
         p_out_starts[row] = view.start(k);
         p_out_ends[row] = view.end(k);
-        if constexpr (KeepSize) {
-          p_out_size[row] = view.size;
-        }
+        p_out_size[row] = view.size;
         row++;
       }
     }
@@ -149,18 +126,10 @@ DataFrame phint_unnest_impl(const VectorType& vec, String tzone) {
   dt_starts.attr("tzone") = tzone;
   dt_ends.attr("tzone") = tzone;
 
-  if constexpr (KeepSize) {
-    return DataFrame::create(
-      Named("key") = out_key,
-      Named("start") = dt_starts,
-      Named("end") = dt_ends,
-      Named("size") = out_size
-    );
-  } else {
-    return DataFrame::create(
-      Named("key") = out_key,
-      Named("start") = dt_starts,
-      Named("end") = dt_ends
-    );
-  }
+  return DataFrame::create(
+    Named("key") = out_key,
+    Named("start") = dt_starts,
+    Named("end") = dt_ends,
+    Named("size") = out_size
+  );
 }
