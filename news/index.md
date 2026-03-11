@@ -2,8 +2,6 @@
 
 ## phinterval (development version)
 
-## phinterval 1.0.0.9000
-
 ### Features:
 
 - New
@@ -23,8 +21,10 @@
 
 - New
   [`phint_flatten()`](https://ethansansom.github.io/phinterval/reference/flatten.md)
-  returns all spans or gaps within an entire phinterval vector as a
-  vector of intervals.
+  and
+  [`datetime_flatten()`](https://ethansansom.github.io/phinterval/reference/flatten.md)
+  return all spans or gaps within an entire phinterval vector or
+  datetime spans as a vector of intervals.
 
 ### Bug fixes:
 
