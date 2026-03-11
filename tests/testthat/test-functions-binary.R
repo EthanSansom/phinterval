@@ -461,6 +461,19 @@ test_that("phint_setdiff() handles instants and identical spans correctly", {
       phint_setdiff(phint55, phint14_88) == phint55
     )
   )
+
+  # <set-of-span-and-instant> x <set-of-span-and-instant>
+  expect_all_true(
+    c(
+      phint_setdiff(phint14_88, phint14_88) == phinterval(t8, t8),
+      phint_setdiff(phint11_58, phint11_58) == phinterval(t1, t1),
+
+      phint_setdiff(phint14_58, phint14_88) == phinterval(t5, t8),
+      phint_setdiff(phint14_88, phint14_58) == phinterval(t8, t8),
+      phint_setdiff(phint14_58, phint11_58) == phinterval(t1, t4),
+      phint_setdiff(phint11_58, phint14_58) == phinterval(t1, t1)
+    )
+  )
 })
 
 # phint_symmetric_setdiff ------------------------------------------------------
