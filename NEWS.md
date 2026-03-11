@@ -12,16 +12,15 @@
 
 ## Bug fixes:
 
-* `phint_setdiff()` no longer creates a malformed phinterval when `phint2` contains instants (#3).
+* `phint_setdiff()` no longer returns a malformed phinterval when `phint2` contains instants (#3).
 
-* `phint_invert()` no longer creates a malformed phinterval when `phint` contains instants (#9).
+* `phint_invert()` no longer returns a malformed phinterval when `phint` contains instants (#9).
 
 ## Breaking changes:
 
-* `phint_unnest()` now always returns a dataframe with columns `key`, `start`, `end` and `size`.
+* `phint_unnest()` now always returns a dataframe with columns `key`, `start`, `end`, and `size`, instead of optionally including a `size` column.
 
-The `keep_size` argument has been removed from `phint_unnest()` and the function
-signature has been revised:
+The `keep_size` argument has been removed from `phint_unnest()` and the function signature has been revised:
 
 ```
 # Old Usage
