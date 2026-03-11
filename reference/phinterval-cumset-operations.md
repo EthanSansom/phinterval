@@ -15,9 +15,9 @@ across all preceding elements.
 ## Usage
 
 ``` r
-phint_cumunion(phint, na_propogate = FALSE)
+phint_cumunion(phint, na_propagate = FALSE)
 
-phint_cumintersect(phint, na_propogate = FALSE, bounds = c("[]", "()"))
+phint_cumintersect(phint, na_propagate = FALSE, bounds = c("[]", "()"))
 ```
 
 ## Arguments
@@ -28,7 +28,7 @@ phint_cumintersect(phint, na_propogate = FALSE, bounds = c("[]", "()"))
 
   A `<phinterval>` or `<Interval>` vector.
 
-- na_propogate:
+- na_propagate:
 
   `[FALSE / TRUE]`
 
@@ -89,8 +89,8 @@ phint_cumunion(c(monday, NA, wednesday))
 #> [2] {2025-11-10--2025-11-11}                        
 #> [3] {2025-11-10--2025-11-11, 2025-11-12--2025-11-13}
 
-# NA elements propagate forward with na_propogate = TRUE
-phint_cumunion(c(monday, NA, wednesday), na_propogate = TRUE)
+# NA elements propagate forward with na_propagate = TRUE
+phint_cumunion(c(monday, NA, wednesday), na_propagate = TRUE)
 #> <phinterval<UTC>[3]>
 #> [1] {2025-11-10--2025-11-11} <NA>                     <NA>                    
 
