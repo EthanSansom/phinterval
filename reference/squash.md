@@ -1,38 +1,39 @@
 # Squash overlapping intervals into non-overlapping spans
 
 `phint_squash()` and `datetime_squash()` merge overlapping or adjacent
-intervals into a minimal set of non-overlapping, non-adjacent time
-spans.
+intervals into a single `<phinterval>` element containing a minimal set
+of non-overlapping, non-adjacent time spans.
 
 - `phint_squash()` takes a `<phinterval>` or `<Interval>` vector.
 
 - `datetime_squash()` takes separate `start` and `end` datetime vectors.
 
-When `by = NULL` (the default), all intervals are merged into a single
-phinterval element. When `by` is provided, intervals are grouped and
-merged separately within each group, creating one phinterval element per
-unique value of `by`.
+`phint_squash_by()` and `datetime_squash_by()` merge intervals within
+groups defined by the `by` argument. The result is a `<phinterval>`
+vector containing one element per unique value of `by`.
 
 ## Usage
 
 ``` r
-phint_squash(
+phint_squash(phint, na_rm = TRUE, empty_to = c("hole", "na"))
+
+datetime_squash(start, end, na_rm = TRUE, empty_to = c("hole", "na"))
+
+phint_squash_by(
   phint,
-  by = NULL,
-  na.rm = TRUE,
-  empty_to = c("hole", "na", "empty"),
-  order_by = FALSE,
-  keep_by = FALSE
+  by,
+  na_rm = TRUE,
+  empty_to = c("hole", "na"),
+  order_by = TRUE
 )
 
-datetime_squash(
+datetime_squash_by(
   start,
   end,
-  by = NULL,
-  na.rm = TRUE,
-  empty_to = c("hole", "na", "empty"),
-  order_by = FALSE,
-  keep_by = FALSE
+  by,
+  na_rm = TRUE,
+  empty_to = c("hole", "na"),
+  order_by = TRUE
 )
 ```
 
@@ -44,88 +45,69 @@ datetime_squash(
 
   A `<phinterval>` or `<Interval>` vector.
 
-- by:
-
-  `[vector / data.frame / NULL]`
-
-  An optional grouping vector or data frame. When provided, intervals
-  are grouped by `by` and merged separately within each group. If `NULL`
-  (the default), all intervals are merged into a single phinterval
-  element.
-
-  For `datetime_squash()`, `by` must be recyclable with the recycled
-  length of `start` and `end`.
-
-  `by` may be any vector in the vctrs sense. See
-  [`vctrs::obj_is_vector()`](https://vctrs.r-lib.org/reference/vector-checks.html)
-  for details.
-
-- na.rm:
+- na_rm:
 
   `[TRUE / FALSE]`
 
   Should `NA` elements be removed before squashing? If `FALSE` and any
-  `NA` elements are present, the result for that group is `NA`. Defaults
-  to `TRUE`.
+  `NA` elements are present, the result is `NA`. Defaults to `TRUE`.
 
 - empty_to:
 
-  `["hole" / "na" / "empty"]`
+  `["hole" / "na"]`
 
-  How to handle empty inputs (length-0 vectors or groups with only `NA`
-  values when `na.rm = TRUE`):
+  How to handle empty inputs (length-0 vectors):
 
-  - `"hole"` (default): Return a hole
+  - `"hole"` (default): Return a hole.
 
-  - `"na"`: Return an `NA` phinterval
-
-  - `"empty"`: Return a length-0 phinterval vector
-
-- order_by:
-
-  `[TRUE / FALSE]`
-
-  Should the output be ordered by the values in `by`? If `FALSE` (the
-  default), the output order matches the first appearance of each group
-  in `by`. If `TRUE`, the output is sorted by the unique values of `by`.
-  Only used when `by` is not `NULL`.
-
-- keep_by:
-
-  `[TRUE / FALSE]`
-
-  Should the `by` values be returned alongside the result? If `FALSE`
-  (the default), returns a `<phinterval>` vector. If `TRUE`, returns a
-  [`tibble::tibble()`](https://tibble.tidyverse.org/reference/tibble.html)
-  with columns `by` and `phint`. Requires `by` to be non-`NULL`.
+  - `"na"`: Return an `NA` phinterval.
 
 - start:
 
   `[POSIXct / POSIXlt / Date]`
 
   A vector of start times. Must be recyclable with `end`. Only used in
-  `datetime_squash()`.
+  `datetime_squash()` and `datetime_squash_by()`.
 
 - end:
 
   `[POSIXct / POSIXlt / Date]`
 
   A vector of end times. Must be recyclable with `start`. Only used in
-  `datetime_squash()`.
+  `datetime_squash()` and `datetime_squash_by()`.
+
+- by:
+
+  `[vector / data.frame]`
+
+  A grouping vector or data frame. Intervals are grouped by `by` and
+  merged separately within each group, returning one `<phinterval>`
+  element per unique value of `by`.
+
+  For `datetime_squash_by()`, `by` must be recyclable with the recycled
+  length of `start` and `end`.
+
+  `by` may be any vector in the vctrs sense. See
+  [`vctrs::obj_is_vector()`](https://vctrs.r-lib.org/reference/vector-checks.html)
+  for details.
+
+- order_by:
+
+  `[TRUE / FALSE]`
+
+  Should the output be ordered by the values in `by`? If `TRUE` (the
+  default), the output is sorted by the unique values of `by`. If
+  `FALSE`, the output order matches the first appearance of each group
+  in `by`. Only used in `phint_squash_by()` and `datetime_squash_by()`.
 
 ## Value
 
-When `keep_by = FALSE`:
+`phint_squash()` and `datetime_squash()` return a length-1
+`<phinterval>` vector.
 
-- If `by = NULL`: A length-1 `<phinterval>` vector (or length-0 if the
-  input is empty and `empty_to = "empty"`)
-
-- If `by` is provided: A `<phinterval>` vector with one element per
-  unique value of `by`
-
-When `keep_by = TRUE`: A
+`phint_squash_by()` and `datetime_squash_by()` return a
 [`tibble::tibble()`](https://tibble.tidyverse.org/reference/tibble.html)
-with columns `by` and `phint`.
+with columns `by` and `phint`, with one row per unique value of `by`.
 
 ## Details
 
@@ -133,13 +115,28 @@ These functions are particularly useful in aggregation workflows with
 [`dplyr::summarize()`](https://dplyr.tidyverse.org/reference/summarise.html)
 to combine intervals within groups.
 
+The `phint_squash_by()` and `datetime_squash_by()` variants are designed
+to replicate a call to
+[`dplyr::group_by()`](https://dplyr.tidyverse.org/reference/group_by.html)
+followed by
+[`dplyr::summarize()`](https://dplyr.tidyverse.org/reference/summarise.html),
+but are typically faster. In particular, the following produce identical
+results:
+
+    phint_squash_by(phint, by = by)
+
+    dplyr::tibble(phint = phint, by = by) |>
+      dplyr::group_by(by) |>
+      dplyr::summarize(phint = phint_squash(phint)) |>
+      dplyr::ungroup()
+
 ## See also
 
 [`phint_flatten()`](https://ethansansom.github.io/phinterval/reference/flatten.md)
 and
 [`datetime_flatten()`](https://ethansansom.github.io/phinterval/reference/flatten.md)
-to merge a `<phinterval>` vector of overlapping or adjacent elements
-into a vector of non-overlapping, non-adjacent spans.
+to merge a `<phinterval>` vector into a vector of scalar spans rather
+than a single element.
 
 ## Examples
 
@@ -166,24 +163,35 @@ phint_squash(c(jan_1_to_5, jan_3_to_9, jan_11_to_12, NA))
 #> <phinterval<UTC>[1]>
 #> [1] {2000-01-01--2000-01-09, 2000-01-11--2000-01-12}
 
-# Set na.rm = FALSE to propagate NA values
-phint_squash(c(jan_1_to_5, jan_3_to_9, jan_11_to_12, NA), na.rm = FALSE)
+# Set na_rm = FALSE to propagate NA values
+phint_squash(c(jan_1_to_5, jan_3_to_9, jan_11_to_12, NA), na_rm = FALSE)
 #> <phinterval<UTC>[1]>
 #> [1] <NA>
 
-# Squash within groups
-phint_squash(
-  c(jan_1_to_5, jan_3_to_9, jan_11_to_12),
-  by = c(1, 1, 2)
-)
-#> <phinterval<UTC>[2]>
-#> [1] {2000-01-01--2000-01-09} {2000-01-11--2000-01-12}
+# empty_to determines the result of empty inputs
+phint_squash(phinterval(), empty_to = "hole")
+#> <phinterval<UTC>[1]>
+#> [1] <hole>
+phint_squash(phinterval(), empty_to = "na")
+#> <phinterval<UTC>[1]>
+#> [1] <NA>
 
-# Return a data frame with by values
-phint_squash(
+# phint_squash_by: squash within groups, returning a tibble
+phint_squash_by(
   c(jan_1_to_5, jan_3_to_9, jan_11_to_12),
-  by = c("A", "A", "B"),
-  keep_by = TRUE
+  by = c("A", "A", "B")
+)
+#> # A tibble: 2 × 2
+#>   by    phint                   
+#>   <chr> <phint<UTC>>            
+#> 1 A     {2000-01-01--2000-01-09}
+#> 2 B     {2000-01-11--2000-01-12}
+
+# datetime_squash_by: squash from start/end vectors within groups
+datetime_squash_by(
+  start = as.Date(c("2000-01-01", "2000-01-03", "2000-01-11")),
+  end = as.Date(c("2000-01-05", "2000-01-09", "2000-01-12")),
+  by = c("A", "A", "B")
 )
 #> # A tibble: 2 × 2
 #>   by    phint                   
@@ -192,22 +200,14 @@ phint_squash(
 #> 2 B     {2000-01-11--2000-01-12}
 
 # Control output order with order_by
-phint_squash(
+phint_squash_by(
   c(jan_1_to_5, jan_3_to_9, jan_11_to_12),
   by = c(2, 2, 1),
   order_by = TRUE
 )
-#> <phinterval<UTC>[2]>
-#> [1] {2000-01-11--2000-01-12} {2000-01-01--2000-01-09}
-
-# empty_to determines the result of empty inputs
-empty <- phinterval()
-phint_squash(empty, empty_to = "hole")
-#> <phinterval<UTC>[1]>
-#> [1] <hole>
-phint_squash(empty, empty_to = "na")
-#> <phinterval<UTC>[1]>
-#> [1] <NA>
-phint_squash(empty, empty_to = "empty")
-#> <phinterval<UTC>[0]>
+#> # A tibble: 2 × 2
+#>      by phint                   
+#>   <dbl> <phint<UTC>>            
+#> 1     1 {2000-01-11--2000-01-12}
+#> 2     2 {2000-01-01--2000-01-09}
 ```

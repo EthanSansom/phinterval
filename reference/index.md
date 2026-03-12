@@ -31,6 +31,8 @@
 
 - [`phint_squash()`](https://ethansansom.github.io/phinterval/reference/squash.md)
   [`datetime_squash()`](https://ethansansom.github.io/phinterval/reference/squash.md)
+  [`phint_squash_by()`](https://ethansansom.github.io/phinterval/reference/squash.md)
+  [`datetime_squash_by()`](https://ethansansom.github.io/phinterval/reference/squash.md)
   : Squash overlapping intervals into non-overlapping spans
 
 ## Relations and Predicates

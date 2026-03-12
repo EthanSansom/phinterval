@@ -35,29 +35,65 @@
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="phinterval-development-version">phinterval (development version)<a class="anchor" aria-label="anchor" href="#phinterval-development-version"></a></h2>
 <div class="section level3">
-<h3 id="features-development-version">Features:<a class="anchor" aria-label="anchor" href="#features-development-version"></a></h3>
+<h3 id="features-development-version">Features<a class="anchor" aria-label="anchor" href="#features-development-version"></a></h3>
 <ul><li>
 <p>New <code><a href="../reference/phinterval-cumset-operations.html">phint_cumunion()</a></code>, <code><a href="../reference/phinterval-cumset-operations.html">phint_cumintersect()</a></code>, <code><a href="../reference/phinterval-set-operations.html">phint_symmetric_setdiff()</a></code> to complete the family of set-operations.</p>
 <ul><li><p><code><a href="../reference/phinterval-cumset-operations.html">phint_cumunion()</a></code> and <code><a href="../reference/phinterval-cumset-operations.html">phint_cumintersect()</a></code> take the cumulative union and intersection of a phinterval respectively.</p></li>
 <li><p><code><a href="../reference/phinterval-set-operations.html">phint_symmetric_setdiff()</a></code> takes the symmetric set-difference of two phintervals.</p></li>
 </ul></li>
-<li><p>New <code><a href="../reference/flatten.html">phint_flatten()</a></code> and <code><a href="../reference/flatten.html">datetime_flatten()</a></code> return all spans or gaps within an entire phinterval vector or datetime spans as a vector of intervals.</p></li>
+<li>
+<p>New <code><a href="../reference/flatten.html">phint_flatten()</a></code> returns all spans or gaps within an entire phinterval vector as a vector of intervals.</p>
+<ul><li>New <code><a href="../reference/flatten.html">datetime_flatten()</a></code> returns spans or gaps within a vector of spans defined by <code>start</code> and <code>end</code> points (see also <code><a href="../reference/squash.html">datetime_squash()</a></code>).</li>
+</ul></li>
 </ul></div>
 <div class="section level3">
-<h3 id="bug-fixes-development-version">Bug fixes:<a class="anchor" aria-label="anchor" href="#bug-fixes-development-version"></a></h3>
-<ul><li><p><code><a href="../reference/phinterval-set-operations.html">phint_setdiff()</a></code> no longer creates a malformed phinterval when <code>phint2</code> contains instants (<a href="https://github.com/EthanSansom/phinterval/issues/3" class="external-link">#3</a>).</p></li>
-<li><p><code><a href="../reference/phint_invert.html">phint_invert()</a></code> no longer creates a malformed phinterval when <code>phint</code> contains instants (<a href="https://github.com/EthanSansom/phinterval/issues/9" class="external-link">#9</a>).</p></li>
+<h3 id="bug-fixes-development-version">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-development-version"></a></h3>
+<ul><li><p><code><a href="../reference/phinterval-set-operations.html">phint_setdiff()</a></code> no longer returns a malformed phinterval when <code>phint2</code> contains instants (<a href="https://github.com/EthanSansom/phinterval/issues/3" class="external-link">#3</a>).</p></li>
+<li><p><code><a href="../reference/phint_invert.html">phint_invert()</a></code> no longer returns a malformed phinterval when <code>phint</code> contains instants (<a href="https://github.com/EthanSansom/phinterval/issues/9" class="external-link">#9</a>).</p></li>
 </ul></div>
 <div class="section level3">
-<h3 id="breaking-changes-development-version">Breaking changes:<a class="anchor" aria-label="anchor" href="#breaking-changes-development-version"></a></h3>
+<h3 id="breaking-changes-development-version">Breaking changes<a class="anchor" aria-label="anchor" href="#breaking-changes-development-version"></a></h3>
 <ul><li>
-<code><a href="../reference/phint_unnest.html">phint_unnest()</a></code> now always returns a dataframe with columns <code>key</code>, <code>start</code>, <code>end</code> and <code>size</code>.</li>
+<code><a href="../reference/phint_unnest.html">phint_unnest()</a></code> now always returns a dataframe with columns <code>key</code>, <code>start</code>, <code>end</code>, and <code>size</code>, instead of optionally including a <code>size</code> column.</li>
 </ul><p>The <code>keep_size</code> argument has been removed from <code><a href="../reference/phint_unnest.html">phint_unnest()</a></code> and the function signature has been revised:</p>
 <pre><code><span><span class="co"># Old Usage</span></span>
 <span><span class="fu"><a href="../reference/phint_unnest.html">phint_unnest</a></span><span class="op">(</span><span class="va">phint</span>, hole_to <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"drop"</span>, <span class="st">"na"</span><span class="op">)</span>, keep_size <span class="op">=</span> <span class="cn">FALSE</span>, key <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># New Usage</span></span>
 <span><span class="fu"><a href="../reference/phint_unnest.html">phint_unnest</a></span><span class="op">(</span><span class="va">phint</span>, key <span class="op">=</span> <span class="cn">NULL</span>, hole_to <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"na"</span>, <span class="st">"drop"</span><span class="op">)</span><span class="op">)</span></span></code></pre>
+<ul><li>
+<p><code><a href="../reference/squash.html">phint_squash()</a></code> and <code><a href="../reference/squash.html">datetime_squash()</a></code> have been split into two functions (<a href="https://github.com/EthanSansom/phinterval/issues/13" class="external-link">#13</a>).</p>
+<ul><li><p><code><a href="../reference/squash.html">phint_squash()</a></code> and <code><a href="../reference/squash.html">datetime_squash()</a></code> now always squash intervals into a length-1 <code>&lt;phinterval&gt;</code>.</p></li>
+<li><p><code><a href="../reference/squash.html">phint_squash_by()</a></code> and <code><a href="../reference/squash.html">datetime_squash_by()</a></code> squash intervals within groups defined by the <code>by</code> argument.</p></li>
+<li><p>The <code>order_by</code> argument of <code><a href="../reference/squash.html">phint_squash_by()</a></code> and <code><a href="../reference/squash.html">datetime_squash_by()</a></code> now defaults to <code>TRUE</code>, to match the behavior of <code><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">dplyr::group_by()</a></code>.</p></li>
+<li><p>The <code>na.rm</code> argument of the squash functions has been renamed to <code>na_rm</code> (<a href="https://github.com/EthanSansom/phinterval/issues/19" class="external-link">#19</a>).</p></li>
+</ul></li>
+</ul><p>The return type of the <code>*_squash()</code> variants is now always a scalar <code>&lt;phinterval&gt;</code> vector, meaning it is safe to use within <code><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">dplyr::summarize()</a></code>. This includes cases where the <code>phint</code> argument of <code><a href="../reference/squash.html">phint_squash()</a></code> or the <code>start, end</code> arguments of <code><a href="../reference/squash.html">datetime_squash()</a></code> are empty as the <code>empty_to = "empty"</code> option has been removed from the <code>empty_to</code> argument.</p>
+<p>The return type of the <code>*_squash_by()</code> variants is now always a <code><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble()</a></code> with columns <code>by</code> and <code>phint</code>. Additionally, the <code>keep_by</code> argument has been removed from these variants.</p>
+<pre><code><span><span class="co"># Old Usage</span></span>
+<span><span class="fu"><a href="../reference/squash.html">phint_squash</a></span><span class="op">(</span></span>
+<span>  <span class="va">phint</span>,</span>
+<span>  by <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  na.rm <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  empty_to <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hole"</span>, <span class="st">"na"</span>, <span class="st">"empty"</span><span class="op">)</span>,</span>
+<span>  order_by <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  keep_by <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># New Usage</span></span>
+<span><span class="fu"><a href="../reference/squash.html">phint_squash</a></span><span class="op">(</span></span>
+<span>  <span class="va">phint</span>,</span>
+<span>  na_rm <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  empty_to <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hole"</span>, <span class="st">"na"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/squash.html">phint_squash_by</a></span><span class="op">(</span></span>
+<span>  <span class="va">phint</span>,</span>
+<span>  <span class="va">by</span>,</span>
+<span>  na_rm <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  empty_to <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hole"</span>, <span class="st">"na"</span><span class="op">)</span>,</span>
+<span>  order_by <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre>
 </div>
 </div>
     <div class="section level2">

@@ -281,18 +281,16 @@ preserved as separate spans within a single
 CEO), which <code><a href="../reference/squash.html">phint_squash()</a></code> correctly merges into a single
 contiguous span.</li>
 </ul>
-<p>The <code>by</code> argument of <code><a href="../reference/squash.html">phint_squash()</a></code> and
-<code><a href="../reference/squash.html">datetime_squash()</a></code> (which takes <code>start</code> and
+<p>The <code>by</code> argument of <code><a href="../reference/squash.html">phint_squash_by()</a></code> and
+<code><a href="../reference/squash.html">datetime_squash_by()</a></code> (which takes <code>start</code> and
 <code>end</code> times directly) can be used in place of
 <code><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">dplyr::group_by()</a></code>. The example below is equivalent to the
 previous code but is usually several times faster.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/squash.html">datetime_squash</a></span><span class="op">(</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/squash.html">datetime_squash_by</a></span><span class="op">(</span></span>
 <span>  start <span class="op">=</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="va">jobs</span><span class="op">$</span><span class="va">start</span><span class="op">)</span>,</span>
 <span>  end <span class="op">=</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/ymd.html" class="external-link">ymd</a></span><span class="op">(</span><span class="va">jobs</span><span class="op">$</span><span class="va">end</span><span class="op">)</span>,</span>
-<span>  by <span class="op">=</span> <span class="va">jobs</span><span class="op">$</span><span class="va">name</span>,</span>
-<span>  keep_by <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  order_by <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  by <span class="op">=</span> <span class="va">jobs</span><span class="op">$</span><span class="va">name</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 3 × 2</span></span></span>
 <span><span class="co">#&gt;   by    phint                                           </span></span>

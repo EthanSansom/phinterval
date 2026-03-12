@@ -2,7 +2,7 @@
 
 ## phinterval (development version)
 
-### Features:
+### Features
 
 - New
   [`phint_cumunion()`](https://ethansansom.github.io/phinterval/reference/phinterval-cumset-operations.md),
@@ -21,26 +21,30 @@
 
 - New
   [`phint_flatten()`](https://ethansansom.github.io/phinterval/reference/flatten.md)
-  and
-  [`datetime_flatten()`](https://ethansansom.github.io/phinterval/reference/flatten.md)
-  return all spans or gaps within an entire phinterval vector or
-  datetime spans as a vector of intervals.
+  returns all spans or gaps within an entire phinterval vector as a
+  vector of intervals.
 
-### Bug fixes:
+  - New
+    [`datetime_flatten()`](https://ethansansom.github.io/phinterval/reference/flatten.md)
+    returns spans or gaps within a vector of spans defined by `start`
+    and `end` points (see also
+    [`datetime_squash()`](https://ethansansom.github.io/phinterval/reference/squash.md)).
+
+### Bug fixes
 
 - [`phint_setdiff()`](https://ethansansom.github.io/phinterval/reference/phinterval-set-operations.md)
-  no longer creates a malformed phinterval when `phint2` contains
+  no longer returns a malformed phinterval when `phint2` contains
   instants ([\#3](https://github.com/EthanSansom/phinterval/issues/3)).
 
 - [`phint_invert()`](https://ethansansom.github.io/phinterval/reference/phint_invert.md)
-  no longer creates a malformed phinterval when `phint` contains
+  no longer returns a malformed phinterval when `phint` contains
   instants ([\#9](https://github.com/EthanSansom/phinterval/issues/9)).
 
-### Breaking changes:
+### Breaking changes
 
 - [`phint_unnest()`](https://ethansansom.github.io/phinterval/reference/phint_unnest.md)
-  now always returns a dataframe with columns `key`, `start`, `end` and
-  `size`.
+  now always returns a dataframe with columns `key`, `start`, `end`, and
+  `size`, instead of optionally including a `size` column.
 
 The `keep_size` argument has been removed from
 [`phint_unnest()`](https://ethansansom.github.io/phinterval/reference/phint_unnest.md)
@@ -51,6 +55,73 @@ and the function signature has been revised:
 
     # New Usage
     phint_unnest(phint, key = NULL, hole_to = c("na", "drop"))
+
+- [`phint_squash()`](https://ethansansom.github.io/phinterval/reference/squash.md)
+  and
+  [`datetime_squash()`](https://ethansansom.github.io/phinterval/reference/squash.md)
+  have been split into two functions
+  ([\#13](https://github.com/EthanSansom/phinterval/issues/13)).
+
+  - [`phint_squash()`](https://ethansansom.github.io/phinterval/reference/squash.md)
+    and
+    [`datetime_squash()`](https://ethansansom.github.io/phinterval/reference/squash.md)
+    now always squash intervals into a length-1 `<phinterval>`.
+
+  - [`phint_squash_by()`](https://ethansansom.github.io/phinterval/reference/squash.md)
+    and
+    [`datetime_squash_by()`](https://ethansansom.github.io/phinterval/reference/squash.md)
+    squash intervals within groups defined by the `by` argument.
+
+  - The `order_by` argument of
+    [`phint_squash_by()`](https://ethansansom.github.io/phinterval/reference/squash.md)
+    and
+    [`datetime_squash_by()`](https://ethansansom.github.io/phinterval/reference/squash.md)
+    now defaults to `TRUE`, to match the behavior of
+    [`dplyr::group_by()`](https://dplyr.tidyverse.org/reference/group_by.html).
+
+  - The `na.rm` argument of the squash functions has been renamed to
+    `na_rm`
+    ([\#19](https://github.com/EthanSansom/phinterval/issues/19)).
+
+The return type of the `*_squash()` variants is now always a scalar
+`<phinterval>` vector, meaning it is safe to use within
+[`dplyr::summarize()`](https://dplyr.tidyverse.org/reference/summarise.html).
+This includes cases where the `phint` argument of
+[`phint_squash()`](https://ethansansom.github.io/phinterval/reference/squash.md)
+or the `start, end` arguments of
+[`datetime_squash()`](https://ethansansom.github.io/phinterval/reference/squash.md)
+are empty as the `empty_to = "empty"` option has been removed from the
+`empty_to` argument.
+
+The return type of the `*_squash_by()` variants is now always a
+[`tibble()`](https://tibble.tidyverse.org/reference/tibble.html) with
+columns `by` and `phint`. Additionally, the `keep_by` argument has been
+removed from these variants.
+
+    # Old Usage
+    phint_squash(
+      phint,
+      by = NULL,
+      na.rm = TRUE,
+      empty_to = c("hole", "na", "empty"),
+      order_by = FALSE,
+      keep_by = FALSE
+    )
+
+    # New Usage
+    phint_squash(
+      phint,
+      na_rm = TRUE,
+      empty_to = c("hole", "na")
+    )
+
+    phint_squash_by(
+      phint,
+      by,
+      na_rm = TRUE,
+      empty_to = c("hole", "na"),
+      order_by = TRUE
+    )
 
 ## phinterval 1.0.0
 

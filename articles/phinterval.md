@@ -238,21 +238,19 @@ Notice that:
   correctly merges into a single contiguous span.
 
 The `by` argument of
-[`phint_squash()`](https://ethansansom.github.io/phinterval/reference/squash.md)
+[`phint_squash_by()`](https://ethansansom.github.io/phinterval/reference/squash.md)
 and
-[`datetime_squash()`](https://ethansansom.github.io/phinterval/reference/squash.md)
+[`datetime_squash_by()`](https://ethansansom.github.io/phinterval/reference/squash.md)
 (which takes `start` and `end` times directly) can be used in place of
 [`dplyr::group_by()`](https://dplyr.tidyverse.org/reference/group_by.html).
 The example below is equivalent to the previous code but is usually
 several times faster.
 
 ``` r
-datetime_squash(
+datetime_squash_by(
   start = ymd(jobs$start),
   end = ymd(jobs$end),
-  by = jobs$name,
-  keep_by = TRUE,
-  order_by = TRUE
+  by = jobs$name
 )
 #> # A tibble: 3 × 2
 #>   by    phint                                           
