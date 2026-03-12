@@ -220,18 +220,16 @@ Notice that:
     which `phint_squash()` correctly merges into a single contiguous
     span.
 
-The `by` argument of `phint_squash()` and `datetime_squash()` (which takes 
+The `by` argument of `phint_squash_by()` and `datetime_squash_by()` (which takes 
 `start` and `end` times directly) can be used in place of `dplyr::group_by()`.
 The example below is equivalent to the previous code but is usually several 
 times faster.
 
 ```{r}
-datetime_squash(
+datetime_squash_by(
   start = ymd(jobs$start),
   end = ymd(jobs$end),
-  by = jobs$name,
-  keep_by = TRUE,
-  order_by = TRUE
+  by = jobs$name
 )
 ```
 
