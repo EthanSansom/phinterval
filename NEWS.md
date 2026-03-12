@@ -1,6 +1,6 @@
 # phinterval (development version)
 
-## Features:
+## Features
 
 * New `phint_cumunion()`, `phint_cumintersect()`, `phint_symmetric_setdiff()` to complete the family of set-operations.
 
@@ -10,13 +10,13 @@
   
 * New `phint_flatten()` and `datetime_flatten()` return all spans or gaps within an entire phinterval vector or datetime spans as a vector of intervals.
 
-## Bug fixes:
+## Bug fixes
 
 * `phint_setdiff()` no longer returns a malformed phinterval when `phint2` contains instants (#3).
 
 * `phint_invert()` no longer returns a malformed phinterval when `phint` contains instants (#9).
 
-## Breaking changes:
+## Breaking changes
 
 * `phint_unnest()` now always returns a dataframe with columns `key`, `start`, `end`, and `size`, instead of optionally including a `size` column.
 
@@ -28,6 +28,52 @@ phint_unnest(phint, hole_to = c("drop", "na"), keep_size = FALSE, key = NULL)
 
 # New Usage
 phint_unnest(phint, key = NULL, hole_to = c("na", "drop"))
+```
+
+* `phint_squash()` and `datetime_squash()` have been split into two functions (#13).
+
+  * `phint_squash()` and `datetime_squash()` now squash intervals into a length-1 `<phinterval>`.
+  
+  * `phint_squash_by()` and `datetime_squash_by()` squash intervals within groups defined by the `by` argument.
+  
+  * The `order_by` argument of `phint_squash_by()` and `datetime_squash_by()` now defaults to `TRUE`, to match the behavior of `dplyr::group_by()`.
+  
+  * The `na.rm` argument of the squash functions has been renamed to `na_rm` (#19).
+  
+The return type of the `*_squash()` variants is now always a scalar `<phinterval>`
+vector, meaning it is safe to use within `dplyr::summarize()`. This includes cases 
+where the `phint` argument of `phint_squash()` or the `start, end` arguments of 
+`datetime_squash()` are empty (i.e. the `empty_to = "empty"` option has been removed 
+from the `empty_to` argument).
+
+The return type of the `*_squash_by()` variants is now always a `tibble()` with 
+columns `by` and `phint`. The `keep_by = FALSE` argument has been removed.
+
+```
+# Old Usage
+phint_squash(
+  phint,
+  by = NULL,
+  na.rm = TRUE,
+  empty_to = c("hole", "na", "empty"),
+  order_by = FALSE,
+  keep_by = FALSE
+)
+
+# New Usage
+phint_squash(
+  phint,
+  na_rm = TRUE,
+  empty_to = c("hole", "na")
+)
+
+phint_squash_by(
+  phint,
+  by,
+  na_rm = TRUE,
+  empty_to = c("hole", "na"),
+  order_by = TRUE
+)
 ```
 
 # phinterval 1.0.0
