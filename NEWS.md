@@ -8,7 +8,9 @@
   
   * `phint_symmetric_setdiff()` takes the symmetric set-difference of two phintervals.
   
-* New `phint_flatten()` and `datetime_flatten()` return all spans or gaps within an entire phinterval vector or datetime spans as a vector of intervals.
+* New `phint_flatten()` returns all spans or gaps within an entire phinterval vector as a vector of intervals.
+
+  * New `datetime_flatten()` returns spans or gaps within a vector of spans defined by `start` and `end` points (see also `datetime_squash()`).
 
 ## Bug fixes
 
@@ -32,7 +34,7 @@ phint_unnest(phint, key = NULL, hole_to = c("na", "drop"))
 
 * `phint_squash()` and `datetime_squash()` have been split into two functions (#13).
 
-  * `phint_squash()` and `datetime_squash()` now squash intervals into a length-1 `<phinterval>`.
+  * `phint_squash()` and `datetime_squash()` now always squash intervals into a length-1 `<phinterval>`.
   
   * `phint_squash_by()` and `datetime_squash_by()` squash intervals within groups defined by the `by` argument.
   
@@ -43,11 +45,12 @@ phint_unnest(phint, key = NULL, hole_to = c("na", "drop"))
 The return type of the `*_squash()` variants is now always a scalar `<phinterval>`
 vector, meaning it is safe to use within `dplyr::summarize()`. This includes cases 
 where the `phint` argument of `phint_squash()` or the `start, end` arguments of 
-`datetime_squash()` are empty (i.e. the `empty_to = "empty"` option has been removed 
-from the `empty_to` argument).
+`datetime_squash()` are empty as the `empty_to = "empty"` option has been removed 
+from the `empty_to` argument.
 
 The return type of the `*_squash_by()` variants is now always a `tibble()` with 
-columns `by` and `phint`. The `keep_by = FALSE` argument has been removed.
+columns `by` and `phint`. Additionally, the `keep_by` argument has been removed 
+from these variants.
 
 ```
 # Old Usage
