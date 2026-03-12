@@ -149,11 +149,17 @@ List phint_accumulate(const VectorX& x, Op op) {
     }
   }
 
+  return buffer.get_results();
+
   fill_with_na:
-    for (; i < n; i++) buffer.add_na_element();
+    {
+      for (; i < n; i++) buffer.add_na_element();
+      return buffer.get_results();
+    }
 
   fill_with_empty:
-    for (; i < n; i++) buffer.add_empty_element();
-
-  return buffer.get_results();
+    {
+      for (; i < n; i++) buffer.add_empty_element();
+      return buffer.get_results();
+    }
 }
