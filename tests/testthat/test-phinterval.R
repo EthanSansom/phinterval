@@ -208,43 +208,43 @@ test_that("phinterval() with `by` and `order_by` works as expected", {
   )
   expect_equal(
     phinterval(c(t1, t3, t5), c(t2, t4, t6), by = c(2, 2, 1), order_by = FALSE),
-    datetime_squash(
+    datetime_squash_by(
       c(t1, t3, t5),
       c(t2, t4, t6),
       by = c(2, 2, 1),
       order_by = FALSE,
       na.rm = TRUE
-    )
+    )$phint
   )
   expect_equal(
     phinterval(c(t1, t3, t5), c(t2, t4, t6), by = c(2, 2, 1), order_by = TRUE),
-    datetime_squash(
+    datetime_squash_by(
       c(t1, t3, t5),
       c(t2, t4, t6),
       by = c(2, 2, 1),
       order_by = TRUE,
       na.rm = TRUE
-    )
+    )$phint
   )
   expect_equal(
     phinterval(c(t1, t3, t5), c(t2, t4, t6), by = 3:1, order_by = FALSE),
-    datetime_squash(
+    datetime_squash_by(
       c(t1, t3, t5),
       c(t2, t4, t6),
       by = 3:1,
       order_by = FALSE,
       na.rm = TRUE
-    )
+    )$phint
   )
   expect_equal(
     phinterval(c(t1, t3, t5), c(t2, t4, t6), by = 3:1, order_by = TRUE),
-    datetime_squash(
+    datetime_squash_by(
       c(t1, t3, t5),
       c(t2, t4, t6),
       by = 3:1,
       order_by = TRUE,
       na.rm = TRUE
-    )
+    )$phint
   )
 })
 

@@ -12,15 +12,28 @@ using namespace Rcpp;
 // squash ----------------------------------------------------------------------
 
 // [[Rcpp::export]]
-List phint_squash_cpp(IntegerVector size, List starts, List ends, bool na_rm) {
+List phint_squash_cpp(
+    IntegerVector size,
+    List starts,
+    List ends,
+    bool na_rm,
+    String empty_to
+) {
   const R_xlen_t n = size.size();
   if (n == 0) {
-    return phint_result_hole();
+    if (empty_to == "hole") return phint_result_hole();
+    return phint_result_na();
   }
-  // TODO: Early return for size-1 as well
-  const int* p_size = INTEGER(size);
+  if (n == 1) {
+    return List::create(
+      Named("size") = size,
+      Named("starts") = starts,
+      Named("ends") = ends
+    );
+  }
 
   // First pass: count the total number of spans and test for NA values
+  const int* p_size = INTEGER(size);
   bool all_na = true;
   R_xlen_t total_spans = 0;
   for (R_xlen_t i = 0; i < n; i++) {
@@ -33,14 +46,12 @@ List phint_squash_cpp(IntegerVector size, List starts, List ends, bool na_rm) {
     total_spans += size_i;
   }
 
+  // We either only hit holes or only hit NA values
   if (total_spans == 0) {
-    if (all_na) {
-      return phint_result_na();
-    }
+    if (all_na) return phint_result_na();
     return phint_result_hole();
   }
 
-  // TODO: Looking at this quickly, I think these could be std::vector<double>'s
   // Allocate vectors to unlist into
   NumericVector starts_buffer = no_init(total_spans);
   NumericVector ends_buffer = no_init(total_spans);
@@ -60,7 +71,8 @@ List phint_squash_cpp(IntegerVector size, List starts, List ends, bool na_rm) {
     const double* p_starts_i = REAL(starts_i);
     const double* p_ends_i = REAL(ends_i);
 
-    // Note size_i > 0
+    // Note size_i > 0, `memcpy(dest, src, 0)` can be unsafe on some machines:
+    // https://github.com/r-lib/vctrs/blob/94cea16b1ed3939aaa59c58dda75eedc75d6d075/src/rlang/c-utils.h#L180
     std::memcpy(p_starts_buffer + offset, p_starts_i, size_i * sizeof(double));
     std::memcpy(p_ends_buffer + offset, p_ends_i, size_i * sizeof(double));
     offset += size_i;
@@ -71,15 +83,15 @@ List phint_squash_cpp(IntegerVector size, List starts, List ends, bool na_rm) {
 }
 
 // [[Rcpp::export]]
-List intvl_squash_cpp(DatetimeVector starts, NumericVector spans, bool na_rm) {
+List intvl_squash_cpp(DatetimeVector starts, NumericVector spans, bool na_rm, String empty_to) {
   IntvlVectorView vec { starts, spans };
-  return squash_vec_impl(vec, na_rm);
+  return squash_vec_impl(vec, na_rm, empty_to);
 }
 
 // [[Rcpp::export]]
-List range_squash_cpp(DatetimeVector starts, DatetimeVector ends, bool na_rm) {
+List range_squash_cpp(DatetimeVector starts, DatetimeVector ends, bool na_rm, String empty_to) {
   RangeVectorView vec { starts, ends };
-  return squash_vec_impl(vec, na_rm);
+  return squash_vec_impl(vec, na_rm, empty_to);
 }
 
 List squash_num_impl(const NumericVector& starts, const NumericVector& ends) {
@@ -99,8 +111,8 @@ List squash_num_impl(const NumericVector& starts, const NumericVector& ends) {
     return p_ends[i] < p_ends[j];
   });
 
-  // TODO: Also potentially std::vector<numeric>. Benchmark, we might not need
-  // to reserve the entire size `n`. We can just `Rcpp::wrap()` for the output.
+  // TODO: Potentially std::vector<numeric>. Benchmark, we might not need to
+  // reserve the entire size `n`. We can just `Rcpp::wrap()` for the output.
   NumericVector out_starts = no_init(n);
   NumericVector out_ends = no_init(n);
   double* p_out_starts = REAL(out_starts);
@@ -148,10 +160,11 @@ List phint_squash_by_cpp(
     List starts,
     List ends,
     List group_locs,
-    bool na_rm
+    bool na_rm,
+    String empty_to
 ) {
   PhintVectorView vec { size, starts, ends };
-  return squash_by_impl(vec, group_locs, na_rm);
+  return squash_vec_by_impl(vec, group_locs, na_rm, empty_to);
 }
 
 // [[Rcpp::export]]
@@ -159,10 +172,11 @@ List intvl_squash_by_cpp(
     DatetimeVector starts,
     NumericVector spans,
     List group_locs,
-    bool na_rm
+    bool na_rm,
+    String empty_to
 ) {
   IntvlVectorView vec { starts, spans };
-  return squash_by_impl(vec, group_locs, na_rm);
+  return squash_vec_by_impl(vec, group_locs, na_rm, empty_to);
 }
 
 // [[Rcpp::export]]
@@ -170,8 +184,9 @@ List range_squash_by_cpp(
     DatetimeVector starts,
     DatetimeVector ends,
     List group_locs,
-    bool na_rm
+    bool na_rm,
+    String empty_to
 ) {
   RangeVectorView vec { starts, ends };
-  return squash_by_impl(vec, group_locs, na_rm);
+  return squash_vec_by_impl(vec, group_locs, na_rm, empty_to);
 }

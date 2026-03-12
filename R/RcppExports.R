@@ -197,28 +197,28 @@ intvl_intvl_overlaps_cpp <- function(x_starts, x_spans, y_starts, y_spans, bound
     .Call(`_phinterval_intvl_intvl_overlaps_cpp`, x_starts, x_spans, y_starts, y_spans, bounds)
 }
 
-phint_squash_cpp <- function(size, starts, ends, na_rm) {
-    .Call(`_phinterval_phint_squash_cpp`, size, starts, ends, na_rm)
+phint_squash_cpp <- function(size, starts, ends, na_rm, empty_to) {
+    .Call(`_phinterval_phint_squash_cpp`, size, starts, ends, na_rm, empty_to)
 }
 
-intvl_squash_cpp <- function(starts, spans, na_rm) {
-    .Call(`_phinterval_intvl_squash_cpp`, starts, spans, na_rm)
+intvl_squash_cpp <- function(starts, spans, na_rm, empty_to) {
+    .Call(`_phinterval_intvl_squash_cpp`, starts, spans, na_rm, empty_to)
 }
 
-range_squash_cpp <- function(starts, ends, na_rm) {
-    .Call(`_phinterval_range_squash_cpp`, starts, ends, na_rm)
+range_squash_cpp <- function(starts, ends, na_rm, empty_to) {
+    .Call(`_phinterval_range_squash_cpp`, starts, ends, na_rm, empty_to)
 }
 
-phint_squash_by_cpp <- function(size, starts, ends, group_locs, na_rm) {
-    .Call(`_phinterval_phint_squash_by_cpp`, size, starts, ends, group_locs, na_rm)
+phint_squash_by_cpp <- function(size, starts, ends, group_locs, na_rm, empty_to) {
+    .Call(`_phinterval_phint_squash_by_cpp`, size, starts, ends, group_locs, na_rm, empty_to)
 }
 
-intvl_squash_by_cpp <- function(starts, spans, group_locs, na_rm) {
-    .Call(`_phinterval_intvl_squash_by_cpp`, starts, spans, group_locs, na_rm)
+intvl_squash_by_cpp <- function(starts, spans, group_locs, na_rm, empty_to) {
+    .Call(`_phinterval_intvl_squash_by_cpp`, starts, spans, group_locs, na_rm, empty_to)
 }
 
-range_squash_by_cpp <- function(starts, ends, group_locs, na_rm) {
-    .Call(`_phinterval_range_squash_by_cpp`, starts, ends, group_locs, na_rm)
+range_squash_by_cpp <- function(starts, ends, group_locs, na_rm, empty_to) {
+    .Call(`_phinterval_range_squash_by_cpp`, starts, ends, group_locs, na_rm, empty_to)
 }
 
 tzone_is_valid_cpp <- function(tzone) {

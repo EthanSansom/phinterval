@@ -101,19 +101,19 @@ datetime_flatten <- function(start, end, what = c("spans", "holes")) {
   check_recycleable(start, end)
   what <- arg_match(what, c("spans", "holes"))
 
-  if (length(start) == length(end)) {
-    out <- range_flatten_cpp(
-      starts = start,
-      ends = end,
-      what = what
-    )
-  } else {
+  if (length(start) != length(end)) {
     range <- vec_recycle_common(start = start, end = end)
-    out <- range_flatten_cpp(
-      starts = range$start,
-      ends = range$end,
-      what = what
-    )
+    start <- as.POSIXct(range$start)
+    end <- as.POSIXct(range$end)
+  } else {
+    start <- as.POSIXct(start)
+    end <- as.POSIXct(end)
   }
+
+  out <- range_flatten_cpp(
+    starts = start,
+    ends = end,
+    what = what
+  )
   new_phinterval_bare(out, tzone = tz_union(start, end))
 }

@@ -4,25 +4,29 @@
 \alias{squash}
 \alias{phint_squash}
 \alias{datetime_squash}
+\alias{phint_squash_by}
+\alias{datetime_squash_by}
 \title{Squash overlapping intervals into non-overlapping spans}
 \usage{
-phint_squash(
+phint_squash(phint, na.rm = TRUE, empty_to = c("hole", "na"))
+
+datetime_squash(start, end, na.rm = TRUE, empty_to = c("hole", "na"))
+
+phint_squash_by(
   phint,
-  by = NULL,
+  by,
   na.rm = TRUE,
-  empty_to = c("hole", "na", "empty"),
-  order_by = FALSE,
-  keep_by = FALSE
+  empty_to = c("hole", "na"),
+  order_by = TRUE
 )
 
-datetime_squash(
+datetime_squash_by(
   start,
   end,
-  by = NULL,
+  by,
   na.rm = TRUE,
-  empty_to = c("hole", "na", "empty"),
-  order_by = FALSE,
-  keep_by = FALSE
+  empty_to = c("hole", "na"),
+  order_by = TRUE
 )
 }
 \arguments{
@@ -30,83 +34,83 @@ datetime_squash(
 
 A \verb{<phinterval>} or \verb{<Interval>} vector.}
 
-\item{by}{\verb{[vector / data.frame / NULL]}
+\item{na.rm}{\verb{[TRUE / FALSE]}
 
-An optional grouping vector or data frame. When provided, intervals are
-grouped by \code{by} and merged separately within each group. If \code{NULL} (the
-default), all intervals are merged into a single phinterval element.
+Should \code{NA} elements be removed before squashing? If \code{FALSE} and any \code{NA}
+elements are present, the result is \code{NA}. Defaults to \code{TRUE}.}
 
-For \code{datetime_squash()}, \code{by} must be recyclable with the recycled length
+\item{empty_to}{\verb{["hole" / "na"]}
+
+How to handle empty inputs (length-0 vectors):
+\itemize{
+\item \code{"hole"} (default): Return a hole.
+\item \code{"na"}: Return an \code{NA} phinterval.
+}}
+
+\item{start}{\verb{[POSIXct / POSIXlt / Date]}
+
+A vector of start times. Must be recyclable with \code{end}. Only used in
+\code{datetime_squash()} and \code{datetime_squash_by()}.}
+
+\item{end}{\verb{[POSIXct / POSIXlt / Date]}
+
+A vector of end times. Must be recyclable with \code{start}. Only used in
+\code{datetime_squash()} and \code{datetime_squash_by()}.}
+
+\item{by}{\verb{[vector / data.frame]}
+
+A grouping vector or data frame. Intervals are grouped by \code{by} and merged
+separately within each group, returning one \verb{<phinterval>} element per
+unique value of \code{by}.
+
+For \code{datetime_squash_by()}, \code{by} must be recyclable with the recycled length
 of \code{start} and \code{end}.
 
 \code{by} may be any vector in the vctrs sense. See \code{\link[vctrs:vector-checks]{vctrs::obj_is_vector()}}
 for details.}
 
-\item{na.rm}{\verb{[TRUE / FALSE]}
-
-Should \code{NA} elements be removed before squashing? If \code{FALSE} and any \code{NA}
-elements are present, the result for that group is \code{NA}. Defaults to \code{TRUE}.}
-
-\item{empty_to}{\verb{["hole" / "na" / "empty"]}
-
-How to handle empty inputs (length-0 vectors or groups with only \code{NA} values
-when \code{na.rm = TRUE}):
-\itemize{
-\item \code{"hole"} (default): Return a hole
-\item \code{"na"}: Return an \code{NA} phinterval
-\item \code{"empty"}: Return a length-0 phinterval vector
-}}
-
 \item{order_by}{\verb{[TRUE / FALSE]}
 
-Should the output be ordered by the values in \code{by}? If \code{FALSE} (the default),
-the output order matches the first appearance of each group in \code{by}. If \code{TRUE},
-the output is sorted by the unique values of \code{by}. Only used when \code{by} is not
-\code{NULL}.}
-
-\item{keep_by}{\verb{[TRUE / FALSE]}
-
-Should the \code{by} values be returned alongside the result? If \code{FALSE} (the
-default), returns a \verb{<phinterval>} vector. If \code{TRUE}, returns a \code{\link[tibble:tibble]{tibble::tibble()}}
-with columns \code{by} and \code{phint}. Requires \code{by} to be non-\code{NULL}.}
-
-\item{start}{\verb{[POSIXct / POSIXlt / Date]}
-
-A vector of start times. Must be recyclable with \code{end}. Only used in
-\code{datetime_squash()}.}
-
-\item{end}{\verb{[POSIXct / POSIXlt / Date]}
-
-A vector of end times. Must be recyclable with \code{start}. Only used in
-\code{datetime_squash()}.}
+Should the output be ordered by the values in \code{by}? If \code{TRUE} (the default),
+the output is sorted by the unique values of \code{by}. If \code{FALSE}, the output order
+matches the first appearance of each group in \code{by}. Only used in \code{phint_squash_by()}
+and \code{datetime_squash_by()}.}
 }
 \value{
-When \code{keep_by = FALSE}:
-\itemize{
-\item If \code{by = NULL}: A length-1 \verb{<phinterval>} vector (or length-0 if the input
-is empty and \code{empty_to = "empty"})
-\item If \code{by} is provided: A \verb{<phinterval>} vector with one element per unique
-value of \code{by}
-}
+\code{phint_squash()} and \code{datetime_squash()} return a length-1 \verb{<phinterval>}
+vector.
 
-When \code{keep_by = TRUE}: A \code{\link[tibble:tibble]{tibble::tibble()}} with columns \code{by} and \code{phint}.
+\code{phint_squash_by()} and \code{datetime_squash_by()} return a \code{\link[tibble:tibble]{tibble::tibble()}}
+with columns \code{by} and \code{phint}, with one row per unique value of \code{by}.
 }
 \description{
 \code{phint_squash()} and \code{datetime_squash()} merge overlapping or adjacent
-intervals into a minimal set of non-overlapping, non-adjacent time spans.
+intervals into a single \verb{<phinterval>} element containing a minimal set of
+non-overlapping, non-adjacent time spans.
 \itemize{
 \item \code{phint_squash()} takes a \verb{<phinterval>} or \verb{<Interval>} vector.
 \item \code{datetime_squash()} takes separate \code{start} and \code{end} datetime vectors.
 }
 
-When \code{by = NULL} (the default), all intervals are merged into a single
-phinterval element. When \code{by} is provided, intervals are grouped and merged
-separately within each group, creating one phinterval element per unique
-value of \code{by}.
+\code{phint_squash_by()} and \code{datetime_squash_by()} merge intervals within groups
+defined by the \code{by} argument. The result is a \verb{<phinterval>} vector containing
+one element per unique value of \code{by}.
 }
 \details{
 These functions are particularly useful in aggregation workflows with
 \code{\link[dplyr:summarise]{dplyr::summarize()}} to combine intervals within groups.
+
+The \code{phint_squash_by()} and \code{datetime_squash_by()} variants are designed to
+replicate a call to \code{\link[dplyr:group_by]{dplyr::group_by()}}, then \code{\link[dplyr:summarise]{dplyr::summarize()}}, but are
+typically faster. In particular, the following produce identical results:
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{phint_squash_by(phint, by = by)
+
+dplyr::tibble(phint = phint, by = by) |>
+  dplyr::group_by(by) |>
+  dplyr::summarize(phint = phint_squash(phint)) |>
+  dplyr::ungroup()
+}\if{html}{\out{</div>}}
 }
 \examples{
 jan_1_to_5 <- interval(as.Date("2000-01-01"), as.Date("2000-01-05"))
@@ -128,35 +132,34 @@ phint_squash(c(jan_1_to_5, jan_3_to_9, jan_11_to_12, NA))
 # Set na.rm = FALSE to propagate NA values
 phint_squash(c(jan_1_to_5, jan_3_to_9, jan_11_to_12, NA), na.rm = FALSE)
 
-# Squash within groups
-phint_squash(
+# empty_to determines the result of empty inputs
+phint_squash(phinterval(), empty_to = "hole")
+phint_squash(phinterval(), empty_to = "na")
+
+# phint_squash_by: squash within groups, returning a tibble
+phint_squash_by(
   c(jan_1_to_5, jan_3_to_9, jan_11_to_12),
-  by = c(1, 1, 2)
+  by = c("A", "A", "B")
 )
 
-# Return a data frame with by values
-phint_squash(
-  c(jan_1_to_5, jan_3_to_9, jan_11_to_12),
-  by = c("A", "A", "B"),
-  keep_by = TRUE
+# datetime_squash_by: squash from start/end vectors within groups
+datetime_squash_by(
+  start = as.Date(c("2000-01-01", "2000-01-03", "2000-01-11")),
+  end = as.Date(c("2000-01-05", "2000-01-09", "2000-01-12")),
+  by = c("A", "A", "B")
 )
 
 # Control output order with order_by
-phint_squash(
+phint_squash_by(
   c(jan_1_to_5, jan_3_to_9, jan_11_to_12),
   by = c(2, 2, 1),
   order_by = TRUE
 )
 
-# empty_to determines the result of empty inputs
-empty <- phinterval()
-phint_squash(empty, empty_to = "hole")
-phint_squash(empty, empty_to = "na")
-phint_squash(empty, empty_to = "empty")
-
 }
 \seealso{
-\code{\link[=phint_flatten]{phint_flatten()}} and \code{\link[=datetime_flatten]{datetime_flatten()}} to merge a \verb{<phinterval>}
-vector of overlapping or adjacent elements into a vector of non-overlapping,
-non-adjacent spans.
+\itemize{
+\item \code{\link[=phint_flatten]{phint_flatten()}} and \code{\link[=datetime_flatten]{datetime_flatten()}} to merge a \verb{<phinterval>}
+vector into a vector of scalar spans rather than a single element.
+}
 }

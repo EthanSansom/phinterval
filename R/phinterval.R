@@ -140,29 +140,47 @@ phinterval <- function(
   check_bool(order_by)
 
   tzone <- tzone %||% tz_union(start, end)
-  range <- vec_recycle_common(starts = as.POSIXct(start), ends = as.POSIXct(end))
+  if (length(start) != length(end)) {
+    range <- vec_recycle_common(start = start, end = end)
+    start <- as.POSIXct(range$start)
+    end <- as.POSIXct(range$end)
+  } else {
+    start <- as.POSIXct(start)
+    end <- as.POSIXct(end)
+  }
 
   if (is_null(by)) {
-    out <- as_phint_range_cpp(starts = range$starts, ends = range$ends)
+    out <- as_phint_range_cpp(starts = start, ends = end)
     return(new_phinterval_bare(out, tzone = tzone))
   }
 
   check_recycleable_to(
     x = by,
-    to = range$starts,
+    to = start,
     to_arg = "vctrs::vec_recycle_common(start, end)"
   )
+  if (is_empty(start)) {
+    return(new_phinterval(tzone = tzone))
+  }
 
-  datetime_squash_impl(
-    starts = range$starts,
-    ends = range$ends,
-    by = by,
-    tzone = tzone,
-    na.rm = FALSE,
-    empty_to = "empty",
-    order_by = order_by,
-    keep_by = FALSE
-  )
+  if (vec_size(by) == 1L) {
+    out <- range_squash_cpp(
+      starts = start,
+      ends = end,
+      na_rm = TRUE,
+      empty_to = "hole"
+    )
+  } else {
+    groups <- if (order_by) vec_locate_sorted_groups(by) else vec_group_loc(by)
+    out <- range_squash_by_cpp(
+      starts = start,
+      ends = end,
+      group_locs = .subset2(groups, "loc"),
+      na_rm = TRUE,
+      empty_to = "hole"
+    )
+  }
+  new_phinterval_bare(out, tzone = tzone)
 }
 
 #' Create a hole phinterval

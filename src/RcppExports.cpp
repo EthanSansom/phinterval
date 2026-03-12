@@ -711,8 +711,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // phint_squash_cpp
-List phint_squash_cpp(IntegerVector size, List starts, List ends, bool na_rm);
-RcppExport SEXP _phinterval_phint_squash_cpp(SEXP sizeSEXP, SEXP startsSEXP, SEXP endsSEXP, SEXP na_rmSEXP) {
+List phint_squash_cpp(IntegerVector size, List starts, List ends, bool na_rm, String empty_to);
+RcppExport SEXP _phinterval_phint_squash_cpp(SEXP sizeSEXP, SEXP startsSEXP, SEXP endsSEXP, SEXP na_rmSEXP, SEXP empty_toSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -720,39 +720,42 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< List >::type starts(startsSEXP);
     Rcpp::traits::input_parameter< List >::type ends(endsSEXP);
     Rcpp::traits::input_parameter< bool >::type na_rm(na_rmSEXP);
-    rcpp_result_gen = Rcpp::wrap(phint_squash_cpp(size, starts, ends, na_rm));
+    Rcpp::traits::input_parameter< String >::type empty_to(empty_toSEXP);
+    rcpp_result_gen = Rcpp::wrap(phint_squash_cpp(size, starts, ends, na_rm, empty_to));
     return rcpp_result_gen;
 END_RCPP
 }
 // intvl_squash_cpp
-List intvl_squash_cpp(DatetimeVector starts, NumericVector spans, bool na_rm);
-RcppExport SEXP _phinterval_intvl_squash_cpp(SEXP startsSEXP, SEXP spansSEXP, SEXP na_rmSEXP) {
+List intvl_squash_cpp(DatetimeVector starts, NumericVector spans, bool na_rm, String empty_to);
+RcppExport SEXP _phinterval_intvl_squash_cpp(SEXP startsSEXP, SEXP spansSEXP, SEXP na_rmSEXP, SEXP empty_toSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< DatetimeVector >::type starts(startsSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type spans(spansSEXP);
     Rcpp::traits::input_parameter< bool >::type na_rm(na_rmSEXP);
-    rcpp_result_gen = Rcpp::wrap(intvl_squash_cpp(starts, spans, na_rm));
+    Rcpp::traits::input_parameter< String >::type empty_to(empty_toSEXP);
+    rcpp_result_gen = Rcpp::wrap(intvl_squash_cpp(starts, spans, na_rm, empty_to));
     return rcpp_result_gen;
 END_RCPP
 }
 // range_squash_cpp
-List range_squash_cpp(DatetimeVector starts, DatetimeVector ends, bool na_rm);
-RcppExport SEXP _phinterval_range_squash_cpp(SEXP startsSEXP, SEXP endsSEXP, SEXP na_rmSEXP) {
+List range_squash_cpp(DatetimeVector starts, DatetimeVector ends, bool na_rm, String empty_to);
+RcppExport SEXP _phinterval_range_squash_cpp(SEXP startsSEXP, SEXP endsSEXP, SEXP na_rmSEXP, SEXP empty_toSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< DatetimeVector >::type starts(startsSEXP);
     Rcpp::traits::input_parameter< DatetimeVector >::type ends(endsSEXP);
     Rcpp::traits::input_parameter< bool >::type na_rm(na_rmSEXP);
-    rcpp_result_gen = Rcpp::wrap(range_squash_cpp(starts, ends, na_rm));
+    Rcpp::traits::input_parameter< String >::type empty_to(empty_toSEXP);
+    rcpp_result_gen = Rcpp::wrap(range_squash_cpp(starts, ends, na_rm, empty_to));
     return rcpp_result_gen;
 END_RCPP
 }
 // phint_squash_by_cpp
-List phint_squash_by_cpp(IntegerVector size, List starts, List ends, List group_locs, bool na_rm);
-RcppExport SEXP _phinterval_phint_squash_by_cpp(SEXP sizeSEXP, SEXP startsSEXP, SEXP endsSEXP, SEXP group_locsSEXP, SEXP na_rmSEXP) {
+List phint_squash_by_cpp(IntegerVector size, List starts, List ends, List group_locs, bool na_rm, String empty_to);
+RcppExport SEXP _phinterval_phint_squash_by_cpp(SEXP sizeSEXP, SEXP startsSEXP, SEXP endsSEXP, SEXP group_locsSEXP, SEXP na_rmSEXP, SEXP empty_toSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -761,13 +764,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< List >::type ends(endsSEXP);
     Rcpp::traits::input_parameter< List >::type group_locs(group_locsSEXP);
     Rcpp::traits::input_parameter< bool >::type na_rm(na_rmSEXP);
-    rcpp_result_gen = Rcpp::wrap(phint_squash_by_cpp(size, starts, ends, group_locs, na_rm));
+    Rcpp::traits::input_parameter< String >::type empty_to(empty_toSEXP);
+    rcpp_result_gen = Rcpp::wrap(phint_squash_by_cpp(size, starts, ends, group_locs, na_rm, empty_to));
     return rcpp_result_gen;
 END_RCPP
 }
 // intvl_squash_by_cpp
-List intvl_squash_by_cpp(DatetimeVector starts, NumericVector spans, List group_locs, bool na_rm);
-RcppExport SEXP _phinterval_intvl_squash_by_cpp(SEXP startsSEXP, SEXP spansSEXP, SEXP group_locsSEXP, SEXP na_rmSEXP) {
+List intvl_squash_by_cpp(DatetimeVector starts, NumericVector spans, List group_locs, bool na_rm, String empty_to);
+RcppExport SEXP _phinterval_intvl_squash_by_cpp(SEXP startsSEXP, SEXP spansSEXP, SEXP group_locsSEXP, SEXP na_rmSEXP, SEXP empty_toSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -775,13 +779,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< NumericVector >::type spans(spansSEXP);
     Rcpp::traits::input_parameter< List >::type group_locs(group_locsSEXP);
     Rcpp::traits::input_parameter< bool >::type na_rm(na_rmSEXP);
-    rcpp_result_gen = Rcpp::wrap(intvl_squash_by_cpp(starts, spans, group_locs, na_rm));
+    Rcpp::traits::input_parameter< String >::type empty_to(empty_toSEXP);
+    rcpp_result_gen = Rcpp::wrap(intvl_squash_by_cpp(starts, spans, group_locs, na_rm, empty_to));
     return rcpp_result_gen;
 END_RCPP
 }
 // range_squash_by_cpp
-List range_squash_by_cpp(DatetimeVector starts, DatetimeVector ends, List group_locs, bool na_rm);
-RcppExport SEXP _phinterval_range_squash_by_cpp(SEXP startsSEXP, SEXP endsSEXP, SEXP group_locsSEXP, SEXP na_rmSEXP) {
+List range_squash_by_cpp(DatetimeVector starts, DatetimeVector ends, List group_locs, bool na_rm, String empty_to);
+RcppExport SEXP _phinterval_range_squash_by_cpp(SEXP startsSEXP, SEXP endsSEXP, SEXP group_locsSEXP, SEXP na_rmSEXP, SEXP empty_toSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -789,7 +794,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< DatetimeVector >::type ends(endsSEXP);
     Rcpp::traits::input_parameter< List >::type group_locs(group_locsSEXP);
     Rcpp::traits::input_parameter< bool >::type na_rm(na_rmSEXP);
-    rcpp_result_gen = Rcpp::wrap(range_squash_by_cpp(starts, ends, group_locs, na_rm));
+    Rcpp::traits::input_parameter< String >::type empty_to(empty_toSEXP);
+    rcpp_result_gen = Rcpp::wrap(range_squash_by_cpp(starts, ends, group_locs, na_rm, empty_to));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -884,12 +890,12 @@ static const R_CallMethodDef CallEntries[] = {
     {"_phinterval_phint_intvl_overlaps_cpp", (DL_FUNC) &_phinterval_phint_intvl_overlaps_cpp, 6},
     {"_phinterval_intvl_phint_overlaps_cpp", (DL_FUNC) &_phinterval_intvl_phint_overlaps_cpp, 6},
     {"_phinterval_intvl_intvl_overlaps_cpp", (DL_FUNC) &_phinterval_intvl_intvl_overlaps_cpp, 5},
-    {"_phinterval_phint_squash_cpp", (DL_FUNC) &_phinterval_phint_squash_cpp, 4},
-    {"_phinterval_intvl_squash_cpp", (DL_FUNC) &_phinterval_intvl_squash_cpp, 3},
-    {"_phinterval_range_squash_cpp", (DL_FUNC) &_phinterval_range_squash_cpp, 3},
-    {"_phinterval_phint_squash_by_cpp", (DL_FUNC) &_phinterval_phint_squash_by_cpp, 5},
-    {"_phinterval_intvl_squash_by_cpp", (DL_FUNC) &_phinterval_intvl_squash_by_cpp, 4},
-    {"_phinterval_range_squash_by_cpp", (DL_FUNC) &_phinterval_range_squash_by_cpp, 4},
+    {"_phinterval_phint_squash_cpp", (DL_FUNC) &_phinterval_phint_squash_cpp, 5},
+    {"_phinterval_intvl_squash_cpp", (DL_FUNC) &_phinterval_intvl_squash_cpp, 4},
+    {"_phinterval_range_squash_cpp", (DL_FUNC) &_phinterval_range_squash_cpp, 4},
+    {"_phinterval_phint_squash_by_cpp", (DL_FUNC) &_phinterval_phint_squash_by_cpp, 6},
+    {"_phinterval_intvl_squash_by_cpp", (DL_FUNC) &_phinterval_intvl_squash_by_cpp, 5},
+    {"_phinterval_range_squash_by_cpp", (DL_FUNC) &_phinterval_range_squash_by_cpp, 5},
     {"_phinterval_tzone_is_valid_cpp", (DL_FUNC) &_phinterval_tzone_is_valid_cpp, 1},
     {"_phinterval_phint_unnest_cpp", (DL_FUNC) &_phinterval_phint_unnest_cpp, 5},
     {"_phinterval_intvl_unnest_cpp", (DL_FUNC) &_phinterval_intvl_unnest_cpp, 4},
