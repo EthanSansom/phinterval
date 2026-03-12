@@ -158,8 +158,6 @@ phint_squash_by(
 
 }
 \seealso{
-\itemize{
-\item \code{\link[=phint_flatten]{phint_flatten()}} and \code{\link[=datetime_flatten]{datetime_flatten()}} to merge a \verb{<phinterval>}
+\code{\link[=phint_flatten]{phint_flatten()}} and \code{\link[=datetime_flatten]{datetime_flatten()}} to merge a \verb{<phinterval>}
 vector into a vector of scalar spans rather than a single element.
-}
 }

@@ -82,8 +82,8 @@
 #' with columns `by` and `phint`, with one row per unique value of `by`.
 #'
 #' @seealso
-#' - [phint_flatten()] and [datetime_flatten()] to merge a `<phinterval>`
-#'   vector into a vector of scalar spans rather than a single element.
+#' [phint_flatten()] and [datetime_flatten()] to merge a `<phinterval>`
+#' vector into a vector of scalar spans rather than a single element.
 #'
 #' @examples
 #' jan_1_to_5 <- interval(as.Date("2000-01-01"), as.Date("2000-01-05"))
