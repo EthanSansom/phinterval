@@ -8,14 +8,14 @@
 \alias{datetime_squash_by}
 \title{Squash overlapping intervals into non-overlapping spans}
 \usage{
-phint_squash(phint, na.rm = TRUE, empty_to = c("hole", "na"))
+phint_squash(phint, na_rm = TRUE, empty_to = c("hole", "na"))
 
-datetime_squash(start, end, na.rm = TRUE, empty_to = c("hole", "na"))
+datetime_squash(start, end, na_rm = TRUE, empty_to = c("hole", "na"))
 
 phint_squash_by(
   phint,
   by,
-  na.rm = TRUE,
+  na_rm = TRUE,
   empty_to = c("hole", "na"),
   order_by = TRUE
 )
@@ -24,7 +24,7 @@ datetime_squash_by(
   start,
   end,
   by,
-  na.rm = TRUE,
+  na_rm = TRUE,
   empty_to = c("hole", "na"),
   order_by = TRUE
 )
@@ -34,7 +34,7 @@ datetime_squash_by(
 
 A \verb{<phinterval>} or \verb{<Interval>} vector.}
 
-\item{na.rm}{\verb{[TRUE / FALSE]}
+\item{na_rm}{\verb{[TRUE / FALSE]}
 
 Should \code{NA} elements be removed before squashing? If \code{FALSE} and any \code{NA}
 elements are present, the result is \code{NA}. Defaults to \code{TRUE}.}
@@ -101,8 +101,8 @@ These functions are particularly useful in aggregation workflows with
 \code{\link[dplyr:summarise]{dplyr::summarize()}} to combine intervals within groups.
 
 The \code{phint_squash_by()} and \code{datetime_squash_by()} variants are designed to
-replicate a call to \code{\link[dplyr:group_by]{dplyr::group_by()}}, then \code{\link[dplyr:summarise]{dplyr::summarize()}}, but are
-typically faster. In particular, the following produce identical results:
+replicate a call to \code{\link[dplyr:group_by]{dplyr::group_by()}} followed by \code{\link[dplyr:summarise]{dplyr::summarize()}}, but
+are typically faster. In particular, the following produce identical results:
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{phint_squash_by(phint, by = by)
 
@@ -129,8 +129,8 @@ datetime_squash(
 # NA values are removed by default
 phint_squash(c(jan_1_to_5, jan_3_to_9, jan_11_to_12, NA))
 
-# Set na.rm = FALSE to propagate NA values
-phint_squash(c(jan_1_to_5, jan_3_to_9, jan_11_to_12, NA), na.rm = FALSE)
+# Set na_rm = FALSE to propagate NA values
+phint_squash(c(jan_1_to_5, jan_3_to_9, jan_11_to_12, NA), na_rm = FALSE)
 
 # empty_to determines the result of empty inputs
 phint_squash(phinterval(), empty_to = "hole")

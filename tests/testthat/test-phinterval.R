@@ -213,7 +213,7 @@ test_that("phinterval() with `by` and `order_by` works as expected", {
       c(t2, t4, t6),
       by = c(2, 2, 1),
       order_by = FALSE,
-      na.rm = TRUE
+      na_rm = TRUE
     )$phint
   )
   expect_equal(
@@ -223,7 +223,7 @@ test_that("phinterval() with `by` and `order_by` works as expected", {
       c(t2, t4, t6),
       by = c(2, 2, 1),
       order_by = TRUE,
-      na.rm = TRUE
+      na_rm = TRUE
     )$phint
   )
   expect_equal(
@@ -233,7 +233,7 @@ test_that("phinterval() with `by` and `order_by` works as expected", {
       c(t2, t4, t6),
       by = 3:1,
       order_by = FALSE,
-      na.rm = TRUE
+      na_rm = TRUE
     )$phint
   )
   expect_equal(
@@ -243,7 +243,7 @@ test_that("phinterval() with `by` and `order_by` works as expected", {
       c(t2, t4, t6),
       by = 3:1,
       order_by = TRUE,
-      na.rm = TRUE
+      na_rm = TRUE
     )$phint
   )
 })

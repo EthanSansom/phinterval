@@ -16,7 +16,7 @@ test_that("phint_squash() respects empty_to argument", {
   expect_equal(phint_squash(intvl, empty_to = "na"), na)
 })
 
-test_that("phint_squash() respects na.rm argument", {
+test_that("phint_squash() respects na_rm argument", {
   d1 <- as.Date("2021-01-01")
   d2 <- as.Date("2021-01-02")
   d3 <- as.Date("2021-01-04")
@@ -29,15 +29,15 @@ test_that("phint_squash() respects na.rm argument", {
   int34 <- phinterval(d3, d4)
   phint <- phint_squash(c(int12, int34))
 
-  expect_equal(phint_squash(na_int, na.rm = TRUE), na_phint)
-  expect_equal(phint_squash(c(na_int, na_int), na.rm = TRUE), na_phint)
-  expect_equal(phint_squash(na_int, na.rm = FALSE), na_phint)
-  expect_equal(phint_squash(na_phint, na.rm = TRUE), na_phint)
-  expect_equal(phint_squash(c(na_phint, na_phint), na.rm = TRUE), na_phint)
-  expect_equal(phint_squash(na_phint, na.rm = FALSE), na_phint)
+  expect_equal(phint_squash(na_int, na_rm = TRUE), na_phint)
+  expect_equal(phint_squash(c(na_int, na_int), na_rm = TRUE), na_phint)
+  expect_equal(phint_squash(na_int, na_rm = FALSE), na_phint)
+  expect_equal(phint_squash(na_phint, na_rm = TRUE), na_phint)
+  expect_equal(phint_squash(c(na_phint, na_phint), na_rm = TRUE), na_phint)
+  expect_equal(phint_squash(na_phint, na_rm = FALSE), na_phint)
 
-  expect_equal(phint_squash(c(int12, int34, na_int), na.rm = TRUE), phint)
-  expect_equal(phint_squash(c(int12, int34, na_int), na.rm = FALSE), na_phint)
+  expect_equal(phint_squash(c(int12, int34, na_int), na_rm = TRUE), phint)
+  expect_equal(phint_squash(c(int12, int34, na_int), na_rm = FALSE), na_phint)
 })
 
 test_that("phint_squash() works with <Interval> or <phinterval> inputs", {
@@ -51,7 +51,7 @@ test_that("phint_squash() works with <Interval> or <phinterval> inputs", {
 })
 
 test_that("phint_squash() errors on invalid inputs", {
-  expect_error(phint_squash(phinterval(), na.rm = NA))
+  expect_error(phint_squash(phinterval(), na_rm = NA))
   expect_error(phint_squash(phinterval(), empty_to = ""))
   expect_error(phint_squash(phinterval(), empty_to = 10))
   expect_error(phint_squash(as.Date("2020-01-01")))
@@ -201,7 +201,7 @@ test_that("phint_squash_by() works with <Interval> or <phinterval> inputs", {
 })
 
 test_that("phint_squash_by() errors on invalid inputs", {
-  expect_error(phint_squash_by(phinterval(), by = 1L, na.rm = NA))
+  expect_error(phint_squash_by(phinterval(), by = 1L, na_rm = NA))
   expect_error(phint_squash_by(phinterval(), by = 1L, empty_to = ""))
   expect_error(phint_squash_by(phinterval(), by = 1L, empty_to = 10))
   expect_error(phint_squash_by(as.Date("2020-01-01"), by = 1L))
@@ -254,11 +254,11 @@ test_that("phint_squash_by() works as expected", {
     )
   )
   expect_equal(
-    phint_squash_by(phint, by = c(8, 8, 2, 2, 2, 3, 3, 3), order_by = FALSE, na.rm = FALSE)$phint,
+    phint_squash_by(phint, by = c(8, 8, 2, 2, 2, 3, 3, 3), order_by = FALSE, na_rm = FALSE)$phint,
     c(
-      phint_squash(phint[1:2], na.rm = FALSE),
-      phint_squash(phint[3:5], na.rm = FALSE),
-      phint_squash(phint[6:8], na.rm = FALSE)
+      phint_squash(phint[1:2], na_rm = FALSE),
+      phint_squash(phint[3:5], na_rm = FALSE),
+      phint_squash(phint[6:8], na_rm = FALSE)
     )
   )
   expect_equal(
@@ -294,8 +294,8 @@ test_that("phint_squash_by() works as expected", {
   expect_equal(phint_squash_by(phint[1:4], by = 1)$phint, phint_squash(phint[1:4]))
   expect_equal(phint_squash_by(phint, by = 1)$phint, phint_squash(phint))
   expect_equal(
-    phint_squash_by(phint, by = 1, na.rm = FALSE)$phint,
-    phint_squash(phint, na.rm = FALSE)
+    phint_squash_by(phint, by = 1, na_rm = FALSE)$phint,
+    phint_squash(phint, na_rm = FALSE)
   )
 
   # `by` works with a data.frame
@@ -459,7 +459,7 @@ test_that("datetime_squash() errors on invalid inputs", {
 
   expect_error(datetime_squash(t1, 10))
   expect_error(datetime_squash("A", t1))
-  expect_error(datetime_squash(t1, t1, na.rm = NA))
+  expect_error(datetime_squash(t1, t1, na_rm = NA))
   expect_error(datetime_squash(t0, t0, empty_to = "span"))
 
   # Recycling
@@ -506,7 +506,7 @@ test_that("datetime_squash() standardizes starts/ends", {
   )
 })
 
-test_that("datetime_squash() respects na.rm argument", {
+test_that("datetime_squash() respects na_rm argument", {
   d1 <- as.Date("2021-01-01")
   d2 <- as.Date("2021-01-02")
   d3 <- as.Date("2021-01-04")
@@ -516,16 +516,16 @@ test_that("datetime_squash() respects na.rm argument", {
   na_phint <- phinterval(NA_POSIXct_, NA_POSIXct_, tzone = "UTC")
   phint <- phinterval(c(d1, d3), c(d2, d4), by = 1)
 
-  expect_equal(datetime_squash(d_na, d_na, na.rm = TRUE), na_phint)
-  expect_equal(datetime_squash(rep(d_na, 2), rep(d_na, 2), na.rm = TRUE), na_phint)
-  expect_equal(datetime_squash(d_na, d1, na.rm = TRUE), na_phint)
-  expect_equal(datetime_squash(d1, d_na, na.rm = TRUE), na_phint)
+  expect_equal(datetime_squash(d_na, d_na, na_rm = TRUE), na_phint)
+  expect_equal(datetime_squash(rep(d_na, 2), rep(d_na, 2), na_rm = TRUE), na_phint)
+  expect_equal(datetime_squash(d_na, d1, na_rm = TRUE), na_phint)
+  expect_equal(datetime_squash(d1, d_na, na_rm = TRUE), na_phint)
 
-  expect_equal(datetime_squash(d_na, d_na, na.rm = FALSE), na_phint)
-  expect_equal(datetime_squash(d1, d_na, na.rm = FALSE), na_phint)
+  expect_equal(datetime_squash(d_na, d_na, na_rm = FALSE), na_phint)
+  expect_equal(datetime_squash(d1, d_na, na_rm = FALSE), na_phint)
 
-  expect_equal(datetime_squash(c(d1, d3, d_na), c(d2, d4, d_na), na.rm = TRUE), phint)
-  expect_equal(datetime_squash(c(d1, d3, d_na), c(d2, d4, d_na), na.rm = FALSE), na_phint)
+  expect_equal(datetime_squash(c(d1, d3, d_na), c(d2, d4, d_na), na_rm = TRUE), phint)
+  expect_equal(datetime_squash(c(d1, d3, d_na), c(d2, d4, d_na), na_rm = FALSE), na_phint)
 })
 
 test_that("datetime_squash() works as expected", {
@@ -591,7 +591,7 @@ test_that("datetime_squash_by() errors on invalid inputs", {
   expect_error(datetime_squash_by(t3, t3, by = numeric()))
   expect_error(datetime_squash_by(t3, t3, by = mean))
 
-  expect_error(datetime_squash_by(t1, t1, by = 1L, na.rm = NA))
+  expect_error(datetime_squash_by(t1, t1, by = 1L, na_rm = NA))
   expect_error(datetime_squash_by(t0, t0, by = 1L, empty_to = "span"))
   expect_error(datetime_squash_by(t1, t1, by = 1L, order_by = NA))
 })
@@ -644,7 +644,7 @@ test_that("datetime_squash_by() works as expected", {
 
   # order_by = FALSE
   expect_same_squash(phint, by = c(8, 8, 2, 2, 2, 3, 3, 3), order_by = FALSE)
-  expect_same_squash(phint, by = c(8, 8, 2, 2, 2, 3, 3, 3), order_by = FALSE, na.rm = FALSE)
+  expect_same_squash(phint, by = c(8, 8, 2, 2, 2, 3, 3, 3), order_by = FALSE, na_rm = FALSE)
   expect_same_squash(phint, by = c(1, 2, 3, 2, 3, 3, 4, 1), order_by = FALSE)
 
   # order_by = TRUE
@@ -663,8 +663,8 @@ test_that("datetime_squash_by() works as expected", {
     datetime_squash(starts, ends)
   )
   expect_equal(
-    datetime_squash_by(starts, ends, by = 1, na.rm = FALSE)$phint,
-    datetime_squash(starts, ends, na.rm = FALSE)
+    datetime_squash_by(starts, ends, by = 1, na_rm = FALSE)$phint,
+    datetime_squash(starts, ends, na_rm = FALSE)
   )
 
   # `by` works with a data.frame

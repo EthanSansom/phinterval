@@ -55,7 +55,7 @@
 #' `by` may be any vector in the vctrs sense. See [vctrs::obj_is_vector()]
 #' for details.
 #'
-#' @param na.rm `[TRUE / FALSE]`
+#' @param na_rm `[TRUE / FALSE]`
 #'
 #' Should `NA` elements be removed before squashing? If `FALSE` and any `NA`
 #' elements are present, the result is `NA`. Defaults to `TRUE`.
@@ -102,8 +102,8 @@
 #' # NA values are removed by default
 #' phint_squash(c(jan_1_to_5, jan_3_to_9, jan_11_to_12, NA))
 #'
-#' # Set na.rm = FALSE to propagate NA values
-#' phint_squash(c(jan_1_to_5, jan_3_to_9, jan_11_to_12, NA), na.rm = FALSE)
+#' # Set na_rm = FALSE to propagate NA values
+#' phint_squash(c(jan_1_to_5, jan_3_to_9, jan_11_to_12, NA), na_rm = FALSE)
 #'
 #' # empty_to determines the result of empty inputs
 #' phint_squash(phinterval(), empty_to = "hole")
@@ -134,8 +134,8 @@ NULL
 
 #' @rdname squash
 #' @export
-phint_squash <- function(phint, na.rm = TRUE, empty_to = c("hole", "na")) {
-  check_bool(na.rm)
+phint_squash <- function(phint, na_rm = TRUE, empty_to = c("hole", "na")) {
+  check_bool(na_rm)
   out <- phint_unary_dispatch(
     x = phint,
     x_type = validate_type_phintish(phint),
@@ -143,7 +143,7 @@ phint_squash <- function(phint, na.rm = TRUE, empty_to = c("hole", "na")) {
       phint = phint_squash_cpp,
       intvl = intvl_squash_cpp
     ),
-    na_rm = na.rm,
+    na_rm = na_rm,
     empty_to = arg_match0(empty_to, c("hole", "na"))
   )
   new_phinterval_bare(out, tzone = get_tzone(phint))
@@ -152,11 +152,11 @@ phint_squash <- function(phint, na.rm = TRUE, empty_to = c("hole", "na")) {
 
 #' @rdname squash
 #' @export
-datetime_squash <- function(start, end, na.rm = TRUE, empty_to = c("hole", "na")) {
+datetime_squash <- function(start, end, na_rm = TRUE, empty_to = c("hole", "na")) {
   check_instant(start)
   check_instant(end)
   check_recycleable(start, end)
-  check_bool(na.rm)
+  check_bool(na_rm)
   empty_to <- arg_match0(empty_to, c("hole", "na"))
 
   if (length(start) != length(end)) {
@@ -171,7 +171,7 @@ datetime_squash <- function(start, end, na.rm = TRUE, empty_to = c("hole", "na")
   out <- range_squash_cpp(
     starts = start,
     ends = end,
-    na_rm = na.rm,
+    na_rm = na_rm,
     empty_to = empty_to
   )
   new_phinterval_bare(out, tzone = tz_union(start, end))
@@ -182,14 +182,14 @@ datetime_squash <- function(start, end, na.rm = TRUE, empty_to = c("hole", "na")
 phint_squash_by <- function(
     phint,
     by,
-    na.rm = TRUE,
+    na_rm = TRUE,
     empty_to = c("hole", "na"),
     order_by = TRUE
 ) {
   phint_type <- validate_type_phintish(phint)
   check_vector(by)
   check_recycleable_to(by, phint)
-  check_bool(na.rm)
+  check_bool(na_rm)
   empty_to <- arg_match0(empty_to, c("hole", "na"))
   check_bool(order_by)
 
@@ -212,7 +212,7 @@ phint_squash_by <- function(
         phint = phint_squash_cpp,
         intvl = intvl_squash_cpp
       ),
-      na_rm = na.rm,
+      na_rm = na_rm,
       empty_to = empty_to
     )
     return(tibble::new_tibble(list(
@@ -229,7 +229,7 @@ phint_squash_by <- function(
       phint = phint_squash_by_cpp,
       intvl = intvl_squash_by_cpp
     ),
-    na_rm = na.rm,
+    na_rm = na_rm,
     empty_to = empty_to,
     group_locs = .subset2(groups, "loc")
   )
@@ -246,7 +246,7 @@ datetime_squash_by <- function(
     start,
     end,
     by,
-    na.rm = TRUE,
+    na_rm = TRUE,
     empty_to = c("hole", "na"),
     order_by = TRUE
 ) {
@@ -254,7 +254,7 @@ datetime_squash_by <- function(
   check_instant(end)
   check_recycleable(start, end)
   check_vector(by)
-  check_bool(na.rm)
+  check_bool(na_rm)
   empty_to <- arg_match0(empty_to, c("hole", "na"))
   check_bool(order_by)
 
@@ -287,7 +287,7 @@ datetime_squash_by <- function(
     out <- range_squash_cpp(
       starts = start,
       ends = end,
-      na_rm = na.rm,
+      na_rm = na_rm,
       empty_to = empty_to
     )
     return(tibble::new_tibble(list(
@@ -301,7 +301,7 @@ datetime_squash_by <- function(
     starts = start,
     ends = end,
     group_locs = .subset2(groups, "loc"),
-    na_rm = na.rm,
+    na_rm = na_rm,
     empty_to = empty_to
   )
 
