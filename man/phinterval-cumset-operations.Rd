@@ -17,10 +17,9 @@ A \verb{<phinterval>} or \verb{<Interval>} vector.}
 
 \item{na_propagate}{\verb{[FALSE / TRUE]}
 
-Whether \code{NA} values propagate forward (or backward, if \code{reverse = TRUE})
-through the cumulative result:
+Whether \code{NA} values propagate forward through the cumulative result:
 \itemize{
-\item \code{FALSE} (default): \code{NA} elements are treated as \code{\link[=hole]{hole()}}s and do not
+\item \code{FALSE} (default): \code{NA} elements are converted to \code{\link[=hole]{hole()}}s and do not
 affect subsequent results.
 \item \code{TRUE}: An \code{NA} element causes all subsequent elements to become \code{NA}.
 }}
@@ -72,7 +71,7 @@ phint_cumunion(c(monday, NA, wednesday), na_propagate = TRUE)
 phint_cumintersect(c(mon_to_wed, monday, tuesday))
 
 # Once the intersection becomes a hole, it remains a hole
-phint_cumintersect(c(monday, tuesday, wednesday))
+phint_cumintersect(c(monday, wednesday, mon_to_wed))
 
 # Bounds affect the intersection of adjacent intervals
 phint_cumintersect(c(monday, tuesday), bounds = "[]")

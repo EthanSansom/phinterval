@@ -122,9 +122,8 @@ phint_sift <- function(phint) {
 #'
 #' @param na_propagate `[FALSE / TRUE]`
 #'
-#' Whether `NA` values propagate forward (or backward, if `reverse = TRUE`)
-#' through the cumulative result:
-#' - `FALSE` (default): `NA` elements are treated as [hole()]s and do not
+#' Whether `NA` values propagate forward through the cumulative result:
+#' - `FALSE` (default): `NA` elements are converted to [hole()]s and do not
 #'   affect subsequent results.
 #' - `TRUE`: An `NA` element causes all subsequent elements to become `NA`.
 #'
@@ -162,7 +161,7 @@ phint_sift <- function(phint) {
 #' phint_cumintersect(c(mon_to_wed, monday, tuesday))
 #'
 #' # Once the intersection becomes a hole, it remains a hole
-#' phint_cumintersect(c(monday, tuesday, wednesday))
+#' phint_cumintersect(c(monday, wednesday, mon_to_wed))
 #'
 #' # Bounds affect the intersection of adjacent intervals
 #' phint_cumintersect(c(monday, tuesday), bounds = "[]")
