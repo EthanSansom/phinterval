@@ -153,8 +153,8 @@ phint_squash <- function(phint, na_rm = TRUE, empty_to = c("hole", "na")) {
 #' @rdname squash
 #' @export
 datetime_squash <- function(start, end, na_rm = TRUE, empty_to = c("hole", "na")) {
-  check_instant(start)
-  check_instant(end)
+  check_datetime(start)
+  check_datetime(end)
   check_recycleable(start, end)
   check_bool(na_rm)
   empty_to <- arg_match0(empty_to, c("hole", "na"))
@@ -250,8 +250,8 @@ datetime_squash_by <- function(
     empty_to = c("hole", "na"),
     order_by = TRUE
 ) {
-  check_instant(start)
-  check_instant(end)
+  check_datetime(start)
+  check_datetime(end)
   check_recycleable(start, end)
   check_vector(by)
   check_bool(na_rm)

@@ -28,25 +28,12 @@ validate_type_phintish <- function(x, arg = caller_arg(x), call = caller_env()) 
   )
 }
 
-check_phintish_or_instant <- function(x, arg = caller_arg(x), call = caller_env()) {
-  if (is_phintish(x) || is_instant(x)) {
-    return(invisible(NULL))
-  }
-
-  stop_input_type(
-    x,
-    "a <phinterval>, <Interval>, or datetime vector",
-    arg = arg,
-    call = call
-  )
-}
-
-validate_type_phintish_or_instant <- function(x, arg = caller_arg(x), call = caller_env()) {
+validate_type_phintish_or_datetime <- function(x, arg = caller_arg(x), call = caller_env()) {
   if (is_phinterval(x)) {
     return("phint")
   } else if (lubridate::is.interval(x)) {
     return("intvl")
-  } else if (is_instant(x)) {
+  } else if (is_datetime(x)) {
     return("point")
   }
 
@@ -58,8 +45,8 @@ validate_type_phintish_or_instant <- function(x, arg = caller_arg(x), call = cal
   )
 }
 
-check_instant <- function(x, arg = caller_arg(x), call = caller_env()) {
-  if (is_instant(x)) {
+check_datetime <- function(x, arg = caller_arg(x), call = caller_env()) {
+  if (is_datetime(x)) {
     return(invisible(NULL))
   }
 

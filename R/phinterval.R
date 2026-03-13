@@ -132,8 +132,8 @@ phinterval <- function(
     by = NULL,
     order_by = FALSE
 ) {
-  check_instant(start)
-  check_instant(end)
+  check_datetime(start)
+  check_datetime(end)
   check_recycleable(start, end)
   check_string(tzone, allow_null = TRUE)
   check_vector(by, allow_null = TRUE)
@@ -459,7 +459,7 @@ as_phinterval <- function(x, ...) {
 #' @rdname as_phinterval
 #' @export
 as_phinterval.default <- function(x, ...) {
-  if (is_instant(x)) {
+  if (is_datetime(x)) {
     new_phinterval_bare(
       fields = as_phint_point_cpp(as.POSIXct(x)),
       tzone = get_tzone(x)

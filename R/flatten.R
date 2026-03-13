@@ -96,8 +96,8 @@ phint_flatten <- function(phint, what = c("spans", "holes")) {
 #' @rdname flatten
 #' @export
 datetime_flatten <- function(start, end, what = c("spans", "holes")) {
-  check_instant(start)
-  check_instant(end)
+  check_datetime(start)
+  check_datetime(end)
   check_recycleable(start, end)
   what <- arg_match(what, c("spans", "holes"))
 

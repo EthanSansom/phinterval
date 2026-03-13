@@ -98,7 +98,7 @@ phint_within <- function(x, phint, bounds = c("[]", "()")) {
   phint_binary_dispatch(
     x = x,
     y = phint,
-    x_type = validate_type_phintish_or_instant(x),
+    x_type = validate_type_phintish_or_datetime(x),
     y_type = validate_type_phintish(phint),
     funs_cpp = list(
       phint_phint = phint_phint_within_cpp,
