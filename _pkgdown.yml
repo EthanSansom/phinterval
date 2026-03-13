@@ -33,6 +33,8 @@ reference:
       - phint_overlaps
       - phint_within
       - is_hole
+      - is_span
+      - is_disjoint
       - is_phinterval
       - is_phintish
 

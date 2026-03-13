@@ -12,6 +12,10 @@
 
   * New `datetime_flatten()` returns spans or gaps within a vector of spans defined by `start` and `end` points (see also `datetime_squash()`).
 
+* New `is_span()` and `is_disjoint()` to complement `is_hole()`.
+
+  * `is_span()` and `is_disjoint()` test whether each element of a phinterval is contiguous or disjoint respectively.
+
 ## Bug fixes
 
 * `phint_setdiff()` no longer returns a malformed phinterval when `phint2` contains instants (#3).
