@@ -550,16 +550,29 @@ test_that("is_phintish() works as expected", {
   expect_false(is_phintish(lubridate::origin))
 })
 
-# is_hole ----------------------------------------------------------------------
+# is_hole, is_span, is_disjoint ------------------------------------------------
 
-test_that("is_hole() works as expected", {
+test_that("is_hole(), is_span(), is_disjoint() work as expected", {
   hole <- hole()
-  phint <- phinterval(as.Date("2021-01-01"), as.Date("2021-01-02"))
-  na_phint <- phinterval(NA_POSIXct_, NA_POSIXct_)
+  span <- phinterval(as.Date("2021-01-01"), as.Date("2021-01-02"))
+  disjoint <- datetime_squash(
+    c(as.Date("2021-01-01"), as.Date("2022-01-02")),
+    c(as.Date("2021-01-02"), as.Date("2022-01-03"))
+  )
 
-  expect_equal(is_hole(c(hole, phint, na_phint)), c(TRUE, FALSE, NA))
+  phints <- c(hole, span, disjoint, phinterval(NA_POSIXct_, NA_POSIXct_))
+
+  expect_equal(is_hole(phints), c(TRUE, FALSE, FALSE, NA))
+  expect_equal(is_span(phints), c(FALSE, TRUE, FALSE, NA))
+  expect_equal(is_disjoint(phints), c(FALSE, FALSE, TRUE, NA))
+
   expect_equal(is_hole(phinterval()), logical())
+  expect_equal(is_span(phinterval()), logical())
+  expect_equal(is_disjoint(phinterval()), logical())
+
   expect_error(is_hole(as.Date("2021-01-01")))
+  expect_error(is_span(as.Date("2021-01-01")))
+  expect_error(is_disjoint(as.Date("2021-01-01")))
 })
 
 # phint_start/end --------------------------------------------------------------

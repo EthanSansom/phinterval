@@ -549,28 +549,63 @@ n_spans.phinterval <- function(phint) {
   field(phint, "size")
 }
 
-#' Test for empty intervals
+#' Test for empty, contiguous, or disjoint intervals
 #'
 #' @description
 #'
-#' `is_hole()` checks for `<hole>` (empty) time spans in `phint`.
+#' These predicates test structural properties of each element of a
+#' `<phinterval>` vector.
+#'
+#' - `is_hole()`: Is the element empty (zero spans)?
+#' - `is_span()`: Is the element a single contiguous span?
+#' - `is_disjoint()`: Is the element made up of two or more disjoint spans?
+#'
+#' @section Under Development:
+#'
+#' `is_span()` and `is_disjoint()` are under development and may contain bugs. To
+#' use these functions, install the development version of {phinterval} from GitHub
+#' with `pak::pak("EthanSansom/phinterval")`.
 #'
 #' @inheritParams params
 #'
 #' @return A logical vector the same length as `phint`.
 #'
 #' @examples
-#' # Detect holes
 #' y2000 <- interval(as.Date("2000-01-01"), as.Date("2001-01-01"))
-#' y2025 <- interval(as.Date("2025-01-01"), as.Date("2025-01-01"))
-#' is_hole(c(hole(), y2000, hole(), y2025, NA))
+#' y2025 <- interval(as.Date("2025-01-01"), as.Date("2026-01-01"))
+#' holey <- phint_union(y2000, y2025)
+#'
+#' # Detect holes
+#' is_hole(c(hole(), y2000, NA))
 #'
 #' # The intersection of disjoint intervals is a hole
 #' is_hole(phint_intersect(y2000, y2025))
 #'
+#' # Detect single contiguous spans
+#' is_span(c(y2000, holey, hole(), NA))
+#'
+#' # Detect disjoint (multi-span) elements
+#' is_disjoint(c(y2000, holey, hole(), NA))
+#'
+#' @name phinterval-span-predicates
+NULL
+
 #' @export
+#' @rdname phinterval-span-predicates
 is_hole <- function(phint) {
   n_spans(phint) == 0L
+}
+
+#' @export
+#' @rdname phinterval-span-predicates
+is_span <- function(phint) {
+  n_spans(phint) == 1L
+}
+
+#' @export
+#' @rdname phinterval-span-predicates
+is_disjoint <- function(phint) {
+  n_spans(phint) > 1L
 }
 
 #' Accessors for the endpoints of a phinterval
