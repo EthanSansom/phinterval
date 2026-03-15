@@ -8,13 +8,13 @@ using namespace Rcpp;
 // sift ------------------------------------------------------------------------
 
 // [[Rcpp::export]]
-List phint_sift_cpp(IntegerVector size, List starts, List ends) {
-  return phint_modify(PhintVectorView{size, starts, ends}, Sift{});
+List phint_discard_instants_cpp(IntegerVector size, List starts, List ends) {
+  return phint_modify(PhintVectorView{size, starts, ends}, DiscardInstants{});
 }
 
 // [[Rcpp::export]]
-List intvl_sift_cpp(DatetimeVector starts, NumericVector spans) {
-  return phint_modify(IntvlVectorView{starts, spans}, Sift{});
+List intvl_discard_instants_cpp(DatetimeVector starts, NumericVector spans) {
+  return phint_modify(IntvlVectorView{starts, spans}, DiscardInstants{});
 }
 
 // complement ------------------------------------------------------------------

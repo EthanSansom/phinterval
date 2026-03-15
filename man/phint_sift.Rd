@@ -2,36 +2,113 @@
 % Please edit documentation in R/set-modifications.R
 \name{phint_sift}
 \alias{phint_sift}
-\title{Remove instantaneous time spans from a phinterval}
+\title{Keep or discard spans by duration}
 \usage{
-phint_sift(phint)
+phint_sift(
+  phint,
+  min_length = NULL,
+  max_length = NULL,
+  action = c("keep", "discard")
+)
 }
 \arguments{
 \item{phint}{\verb{[phinterval / Interval]}
 
 A \verb{<phinterval>} or \verb{<Interval>} vector.}
+
+\item{min_length}{\verb{[Duration / numeric / NULL]}
+
+The minimum span duration (inclusive). Must be recyclable with \code{phint}.
+If \code{NULL} (the default), no lower bound is applied.}
+
+\item{max_length}{\verb{[Duration / numeric / NULL]}
+
+The maximum span duration (inclusive). Must be recyclable with \code{phint}.
+If \code{NULL} (the default), no upper bound is applied.}
+
+\item{action}{\verb{["keep" / "discard"]}
+
+Whether to keep or discard spans satisfying the duration condition:
+\itemize{
+\item \code{"keep"} (default): Retain only spans satisfying the condition.
+\item \code{"discard"}: Remove spans satisfying the condition.
+}}
 }
 \value{
-A \verb{<phinterval>} vector the same length as \code{phint}.
+A \verb{<phinterval>} vector the same length as \code{phint}. Elements where
+all spans are removed become \code{\link[=hole]{hole()}}s.
 }
 \description{
-\code{phint_sift()} removes instantaneous spans (spans with 0 duration) from
-phinterval elements. If all spans in an element are instantaneous, the result
-is a hole.
+\code{phint_sift()} keeps or removes spans within each element of \code{phint} based
+on their duration. At least one of \code{min_length} or \code{max_length} must be
+non-\code{NULL}. Duration bounds are inclusive.
+
+When \code{action = "keep"} (the default):
+\itemize{
+\item \code{min_length} and \code{max_length}: keep spans where \verb{min_length <= length <= max_length}.
+\item \code{min_length} only: keep spans where \code{length >= min_length}.
+\item \code{max_length} only: keep spans where \code{length <= max_length}.
+}
+
+When \code{action = "discard"}, these conditions are negated; spans satisfying
+the condition are removed rather than kept. The function \code{\link[=phint_discard_instants]{phint_discard_instants()}}
+is a wrapper around \code{phint_sift(phint, max_length = 0L, action = "discard")} for
+the common case of removing spans which are 0-seconds in length (i.e. \code{start == end}).
+
+Span durations are computed in seconds, equivalent to \code{\link[=phint_lengths]{phint_lengths()}}.
 }
 \examples{
-y2020 <- interval(as.Date("2020-01-01"), as.Date("2021-01-01"))
-y2021 <- interval(as.Date("2021-01-01"), as.Date("2022-01-01"))
-y2022 <- interval(as.Date("2022-01-01"), as.Date("2023-01-01"))
+one_day <- interval(as.Date("2025-10-10"), as.Date("2025-10-11"))
+two_days <- interval(as.Date("2025-11-12"), as.Date("2025-11-14"))
+three_days <- interval(as.Date("2025-12-14"), as.Date("2025-12-17"))
 
-# The intersection of two adjacent intervals is instantaneous
-new_years_2021 <- phint_intersect(y2020, y2021)
-new_years_2021
-phint_sift(new_years_2021)
+# Keep spans which are at most 2 days long
+phint_sift(
+  phint_squash(c(one_day, two_days, three_days)),
+  min_length = duration(2, "days")
+)
 
-# phint_sift() removes instants while keeping non-instantaneous spans
-y2022_and_new_years <- phint_union(y2022, new_years_2021)
-y2022_and_new_years
-phint_sift(y2022_and_new_years)
+# Keep spans which are at least 2 days long
+phint_sift(
+  phint_squash(c(one_day, two_days, three_days)),
+  max_length = duration(2, "days")
+)
 
+# Keep spans with duration in [1.5 days, 2 days]
+phint_sift(
+  phint_squash(c(one_day, two_days, three_days)),
+  min_length = duration(1.5, "days"),
+  max_length = duration(2, "days")
+)
+
+# Discard spans with duration in [1.5 days, 2 days]
+phint_sift(
+  phint_squash(c(one_day, two_days, three_days)),
+  min_length = duration(1.5, "days"),
+  max_length = duration(2, "days"),
+  action = "keep"
+)
+
+# All spans removed results in a hole
+phint_sift(one_day, max_length = duration(0, "days"))
+
+# Spans within a disjoint element are sifted independently
+phint_sift(
+  phint_squash(c(two_days, three_days)),
+  max_length = duration(2, "days")
+)
+
+# min_length and max_length are vectorized
+phint_sift(
+  c(one_day, two_days),
+  min_length = duration(c(0, 3), "days")
+)
+
+}
+\seealso{
+\itemize{
+\item \code{\link[=phint_discard_instants]{phint_discard_instants()}} to remove zero-duration spans, equivalent to
+\code{phint_sift(phint, max_length = 0, action = "discard")}.
+\item \code{\link[=phint_lengths]{phint_lengths()}} to compute the duration of each span in seconds.
+}
 }

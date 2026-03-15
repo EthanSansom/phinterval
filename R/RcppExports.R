@@ -69,12 +69,12 @@ range_flatten_cpp <- function(starts, ends, what) {
     .Call(`_phinterval_range_flatten_cpp`, starts, ends, what)
 }
 
-phint_sift_cpp <- function(size, starts, ends) {
-    .Call(`_phinterval_phint_sift_cpp`, size, starts, ends)
+phint_discard_instants_cpp <- function(size, starts, ends) {
+    .Call(`_phinterval_phint_discard_instants_cpp`, size, starts, ends)
 }
 
-intvl_sift_cpp <- function(starts, spans) {
-    .Call(`_phinterval_intvl_sift_cpp`, starts, spans)
+intvl_discard_instants_cpp <- function(starts, spans) {
+    .Call(`_phinterval_intvl_discard_instants_cpp`, starts, spans)
 }
 
 phint_complement_cpp <- function(size, starts, ends) {
@@ -195,6 +195,14 @@ intvl_phint_overlaps_cpp <- function(x_starts, x_spans, y_size, y_starts, y_ends
 
 intvl_intvl_overlaps_cpp <- function(x_starts, x_spans, y_starts, y_spans, bounds) {
     .Call(`_phinterval_intvl_intvl_overlaps_cpp`, x_starts, x_spans, y_starts, y_spans, bounds)
+}
+
+phint_sift_cpp <- function(size, starts, ends, action, min_length, max_length) {
+    .Call(`_phinterval_phint_sift_cpp`, size, starts, ends, action, min_length, max_length)
+}
+
+intvl_sift_cpp <- function(starts, spans, action, min_length, max_length) {
+    .Call(`_phinterval_intvl_sift_cpp`, starts, spans, action, min_length, max_length)
 }
 
 phint_squash_cpp <- function(size, starts, ends, na_rm, empty_to) {

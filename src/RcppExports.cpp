@@ -232,28 +232,28 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// phint_sift_cpp
-List phint_sift_cpp(IntegerVector size, List starts, List ends);
-RcppExport SEXP _phinterval_phint_sift_cpp(SEXP sizeSEXP, SEXP startsSEXP, SEXP endsSEXP) {
+// phint_discard_instants_cpp
+List phint_discard_instants_cpp(IntegerVector size, List starts, List ends);
+RcppExport SEXP _phinterval_phint_discard_instants_cpp(SEXP sizeSEXP, SEXP startsSEXP, SEXP endsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< IntegerVector >::type size(sizeSEXP);
     Rcpp::traits::input_parameter< List >::type starts(startsSEXP);
     Rcpp::traits::input_parameter< List >::type ends(endsSEXP);
-    rcpp_result_gen = Rcpp::wrap(phint_sift_cpp(size, starts, ends));
+    rcpp_result_gen = Rcpp::wrap(phint_discard_instants_cpp(size, starts, ends));
     return rcpp_result_gen;
 END_RCPP
 }
-// intvl_sift_cpp
-List intvl_sift_cpp(DatetimeVector starts, NumericVector spans);
-RcppExport SEXP _phinterval_intvl_sift_cpp(SEXP startsSEXP, SEXP spansSEXP) {
+// intvl_discard_instants_cpp
+List intvl_discard_instants_cpp(DatetimeVector starts, NumericVector spans);
+RcppExport SEXP _phinterval_intvl_discard_instants_cpp(SEXP startsSEXP, SEXP spansSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< DatetimeVector >::type starts(startsSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type spans(spansSEXP);
-    rcpp_result_gen = Rcpp::wrap(intvl_sift_cpp(starts, spans));
+    rcpp_result_gen = Rcpp::wrap(intvl_discard_instants_cpp(starts, spans));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -710,6 +710,37 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// phint_sift_cpp
+List phint_sift_cpp(IntegerVector size, List starts, List ends, String action, Nullable<NumericVector> min_length, Nullable<NumericVector> max_length);
+RcppExport SEXP _phinterval_phint_sift_cpp(SEXP sizeSEXP, SEXP startsSEXP, SEXP endsSEXP, SEXP actionSEXP, SEXP min_lengthSEXP, SEXP max_lengthSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerVector >::type size(sizeSEXP);
+    Rcpp::traits::input_parameter< List >::type starts(startsSEXP);
+    Rcpp::traits::input_parameter< List >::type ends(endsSEXP);
+    Rcpp::traits::input_parameter< String >::type action(actionSEXP);
+    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type min_length(min_lengthSEXP);
+    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type max_length(max_lengthSEXP);
+    rcpp_result_gen = Rcpp::wrap(phint_sift_cpp(size, starts, ends, action, min_length, max_length));
+    return rcpp_result_gen;
+END_RCPP
+}
+// intvl_sift_cpp
+List intvl_sift_cpp(DatetimeVector starts, NumericVector spans, String action, Nullable<NumericVector> min_length, Nullable<NumericVector> max_length);
+RcppExport SEXP _phinterval_intvl_sift_cpp(SEXP startsSEXP, SEXP spansSEXP, SEXP actionSEXP, SEXP min_lengthSEXP, SEXP max_lengthSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< DatetimeVector >::type starts(startsSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type spans(spansSEXP);
+    Rcpp::traits::input_parameter< String >::type action(actionSEXP);
+    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type min_length(min_lengthSEXP);
+    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type max_length(max_lengthSEXP);
+    rcpp_result_gen = Rcpp::wrap(intvl_sift_cpp(starts, spans, action, min_length, max_length));
+    return rcpp_result_gen;
+END_RCPP
+}
 // phint_squash_cpp
 List phint_squash_cpp(IntegerVector size, List starts, List ends, bool na_rm, String empty_to);
 RcppExport SEXP _phinterval_phint_squash_cpp(SEXP sizeSEXP, SEXP startsSEXP, SEXP endsSEXP, SEXP na_rmSEXP, SEXP empty_toSEXP) {
@@ -858,8 +889,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_phinterval_phint_flatten_cpp", (DL_FUNC) &_phinterval_phint_flatten_cpp, 4},
     {"_phinterval_intvl_flatten_cpp", (DL_FUNC) &_phinterval_intvl_flatten_cpp, 3},
     {"_phinterval_range_flatten_cpp", (DL_FUNC) &_phinterval_range_flatten_cpp, 3},
-    {"_phinterval_phint_sift_cpp", (DL_FUNC) &_phinterval_phint_sift_cpp, 3},
-    {"_phinterval_intvl_sift_cpp", (DL_FUNC) &_phinterval_intvl_sift_cpp, 2},
+    {"_phinterval_phint_discard_instants_cpp", (DL_FUNC) &_phinterval_phint_discard_instants_cpp, 3},
+    {"_phinterval_intvl_discard_instants_cpp", (DL_FUNC) &_phinterval_intvl_discard_instants_cpp, 2},
     {"_phinterval_phint_complement_cpp", (DL_FUNC) &_phinterval_phint_complement_cpp, 3},
     {"_phinterval_intvl_complement_cpp", (DL_FUNC) &_phinterval_intvl_complement_cpp, 2},
     {"_phinterval_phint_invert_cpp", (DL_FUNC) &_phinterval_phint_invert_cpp, 4},
@@ -890,6 +921,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_phinterval_phint_intvl_overlaps_cpp", (DL_FUNC) &_phinterval_phint_intvl_overlaps_cpp, 6},
     {"_phinterval_intvl_phint_overlaps_cpp", (DL_FUNC) &_phinterval_intvl_phint_overlaps_cpp, 6},
     {"_phinterval_intvl_intvl_overlaps_cpp", (DL_FUNC) &_phinterval_intvl_intvl_overlaps_cpp, 5},
+    {"_phinterval_phint_sift_cpp", (DL_FUNC) &_phinterval_phint_sift_cpp, 6},
+    {"_phinterval_intvl_sift_cpp", (DL_FUNC) &_phinterval_intvl_sift_cpp, 5},
     {"_phinterval_phint_squash_cpp", (DL_FUNC) &_phinterval_phint_squash_cpp, 5},
     {"_phinterval_intvl_squash_cpp", (DL_FUNC) &_phinterval_intvl_squash_cpp, 4},
     {"_phinterval_range_squash_cpp", (DL_FUNC) &_phinterval_range_squash_cpp, 4},

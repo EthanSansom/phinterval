@@ -1,5 +1,7 @@
 #nocov start
 
+# type -------------------------------------------------------------------------
+
 check_phintish <- function(x, arg = caller_arg(x), call = caller_env()) {
   if (is_phintish(x)) {
     return(invisible(NULL))
@@ -71,6 +73,21 @@ check_vector <- function(x, allow_null = TRUE, arg = caller_arg(x), call = calle
   )
 }
 
+check_durationish <- function(x, arg = caller_arg(x), call = caller_env()) {
+  if (is.numeric(x) || lubridate::is.duration(x)) {
+    return(invisible(NULL))
+  }
+
+  stop_input_type(
+    x,
+    "a <Duration> or numeric vector",
+    arg = arg,
+    call = call
+  )
+}
+
+# size -------------------------------------------------------------------------
+
 check_same_size <- function(
     x,
     y,
@@ -136,6 +153,8 @@ check_recycleable_to <- function(
     call = call
   )
 }
+
+# helpers ----------------------------------------------------------------------
 
 str_encode <- function(x, width = 30, quote = "\"", ...) {
   if (nchar(x) > width) {

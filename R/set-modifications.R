@@ -66,7 +66,7 @@ phint_invert <- function(phint, hole_to = c("hole", "inf", "na")) {
 #'
 #' @description
 #'
-#' `phint_sift()` removes instantaneous spans (spans with 0 duration) from
+#' `phint_discard_instants()` removes instantaneous spans (spans with 0 duration) from
 #' phinterval elements. If all spans in an element are instantaneous, the result
 #' is a hole.
 #'
@@ -82,22 +82,153 @@ phint_invert <- function(phint, hole_to = c("hole", "inf", "na")) {
 #' # The intersection of two adjacent intervals is instantaneous
 #' new_years_2021 <- phint_intersect(y2020, y2021)
 #' new_years_2021
-#' phint_sift(new_years_2021)
+#' phint_discard_instants(new_years_2021)
 #'
-#' # phint_sift() removes instants while keeping non-instantaneous spans
+#' # phint_discard_instants() removes instants while keeping non-instantaneous spans
 #' y2022_and_new_years <- phint_union(y2022, new_years_2021)
 #' y2022_and_new_years
-#' phint_sift(y2022_and_new_years)
+#' phint_discard_instants(y2022_and_new_years)
 #'
 #' @export
-phint_sift <- function(phint) {
+phint_discard_instants <- function(phint) {
   out <- phint_unary_dispatch(
     x = phint,
     x_type = validate_type_phintish(phint),
     funs_cpp = list(
+      phint = phint_discard_instants_cpp,
+      intvl = intvl_discard_instants_cpp
+    )
+  )
+  new_phinterval_bare(out, tzone = get_tzone(phint))
+}
+
+#' Keep or discard spans by duration
+#'
+#' @description
+#'
+#' `phint_sift()` keeps or removes spans within each element of `phint` based
+#' on their duration. At least one of `min_length` or `max_length` must be
+#' non-`NULL`. Duration bounds are inclusive.
+#'
+#' When `action = "keep"` (the default):
+#' - `min_length` and `max_length`: keep spans where `min_length <= length <= max_length`.
+#' - `min_length` only: keep spans where `length >= min_length`.
+#' - `max_length` only: keep spans where `length <= max_length`.
+#'
+#' When `action = "discard"`, these conditions are negated; spans satisfying
+#' the condition are removed rather than kept. The function [phint_discard_instants()]
+#' is a wrapper around `phint_sift(phint, max_length = 0L, action = "discard")` for
+#' the common case of removing spans which are 0-seconds in length (i.e. `start == end`).
+#'
+#' Span durations are computed in seconds, equivalent to [phint_lengths()].
+#'
+#' @inheritParams params
+#'
+#' @param min_length `[Duration / numeric / NULL]`
+#'
+#' The minimum span duration (inclusive). Must be recyclable with `phint`.
+#' If `NULL` (the default), no lower bound is applied.
+#'
+#' @param max_length `[Duration / numeric / NULL]`
+#'
+#' The maximum span duration (inclusive). Must be recyclable with `phint`.
+#' If `NULL` (the default), no upper bound is applied.
+#'
+#' @param action `["keep" / "discard"]`
+#'
+#' Whether to keep or discard spans satisfying the duration condition:
+#' - `"keep"` (default): Retain only spans satisfying the condition.
+#' - `"discard"`: Remove spans satisfying the condition.
+#'
+#' @return A `<phinterval>` vector the same length as `phint`. Elements where
+#' all spans are removed become [hole()]s.
+#'
+#' @seealso
+#' - [phint_discard_instants()] to remove zero-duration spans, equivalent to
+#'   `phint_sift(phint, max_length = 0, action = "discard")`.
+#' - [phint_lengths()] to compute the duration of each span in seconds.
+#'
+#' @examples
+#' one_day <- interval(as.Date("2025-10-10"), as.Date("2025-10-11"))
+#' two_days <- interval(as.Date("2025-11-12"), as.Date("2025-11-14"))
+#' three_days <- interval(as.Date("2025-12-14"), as.Date("2025-12-17"))
+#'
+#' # Keep spans which are at most 2 days long
+#' phint_sift(
+#'   phint_squash(c(one_day, two_days, three_days)),
+#'   min_length = duration(2, "days")
+#' )
+#'
+#' # Keep spans which are at least 2 days long
+#' phint_sift(
+#'   phint_squash(c(one_day, two_days, three_days)),
+#'   max_length = duration(2, "days")
+#' )
+#'
+#' # Keep spans with duration in [1.5 days, 2 days]
+#' phint_sift(
+#'   phint_squash(c(one_day, two_days, three_days)),
+#'   min_length = duration(1.5, "days"),
+#'   max_length = duration(2, "days")
+#' )
+#'
+#' # Discard spans with duration in [1.5 days, 2 days]
+#' phint_sift(
+#'   phint_squash(c(one_day, two_days, three_days)),
+#'   min_length = duration(1.5, "days"),
+#'   max_length = duration(2, "days"),
+#'   action = "keep"
+#' )
+#'
+#' # All spans removed results in a hole
+#' phint_sift(one_day, max_length = duration(0, "days"))
+#'
+#' # Spans within a disjoint element are sifted independently
+#' phint_sift(
+#'   phint_squash(c(two_days, three_days)),
+#'   max_length = duration(2, "days")
+#' )
+#'
+#' # min_length and max_length are vectorized
+#' phint_sift(
+#'   c(one_day, two_days),
+#'   min_length = duration(c(0, 3), "days")
+#' )
+#'
+#' @export
+phint_sift <- function(
+  phint,
+  min_length = NULL,
+  max_length = NULL,
+  action = c("keep", "discard")
+) {
+  phint_type <- validate_type_phintish(phint)
+  no_min <- is.null(min_length)
+  no_max <- is.null(max_length)
+  if (no_min && no_max) {
+    abort("At least one of `min_length` and `max_length` must be non-NULL.")
+  }
+  if (!no_min) {
+    check_durationish(min_length)
+    check_recycleable_to(min_length, phint)
+    min_length <- as.numeric(min_length)
+  }
+  if (!no_max) {
+    check_durationish(max_length)
+    check_recycleable_to(max_length, phint)
+    max_length <- as.numeric(max_length)
+  }
+
+  out <- phint_unary_dispatch(
+    x = phint,
+    x_type = phint_type,
+    funs_cpp = list(
       phint = phint_sift_cpp,
       intvl = intvl_sift_cpp
-    )
+    ),
+    min_length = min_length,
+    max_length = max_length,
+    action = arg_match0(action, c("keep", "discard"))
   )
   new_phinterval_bare(out, tzone = get_tzone(phint))
 }

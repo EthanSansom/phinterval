@@ -7,7 +7,7 @@
 // - apply_to_set() takes a PhintView (possible empty) or a ScalarView type
 // - apply_to_span() takes a single-span PhintView or a ScalarView type
 
-struct Sift {
+struct DiscardInstants {
   template <typename XView, typename Buffer>
   void apply_to_set(const XView& x, Buffer& out);
 
@@ -34,10 +34,10 @@ struct Invert {
   void apply_to_span(const XView& x, Buffer& out);
 };
 
-// sift ------------------------------------------------------------------------
+// discard instants ------------------------------------------------------------
 
 template <typename XView, typename Buffer>
-void Sift::apply_to_span(const XView& x, Buffer& out) {
+void DiscardInstants::apply_to_span(const XView& x, Buffer& out) {
   if (x.start(0) == x.end(0)) {
     out.add_empty_element();
   } else {
@@ -46,7 +46,7 @@ void Sift::apply_to_span(const XView& x, Buffer& out) {
 };
 
 template <typename XView, typename Buffer>
-void Sift::apply_to_set(const XView& x, Buffer& out) {
+void DiscardInstants::apply_to_set(const XView& x, Buffer& out) {
   if (x.is_empty()) {
     out.add_empty_element();
     return;

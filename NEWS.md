@@ -16,6 +16,10 @@
 
   * `is_span()` and `is_disjoint()` test whether each element of a phinterval is contiguous or disjoint respectively.
 
+* `phint_sift()` now keeps or discards spans with lengths in `[min_length, max_length]`, instead of discarding instantaneous spans only.
+
+  * The previous version of `phint_sift()` was re-named to `phint_discard_instants()`.
+
 ## Bug fixes
 
 * `phint_setdiff()` no longer returns a malformed phinterval when `phint2` contains instants (#3).
@@ -82,6 +86,13 @@ phint_squash_by(
   order_by = TRUE
 )
 ```
+
+* `phint_sift()` now has additional arguments `min_length`, `max_length`, and `action`.
+
+  * The previous version of `phint_sift()` (usage `phint_sift(phint)`) was re-named to `phint_discard_instants()`.
+  
+  * Calling `phint_sift(phint)` without additional arguments now raises an error.
+
 
 # phinterval 1.0.0
 

@@ -21,7 +21,7 @@ reference:
   - title: Modifications
     contents:
       - phint_invert
-      - phint_sift
+      - phint_discard_instants
 
   - title: Transformations
     contents:

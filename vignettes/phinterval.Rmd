@@ -334,14 +334,14 @@ phint_within(monday_at_9AM, monday, bounds = "()")
 phint_within(midnight_monday, monday, bounds = "()")
 ```
 
-To consider instantaneous intervals as empty, use `phint_sift()` to remove all 
+To consider instantaneous intervals as empty, use `phint_discard_instants()` to remove all 
 instants from an interval vector:
 
 ```{r}
 phint <- phint_squash(c(monday_at_9AM, tuesday))
 phint
 
-phint_sift(phint)
+phint_discard_instants(phint)
 ```
 
 ## Instantaneous Intervals and Set Difference

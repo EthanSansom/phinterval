@@ -91,7 +91,7 @@ DatetimeVector scalar_point_impl(const VectorType& vec, String tzone) {
 List phint_points_cpp(IntegerVector size, List points, String tzone) {
   const R_xlen_t n = size.size();
   const int* p_size = INTEGER(size);
-  List out = no_init(n);
+  List out(n);
 
   DatetimeVector dt_na = DatetimeVector::create(NA_REAL);
   dt_na.attr("tzone") = tzone;
@@ -155,7 +155,7 @@ NumericVector phint_length_cpp(IntegerVector size, List starts, List ends) {
 List phint_lengths_cpp(IntegerVector size, List starts, List ends) {
   const R_xlen_t n = size.size();
   const int* p_size = INTEGER(size);
-  List out = no_init(n);
+  List out(n);
 
   for (R_xlen_t i = 0; i < n; i++) {
     if (!(i & 8191)) checkUserInterrupt();
