@@ -115,6 +115,7 @@ phint_unoverlap <- function(
 
   tzone <- get_tzone(phint)
   hole <- hole(1L, tzone = tzone)
+  phint <- as_phinterval(phint)
 
   if (!na_propagate) {
     phint[is.na(phint)] <- hole
