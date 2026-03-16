@@ -32,10 +32,9 @@ phint_cumintersect(phint, na_propagate = FALSE, bounds = c("[]", "()"))
 
   `[FALSE / TRUE]`
 
-  Whether `NA` values propagate forward (or backward, if
-  `reverse = TRUE`) through the cumulative result:
+  Whether `NA` values propagate forward through the cumulative result:
 
-  - `FALSE` (default): `NA` elements are treated as
+  - `FALSE` (default): `NA` elements are converted to
     [`hole()`](https://ethansansom.github.io/phinterval/reference/hole.md)s
     and do not affect subsequent results.
 
@@ -100,9 +99,9 @@ phint_cumintersect(c(mon_to_wed, monday, tuesday))
 #> [1] {2025-11-10--2025-11-13} {2025-11-10--2025-11-11} {2025-11-11--2025-11-11}
 
 # Once the intersection becomes a hole, it remains a hole
-phint_cumintersect(c(monday, tuesday, wednesday))
+phint_cumintersect(c(monday, wednesday, mon_to_wed))
 #> <phinterval<UTC>[3]>
-#> [1] {2025-11-10--2025-11-11} {2025-11-11--2025-11-11} <hole>                  
+#> [1] {2025-11-10--2025-11-11} <hole>                   <hole>                  
 
 # Bounds affect the intersection of adjacent intervals
 phint_cumintersect(c(monday, tuesday), bounds = "[]")

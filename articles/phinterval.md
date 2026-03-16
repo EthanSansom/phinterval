@@ -395,7 +395,7 @@ phint_within(midnight_monday, monday, bounds = "()")
 ```
 
 To consider instantaneous intervals as empty, use
-[`phint_sift()`](https://ethansansom.github.io/phinterval/reference/phint_sift.md)
+[`phint_discard_instants()`](https://ethansansom.github.io/phinterval/reference/phint_discard_instants.md)
 to remove all instants from an interval vector:
 
 ``` r
@@ -404,7 +404,7 @@ phint
 #> <phinterval<UTC>[1]>
 #> [1] {2025-11-10 00:09:00--2025-11-10 00:09:00, 2025-11-11 00:00:00--2025-11-12 00:00:00}
 
-phint_sift(phint)
+phint_discard_instants(phint)
 #> <phinterval<UTC>[1]>
 #> [1] {2025-11-11--2025-11-12}
 ```

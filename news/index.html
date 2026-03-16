@@ -45,6 +45,15 @@
 <p>New <code><a href="../reference/flatten.html">phint_flatten()</a></code> returns all spans or gaps within an entire phinterval vector as a vector of intervals.</p>
 <ul><li>New <code><a href="../reference/flatten.html">datetime_flatten()</a></code> returns spans or gaps within a vector of spans defined by <code>start</code> and <code>end</code> points (see also <code><a href="../reference/squash.html">datetime_squash()</a></code>).</li>
 </ul></li>
+<li>
+<p>New <code><a href="../reference/phinterval-span-predicates.html">is_span()</a></code> and <code><a href="../reference/phinterval-span-predicates.html">is_disjoint()</a></code> to complement <code><a href="../reference/phinterval-span-predicates.html">is_hole()</a></code>.</p>
+<ul><li>
+<code><a href="../reference/phinterval-span-predicates.html">is_span()</a></code> and <code><a href="../reference/phinterval-span-predicates.html">is_disjoint()</a></code> test whether each element of a phinterval is contiguous or disjoint respectively.</li>
+</ul></li>
+<li>
+<p><code><a href="../reference/phint_sift.html">phint_sift()</a></code> now keeps or discards spans with lengths in <code>[min_length, max_length]</code>, instead of discarding instantaneous spans only.</p>
+<ul><li>The previous version of <code><a href="../reference/phint_sift.html">phint_sift()</a></code> was re-named to <code><a href="../reference/phint_discard_instants.html">phint_discard_instants()</a></code>.</li>
+</ul></li>
 </ul></div>
 <div class="section level3">
 <h3 id="bug-fixes-development-version">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-development-version"></a></h3>
@@ -94,7 +103,12 @@
 <span>  empty_to <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hole"</span>, <span class="st">"na"</span><span class="op">)</span>,</span>
 <span>  order_by <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre>
-</div>
+<ul><li>
+<p><code><a href="../reference/phint_sift.html">phint_sift()</a></code> now has additional arguments <code>min_length</code>, <code>max_length</code>, and <code>action</code>.</p>
+<ul><li><p>The previous version of <code><a href="../reference/phint_sift.html">phint_sift()</a></code> (usage <code>phint_sift(phint)</code>) was re-named to <code><a href="../reference/phint_discard_instants.html">phint_discard_instants()</a></code>.</p></li>
+<li><p>Calling <code>phint_sift(phint)</code> without additional arguments now raises an error.</p></li>
+</ul></li>
+</ul></div>
 </div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.0.0" id="phinterval-100">phinterval 1.0.0<a class="anchor" aria-label="anchor" href="#phinterval-100"></a></h2><p class="text-muted">CRAN release: 2026-02-03</p>

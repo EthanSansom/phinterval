@@ -30,6 +30,29 @@
     and `end` points (see also
     [`datetime_squash()`](https://ethansansom.github.io/phinterval/reference/squash.md)).
 
+- New
+  [`is_span()`](https://ethansansom.github.io/phinterval/reference/phinterval-span-predicates.md)
+  and
+  [`is_disjoint()`](https://ethansansom.github.io/phinterval/reference/phinterval-span-predicates.md)
+  to complement
+  [`is_hole()`](https://ethansansom.github.io/phinterval/reference/phinterval-span-predicates.md).
+
+  - [`is_span()`](https://ethansansom.github.io/phinterval/reference/phinterval-span-predicates.md)
+    and
+    [`is_disjoint()`](https://ethansansom.github.io/phinterval/reference/phinterval-span-predicates.md)
+    test whether each element of a phinterval is contiguous or disjoint
+    respectively.
+
+- [`phint_sift()`](https://ethansansom.github.io/phinterval/reference/phint_sift.md)
+  now keeps or discards spans with lengths in
+  `[min_length, max_length]`, instead of discarding instantaneous spans
+  only.
+
+  - The previous version of
+    [`phint_sift()`](https://ethansansom.github.io/phinterval/reference/phint_sift.md)
+    was re-named to
+    [`phint_discard_instants()`](https://ethansansom.github.io/phinterval/reference/phint_discard_instants.md).
+
 ### Bug fixes
 
 - [`phint_setdiff()`](https://ethansansom.github.io/phinterval/reference/phinterval-set-operations.md)
@@ -122,6 +145,17 @@ removed from these variants.
       empty_to = c("hole", "na"),
       order_by = TRUE
     )
+
+- [`phint_sift()`](https://ethansansom.github.io/phinterval/reference/phint_sift.md)
+  now has additional arguments `min_length`, `max_length`, and `action`.
+
+  - The previous version of
+    [`phint_sift()`](https://ethansansom.github.io/phinterval/reference/phint_sift.md)
+    (usage `phint_sift(phint)`) was re-named to
+    [`phint_discard_instants()`](https://ethansansom.github.io/phinterval/reference/phint_discard_instants.md).
+
+  - Calling `phint_sift(phint)` without additional arguments now raises
+    an error.
 
 ## phinterval 1.0.0
 

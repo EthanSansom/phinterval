@@ -24,7 +24,7 @@
 
 - [`phint_invert()`](https://ethansansom.github.io/phinterval/reference/phint_invert.md)
   : Get the gaps in a phinterval as time spans
-- [`phint_sift()`](https://ethansansom.github.io/phinterval/reference/phint_sift.md)
+- [`phint_discard_instants()`](https://ethansansom.github.io/phinterval/reference/phint_discard_instants.md)
   : Remove instantaneous time spans from a phinterval
 
 ## Transformations
@@ -41,8 +41,10 @@
   : Test whether two phintervals overlap
 - [`phint_within()`](https://ethansansom.github.io/phinterval/reference/phint_within.md)
   : Test whether a datetime or phinterval is within another phinterval
-- [`is_hole()`](https://ethansansom.github.io/phinterval/reference/is_hole.md)
-  : Test for empty intervals
+- [`is_hole()`](https://ethansansom.github.io/phinterval/reference/phinterval-span-predicates.md)
+  [`is_span()`](https://ethansansom.github.io/phinterval/reference/phinterval-span-predicates.md)
+  [`is_disjoint()`](https://ethansansom.github.io/phinterval/reference/phinterval-span-predicates.md)
+  : Test for empty, contiguous, or disjoint intervals
 - [`is_phinterval()`](https://ethansansom.github.io/phinterval/reference/is_phinterval.md)
   : Test if the object is a phinterval
 - [`is_phintish()`](https://ethansansom.github.io/phinterval/reference/is_phintish.md)
@@ -96,3 +98,5 @@ version from GitHub using `pak::pak("EthanSansom/phinterval")`.
 - [`phint_flatten()`](https://ethansansom.github.io/phinterval/reference/flatten.md)
   [`datetime_flatten()`](https://ethansansom.github.io/phinterval/reference/flatten.md)
   : Flatten a phinterval vector into a vector of spans or gaps
+- [`phint_sift()`](https://ethansansom.github.io/phinterval/reference/phint_sift.md)
+  : Keep or discard spans by duration

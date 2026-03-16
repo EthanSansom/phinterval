@@ -79,8 +79,7 @@ to and including <code>phint[i]</code>.</p></li>
 
 <dt id="arg-na-propagate">na_propagate<a class="anchor" aria-label="anchor" href="#arg-na-propagate"></a></dt>
 <dd><p><code>[FALSE / TRUE]</code></p>
-<p>Whether <code>NA</code> values propagate forward (or backward, if <code>reverse = TRUE</code>)
-through the cumulative result:</p><ul><li><p><code>FALSE</code> (default): <code>NA</code> elements are treated as <code><a href="hole.html">hole()</a></code>s and do not
+<p>Whether <code>NA</code> values propagate forward through the cumulative result:</p><ul><li><p><code>FALSE</code> (default): <code>NA</code> elements are converted to <code><a href="hole.html">hole()</a></code>s and do not
 affect subsequent results.</p></li>
 <li><p><code>TRUE</code>: An <code>NA</code> element causes all subsequent elements to become <code>NA</code>.</p></li>
 </ul></dd>
@@ -135,9 +134,9 @@ endpoint 5), while with <code>bounds = "()"</code>, <code>(1, 5)</code> and <cod
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] {2025-11-10--2025-11-13} {2025-11-10--2025-11-11} {2025-11-11--2025-11-11}</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Once the intersection becomes a hole, it remains a hole</span></span></span>
-<span class="r-in"><span><span class="fu">phint_cumintersect</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">monday</span>, <span class="va">tuesday</span>, <span class="va">wednesday</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">phint_cumintersect</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">monday</span>, <span class="va">wednesday</span>, <span class="va">mon_to_wed</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;phinterval&lt;UTC&gt;[3]&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] {2025-11-10--2025-11-11} {2025-11-11--2025-11-11} &lt;hole&gt;                  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] {2025-11-10--2025-11-11} &lt;hole&gt;                   &lt;hole&gt;                  </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Bounds affect the intersection of adjacent intervals</span></span></span>
 <span class="r-in"><span><span class="fu">phint_cumintersect</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">monday</span>, <span class="va">tuesday</span><span class="op">)</span>, bounds <span class="op">=</span> <span class="st">"[]"</span><span class="op">)</span></span></span>
