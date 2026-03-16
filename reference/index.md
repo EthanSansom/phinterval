@@ -100,3 +100,8 @@ version from GitHub using `pak::pak("EthanSansom/phinterval")`.
   : Flatten a phinterval vector into a vector of spans or gaps
 - [`phint_sift()`](https://ethansansom.github.io/phinterval/reference/phint_sift.md)
   : Keep or discard spans by duration
+- [`phint_unoverlap()`](https://ethansansom.github.io/phinterval/reference/phint_unoverlap.md)
+  : Resolve overlapping intervals sequentially or by priority
+- [`phint_has_overlaps()`](https://ethansansom.github.io/phinterval/reference/phinterval-overlap-predicates.md)
+  [`phint_any_overlaps()`](https://ethansansom.github.io/phinterval/reference/phinterval-overlap-predicates.md)
+  : Test whether a phinterval vector has cross-element overlaps

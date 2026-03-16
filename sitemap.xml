@@ -24,9 +24,11 @@
 <url><loc>https://ethansansom.github.io/phinterval/reference/phint_overlaps.html</loc></url>
 <url><loc>https://ethansansom.github.io/phinterval/reference/phint_sift.html</loc></url>
 <url><loc>https://ethansansom.github.io/phinterval/reference/phint_unnest.html</loc></url>
+<url><loc>https://ethansansom.github.io/phinterval/reference/phint_unoverlap.html</loc></url>
 <url><loc>https://ethansansom.github.io/phinterval/reference/phint_within.html</loc></url>
 <url><loc>https://ethansansom.github.io/phinterval/reference/phinterval-accessors.html</loc></url>
 <url><loc>https://ethansansom.github.io/phinterval/reference/phinterval-cumset-operations.html</loc></url>
+<url><loc>https://ethansansom.github.io/phinterval/reference/phinterval-overlap-predicates.html</loc></url>
 <url><loc>https://ethansansom.github.io/phinterval/reference/phinterval-package.html</loc></url>
 <url><loc>https://ethansansom.github.io/phinterval/reference/phinterval-set-operations.html</loc></url>
 <url><loc>https://ethansansom.github.io/phinterval/reference/phinterval-span-predicates.html</loc></url>
