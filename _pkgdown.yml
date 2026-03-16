@@ -77,3 +77,6 @@ reference:
       - phint_flatten
       - datetime_flatten
       - phint_sift
+      - phint_unoverlap
+      - phint_has_overlaps
+      - phint_any_overlaps
