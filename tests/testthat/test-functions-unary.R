@@ -228,6 +228,13 @@ test_that("phint_sift() works as expected", {
     phint_sift(phint_2spans, min_length = dminutes(1)),
     hole
   )
+  expect_equal(
+    phint_sift(
+      interval(as.POSIXct(200, tz = "UTC"), as.POSIXct(200, tz = "UTC")),
+      min_length = dminutes(1)
+    ),
+    hole
+  )
 })
 
 test_that("phint_sift() works with numeric or <Duration> bounds", {
