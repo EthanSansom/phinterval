@@ -68,6 +68,7 @@ List sift_impl(
       if (keep_span(x_i.start(0), x_i.end(0), min_length_i, max_length_i)) {
         out.add_scalar_element(x_i.start(0), x_i.end(0));
       }
+      out.finish_element();
       continue;
     }
 
