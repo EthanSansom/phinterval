@@ -39,7 +39,7 @@ struct Invert {
 template <typename XView, typename Buffer>
 void DiscardInstants::apply_to_span(const XView& x, Buffer& out) {
   if (x.start(0) == x.end(0)) {
-    out.add_empty_element();
+    out.add_hole_element();
   } else {
     out.add_scalar_element(x.start(0), x.end(0));
   }
@@ -48,7 +48,7 @@ void DiscardInstants::apply_to_span(const XView& x, Buffer& out) {
 template <typename XView, typename Buffer>
 void DiscardInstants::apply_to_set(const XView& x, Buffer& out) {
   if (x.is_empty()) {
-    out.add_empty_element();
+    out.add_hole_element();
     return;
   }
 
@@ -74,7 +74,7 @@ void Complement::apply_to_span(const XView& x, Buffer& out) {
   const bool inf_end = x.end(0) == R_PosInf;
 
   if (inf_start && inf_end) {
-    out.add_empty_element();
+    out.add_hole_element();
   } else if (inf_start) {
     out.add_scalar_element(x.end(0), R_PosInf);
   } else if (inf_end) {
@@ -112,7 +112,7 @@ void Complement::apply_to_set(const XView& x, Buffer& out) {
 template <HoleTo hole_to>
 template <typename XView, typename Buffer>
 void Invert<hole_to>::apply_to_span(const XView& x, Buffer& out) {
-  out.add_empty_element();
+  out.add_hole_element();
 };
 
 template <HoleTo hole_to>
@@ -120,7 +120,7 @@ template <typename XView, typename Buffer>
 void Invert<hole_to>::apply_to_set(const XView& x, Buffer& out) {
   if (x.is_empty()) {
     if constexpr (hole_to == HoleTo::Hole) {
-      out.add_empty_element();
+      out.add_hole_element();
     } else if constexpr (hole_to == HoleTo::Inf) {
       out.add_inf_element();
     } else {

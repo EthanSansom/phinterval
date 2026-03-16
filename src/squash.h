@@ -147,7 +147,7 @@ void squash_scalar(
     Buffer& out_buffer
 ) {
   if (starts.empty()) {
-    out_buffer.add_empty_element();
+    out_buffer.add_hole_element();
     return;
   }
 

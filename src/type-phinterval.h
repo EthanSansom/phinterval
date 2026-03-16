@@ -60,7 +60,7 @@ private:
 public:
   PhintBuffer(R_xlen_t n, int reserve_size = 8);
   void add_na_element();
-  void add_empty_element();
+  void add_hole_element();
   void add_inf_element();
   void add_scalar_element(double start, double end);
   void add_set_element(const SetView& view);
@@ -94,7 +94,7 @@ public:
   R_xlen_t n_spans() {
     return starts.size();
   }
-  void add_empty_element() {
+  void add_hole_element() {
     return;
   };
   void add_scalar_element(double start, double end) {

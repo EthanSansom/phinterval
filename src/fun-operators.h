@@ -51,12 +51,12 @@ void Intersect<IsInclusive>::apply_to_span(const XView& x, const YView& y, Buffe
 
   if constexpr (IsInclusive) {
     if (end < start) {
-      out.add_empty_element();
+      out.add_hole_element();
       return;
     }
   } else {
     if (end <= start) {
-      out.add_empty_element();
+      out.add_hole_element();
       return;
     }
   }
@@ -68,7 +68,7 @@ template <bool IsInclusive>
 template <typename XView, typename YView, typename Buffer>
 void Intersect<IsInclusive>::apply_to_set(const XView& x, const YView& y, Buffer& out) {
   if (x.is_empty() || y.is_empty()) {
-    out.add_empty_element();
+    out.add_hole_element();
     return;
   }
 
@@ -124,7 +124,7 @@ void Union::apply_to_set(const XView& x, const YView& y, Buffer& out) {
   const bool y_empty = y.is_empty();
 
   if (x_empty && y_empty) {
-    out.add_empty_element();
+    out.add_hole_element();
     return;
   } else if (x_empty) {
     out.add_set_element(y);
@@ -202,7 +202,7 @@ void Setdiff::apply_to_span(const XView& x, const YView& y, Buffer& out) {
   }
   if (y_start <= x_start && x_end <= y_end) {
     // y contains x, return an empty set
-    out.add_empty_element();
+    out.add_hole_element();
     return;
   }
 
@@ -223,7 +223,7 @@ void Setdiff::apply_to_span(const XView& x, const YView& y, Buffer& out) {
 template <typename XView, typename YView, typename Buffer>
 void Setdiff::apply_to_set(const XView& x, const YView& y, Buffer& out) {
   if (x.is_empty()) {
-    out.add_empty_element();
+    out.add_hole_element();
     return;
   } else if (y.is_empty()) {
     out.add_set_element(x);
@@ -305,7 +305,7 @@ void SymmetricSetdiff::apply_to_set(const XView& x, const YView& y, Buffer& out)
   const bool y_empty = y.is_empty();
 
   if (x_empty && y_empty) {
-    out.add_empty_element();
+    out.add_hole_element();
     return;
   } else if (x_empty) {
     out.add_set_element(y);

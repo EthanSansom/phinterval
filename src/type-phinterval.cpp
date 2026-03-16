@@ -21,7 +21,7 @@ void PhintBuffer::add_na_element() {
   current_elt++;
 }
 
-void PhintBuffer::add_empty_element() {
+void PhintBuffer::add_hole_element() {
   p_size[current_elt] = 0;
   SET_VECTOR_ELT(starts, current_elt, Rf_allocVector(REALSXP, 0));
   SET_VECTOR_ELT(ends, current_elt, Rf_allocVector(REALSXP, 0));

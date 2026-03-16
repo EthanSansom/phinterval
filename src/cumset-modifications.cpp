@@ -85,7 +85,7 @@ List phint_accumulate(const VectorX& x, Op op) {
     if (view_elm.is_na) {
       goto fill_with_na;
     } else if (view_elm.is_empty()) {
-      buffer.add_empty_element();
+      buffer.add_hole_element();
     } else {
       buffer.add_set_element(view_elm);
     }
@@ -94,7 +94,7 @@ List phint_accumulate(const VectorX& x, Op op) {
       if constexpr (is_intersect_op<Op>) {
         goto fill_with_empty;
       } else {
-        buffer.add_empty_element();
+        buffer.add_hole_element();
       }
     } else {
       buffer.add_set_element(view_elm);
@@ -116,10 +116,10 @@ List phint_accumulate(const VectorX& x, Op op) {
         // In cumulative intersection, as soon as a hole is hit all remaining
         // elements must either be a hole or an NA value which is propagated.
         if (view_elm.is_empty()) {
-          buffer.add_empty_element();
+          buffer.add_hole_element();
           for (i++; i < n; i++) {
             if (x.view(i).is_na) goto fill_with_na;
-            buffer.add_empty_element();
+            buffer.add_hole_element();
           }
           return buffer.get_results();
         }
@@ -159,7 +159,7 @@ List phint_accumulate(const VectorX& x, Op op) {
 
   fill_with_empty:
     {
-      for (; i < n; i++) buffer.add_empty_element();
+      for (; i < n; i++) buffer.add_hole_element();
       return buffer.get_results();
     }
 }

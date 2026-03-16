@@ -57,7 +57,7 @@ List sift_impl(
       continue;
     }
     if (x_i.is_empty()) {
-      out.add_empty_element();
+      out.add_hole_element();
       continue;
     }
 
@@ -69,7 +69,7 @@ List sift_impl(
       if (keep_span(x_i.start(0), x_i.end(0), min_length_i, max_length_i)) {
         out.add_scalar_element(x_i.start(0), x_i.end(0));
       } else {
-        out.add_empty_element();
+        out.add_hole_element();
       }
     } else {
       // If x_i is a set: keep the subset of spans meeting the condition
