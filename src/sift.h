@@ -65,19 +65,21 @@ List sift_impl(
     double max_length_i = get_max_length(i);
 
     if constexpr (is_scalar_view<decltype(x_i)>) {
+      // If x_i is a span: either keep the span or add a hole
       if (keep_span(x_i.start(0), x_i.end(0), min_length_i, max_length_i)) {
         out.add_scalar_element(x_i.start(0), x_i.end(0));
+      } else {
+        out.add_empty_element();
+      }
+    } else {
+      // If x_i is a set: keep the subset of spans meeting the condition
+      for (int k = 0; k < x_i.size; k++) {
+        if (keep_span(x_i.start(k), x_i.end(k), min_length_i, max_length_i)) {
+          out.add_span(x_i.start(k), x_i.end(k));
+        }
       }
       out.finish_element();
-      continue;
     }
-
-    for (int k = 0; k < x_i.size; k++) {
-      if (keep_span(x_i.start(k), x_i.end(k), min_length_i, max_length_i)) {
-        out.add_span(x_i.start(k), x_i.end(k));
-      }
-    }
-    out.finish_element();
   }
 
   return out.get_results();
