@@ -184,7 +184,8 @@ all spans are removed become <code><a href="hole.html">hole()</a></code>s.</p>
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">one_day</span>, <span class="va">two_days</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  min_length <span class="op">=</span> <span class="fu"><a href="https://lubridate.tidyverse.org/reference/duration.html" class="external-link">duration</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">3</span><span class="op">)</span>, <span class="st">"days"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in funs_cpp$intvl(starts = lubridate::int_start(x), spans = lubridate::int_length(x),     ...):</span> attempt to set index 2/2 in SET_VECTOR_ELT</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;phinterval&lt;UTC&gt;[2]&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] {2025-10-10--2025-10-11} &lt;hole&gt;                  </span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

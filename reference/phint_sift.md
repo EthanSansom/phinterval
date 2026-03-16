@@ -142,5 +142,6 @@ phint_sift(
   c(one_day, two_days),
   min_length = duration(c(0, 3), "days")
 )
-#> Error in funs_cpp$intvl(starts = lubridate::int_start(x), spans = lubridate::int_length(x),     ...): attempt to set index 2/2 in SET_VECTOR_ELT
+#> <phinterval<UTC>[2]>
+#> [1] {2025-10-10--2025-10-11} <hole>                  
 ```
