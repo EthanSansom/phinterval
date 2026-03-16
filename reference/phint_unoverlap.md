@@ -108,14 +108,16 @@ mon_to_tue <- interval(as.Date("2025-11-10"), as.Date("2025-11-12"))
 
 # Sequential removal: each element is trimmed by all previous elements
 phint_unoverlap(c(wednesday, mon_to_wed, mon_to_tue))
-#> Error in (function (cl, name, valueClass) {    ClassDef <- getClass(cl)    slotClass <- ClassDef@slots[[name]]    if (is.null(slotClass))         stop(gettextf("%s is not a slot in class %s", sQuote(name),             dQuote(cl)), domain = NA)    if (.identC(slotClass, valueClass))         return(TRUE)    ok <- possibleExtends(valueClass, slotClass, ClassDef2 = getClassDef(slotClass,         where = .classEnv(ClassDef)))    if (isFALSE(ok))         stop(gettextf("assignment of an object of class %s is not valid for @%s in an object of class %s; is(value, \"%s\") is not TRUE",             dQuote(valueClass), sQuote(name), dQuote(cl), slotClass),             domain = NA)    TRUE})(structure("Interval", package = "lubridate"), ".Data", "list"): assignment of an object of class “list” is not valid for @‘.Data’ in an object of class “Interval”; is(value, "numeric") is not TRUE
+#> <phinterval<UTC>[3]>
+#> [1] {2025-11-12--2025-11-13} {2025-11-10--2025-11-12} <hole>                  
 
 # Priority-based: lower priority values are processed first
 phint_unoverlap(
   c(mon_to_wed, mon_to_tue, wednesday),
   priority = c(1, 2, 1)
 )
-#> Error in (function (cl, name, valueClass) {    ClassDef <- getClass(cl)    slotClass <- ClassDef@slots[[name]]    if (is.null(slotClass))         stop(gettextf("%s is not a slot in class %s", sQuote(name),             dQuote(cl)), domain = NA)    if (.identC(slotClass, valueClass))         return(TRUE)    ok <- possibleExtends(valueClass, slotClass, ClassDef2 = getClassDef(slotClass,         where = .classEnv(ClassDef)))    if (isFALSE(ok))         stop(gettextf("assignment of an object of class %s is not valid for @%s in an object of class %s; is(value, \"%s\") is not TRUE",             dQuote(valueClass), sQuote(name), dQuote(cl), slotClass),             domain = NA)    TRUE})(structure("Interval", package = "lubridate"), ".Data", "list"): assignment of an object of class “list” is not valid for @‘.Data’ in an object of class “Interval”; is(value, "numeric") is not TRUE
+#> <phinterval<UTC>[3]>
+#> [1] {2025-11-10--2025-11-13} <hole>                   <hole>                  
 
 # within_priority = "keep": overlaps within a group are preserved
 phint_unoverlap(
@@ -123,7 +125,8 @@ phint_unoverlap(
   priority = c(1, 1, 2),
   within_priority = "keep"
 )
-#> Error in (function (cl, name, valueClass) {    ClassDef <- getClass(cl)    slotClass <- ClassDef@slots[[name]]    if (is.null(slotClass))         stop(gettextf("%s is not a slot in class %s", sQuote(name),             dQuote(cl)), domain = NA)    if (.identC(slotClass, valueClass))         return(TRUE)    ok <- possibleExtends(valueClass, slotClass, ClassDef2 = getClassDef(slotClass,         where = .classEnv(ClassDef)))    if (isFALSE(ok))         stop(gettextf("assignment of an object of class %s is not valid for @%s in an object of class %s; is(value, \"%s\") is not TRUE",             dQuote(valueClass), sQuote(name), dQuote(cl), slotClass),             domain = NA)    TRUE})(structure("Interval", package = "lubridate"), ".Data", "list"): assignment of an object of class “list” is not valid for @‘.Data’ in an object of class “Interval”; is(value, "numeric") is not TRUE
+#> <phinterval<UTC>[3]>
+#> [1] {2025-11-10--2025-11-13} {2025-11-10--2025-11-12} <hole>                  
 
 # priority_order = "desc": higher priority values are processed first
 phint_unoverlap(
@@ -131,12 +134,13 @@ phint_unoverlap(
   priority = c(1, 2, 1),
   priority_order = "desc"
 )
-#> Error in (function (cl, name, valueClass) {    ClassDef <- getClass(cl)    slotClass <- ClassDef@slots[[name]]    if (is.null(slotClass))         stop(gettextf("%s is not a slot in class %s", sQuote(name),             dQuote(cl)), domain = NA)    if (.identC(slotClass, valueClass))         return(TRUE)    ok <- possibleExtends(valueClass, slotClass, ClassDef2 = getClassDef(slotClass,         where = .classEnv(ClassDef)))    if (isFALSE(ok))         stop(gettextf("assignment of an object of class %s is not valid for @%s in an object of class %s; is(value, \"%s\") is not TRUE",             dQuote(valueClass), sQuote(name), dQuote(cl), slotClass),             domain = NA)    TRUE})(structure("Interval", package = "lubridate"), ".Data", "list"): assignment of an object of class “list” is not valid for @‘.Data’ in an object of class “Interval”; is(value, "numeric") is not TRUE
+#> <phinterval<UTC>[3]>
+#> [1] {2025-11-12--2025-11-13} {2025-11-10--2025-11-12} <hole>                  
 
 # NA elements are treated as holes by default
 phint_unoverlap(c(mon_to_wed, NA, wednesday))
-#> Warning: number of items to replace is not a multiple of replacement length
-#> Error in (function (cl, name, valueClass) {    ClassDef <- getClass(cl)    slotClass <- ClassDef@slots[[name]]    if (is.null(slotClass))         stop(gettextf("%s is not a slot in class %s", sQuote(name),             dQuote(cl)), domain = NA)    if (.identC(slotClass, valueClass))         return(TRUE)    ok <- possibleExtends(valueClass, slotClass, ClassDef2 = getClassDef(slotClass,         where = .classEnv(ClassDef)))    if (isFALSE(ok))         stop(gettextf("assignment of an object of class %s is not valid for @%s in an object of class %s; is(value, \"%s\") is not TRUE",             dQuote(valueClass), sQuote(name), dQuote(cl), slotClass),             domain = NA)    TRUE})(structure("Interval", package = "lubridate"), ".Data", "list"): assignment of an object of class “list” is not valid for @‘.Data’ in an object of class “Interval”; is(value, "numeric") is not TRUE
+#> <phinterval<UTC>[3]>
+#> [1] {2025-11-10--2025-11-13} <hole>                   <hole>                  
 
 # NA elements propagate forward with na_propagate = TRUE
 phint_unoverlap(c(mon_to_wed, NA, wednesday), na_propagate = TRUE)
