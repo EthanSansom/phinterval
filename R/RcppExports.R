@@ -69,6 +69,22 @@ range_flatten_cpp <- function(starts, ends, what) {
     .Call(`_phinterval_range_flatten_cpp`, starts, ends, what)
 }
 
+phint_unoverlap_cpp <- function(size, starts, ends, priority_locs, within_priority, na_propagate) {
+    .Call(`_phinterval_phint_unoverlap_cpp`, size, starts, ends, priority_locs, within_priority, na_propagate)
+}
+
+intvl_unoverlap_cpp <- function(starts, spans, priority_locs, within_priority, na_propagate) {
+    .Call(`_phinterval_intvl_unoverlap_cpp`, starts, spans, priority_locs, within_priority, na_propagate)
+}
+
+phint_unoverlap_within_cpp <- function(size, starts, ends, na_propagate) {
+    .Call(`_phinterval_phint_unoverlap_within_cpp`, size, starts, ends, na_propagate)
+}
+
+intvl_unoverlap_within_cpp <- function(starts, spans, na_propagate) {
+    .Call(`_phinterval_intvl_unoverlap_within_cpp`, starts, spans, na_propagate)
+}
+
 phint_discard_instants_cpp <- function(size, starts, ends) {
     .Call(`_phinterval_phint_discard_instants_cpp`, size, starts, ends)
 }

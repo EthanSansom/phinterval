@@ -104,7 +104,7 @@ phint_unoverlap <- function(
     within_priority = c("sequential", "keep"),
     na_propagate = FALSE
 ) {
-  check_phintish(phint)
+  phint_type <- validate_type_phintish(phint)
   priority <- priority %||% 1L
   check_vector(priority)
   check_recycleable_to(priority, phint)
@@ -113,72 +113,42 @@ phint_unoverlap <- function(
   within_priority <- arg_match0(within_priority, c("sequential", "keep"))
   check_bool(na_propagate)
 
-  tzone <- get_tzone(phint)
-  hole <- hole(1L, tzone = tzone)
-  phint <- as_phinterval(phint)
-
-  if (!na_propagate) {
-    phint[is.na(phint)] <- hole
-  }
-
-  # Un-overlap elements within the same group
-  unoverlap_within <- function(phint, within_priority) {
+  # If `priority` is scalar, consider all elements to be within the same group
+  if (is_scalar(priority)) {
     if (within_priority == "keep") {
       return(phint)
     }
-    # `within_priority == "sequential"`, remove `phint[1:(i-1)]` from `phint[[i]]`
-    mask <- phint_cumunion(c(hole, phint[-length(phint)]), na_propagate = na_propagate)
-    phint_setdiff(phint, mask)
+    out <- phint_unary_dispatch(
+      x = phint,
+      x_type = phint_type,
+      funs_cpp = list(
+        phint = phint_unoverlap_within_cpp,
+        intvl = intvl_unoverlap_within_cpp
+      ),
+      na_propagate = na_propagate
+    )
+    return(new_phinterval_bare(out, tzone = get_tzone(phint)))
   }
 
-  # If `priority` is scalar we consider all of `phint` to be within the same group
-  if (is_scalar(priority)) {
-    return(unoverlap_within(phint, within_priority))
-  }
-
-  groups <- switch(
+  priority_groups <- switch(
     priority_order,
     asc = vec_locate_sorted_groups(priority, direction = "asc"),
     desc = vec_locate_sorted_groups(priority, direction = "desc"),
     appearance = vec_group_loc(priority)
   )
 
-  # For now, use a phinterval as a buffer to assign into
-  out <- hole(n = length(phint), tzone = tzone)
-
-  # Mask of past groups that we accumulate and difference from subsequent groups
-  mask <- hole
-
-  # `groups` is already arranged in the order that we want to resolve conflicts
-  for (i in seq(nrow(groups))) {
-    # `loc[[i]]` gives us the group of `phinterval` elements that we want to un-overlap
-    locations <- groups$loc[[i]]
-    phint_subset <- phint[locations]
-
-    # For the first group, we only need to resolve internal overlaps
-    if (i == 1) {
-      phint_resolved <- unoverlap_within(phint_subset, within_priority)
-
-      out[locations] <- phint_resolved
-      mask <- phint_squash(phint_resolved, na_rm = !na_propagate)
-      next
-    }
-
-    # For remaining groups, we need to:
-    # 1. Resolve overlaps with previous groups
-    # 2. Resolve overlaps within the group
-    phint_resolved <- phint_setdiff(phint_subset, mask)
-    phint_resolved <- unoverlap_within(phint_resolved, within_priority)
-    out[locations] <- phint_resolved
-
-    # Update the mask on every iteration but the last
-    if (i < nrow(groups)) {
-      mask_i <- phint_squash(phint_resolved, na_rm = !na_propagate)
-      mask <- phint_union(mask, mask_i)
-    }
-  }
-
-  out
+  out <- phint_unary_dispatch(
+    x = phint,
+    x_type = phint_type,
+    funs_cpp = list(
+      phint = phint_unoverlap_cpp,
+      intvl = intvl_unoverlap_cpp
+    ),
+    priority_locs = .subset2(priority_groups, "loc"),
+    within_priority = within_priority,
+    na_propagate = na_propagate
+  )
+  new_phinterval_bare(out, tzone = get_tzone(phint))
 }
 
 #' Test whether a phinterval vector has cross-element overlaps

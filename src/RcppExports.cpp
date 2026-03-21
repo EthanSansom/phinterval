@@ -232,6 +232,64 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// phint_unoverlap_cpp
+List phint_unoverlap_cpp(IntegerVector size, List starts, List ends, List priority_locs, String within_priority, bool na_propagate);
+RcppExport SEXP _phinterval_phint_unoverlap_cpp(SEXP sizeSEXP, SEXP startsSEXP, SEXP endsSEXP, SEXP priority_locsSEXP, SEXP within_prioritySEXP, SEXP na_propagateSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerVector >::type size(sizeSEXP);
+    Rcpp::traits::input_parameter< List >::type starts(startsSEXP);
+    Rcpp::traits::input_parameter< List >::type ends(endsSEXP);
+    Rcpp::traits::input_parameter< List >::type priority_locs(priority_locsSEXP);
+    Rcpp::traits::input_parameter< String >::type within_priority(within_prioritySEXP);
+    Rcpp::traits::input_parameter< bool >::type na_propagate(na_propagateSEXP);
+    rcpp_result_gen = Rcpp::wrap(phint_unoverlap_cpp(size, starts, ends, priority_locs, within_priority, na_propagate));
+    return rcpp_result_gen;
+END_RCPP
+}
+// intvl_unoverlap_cpp
+List intvl_unoverlap_cpp(DatetimeVector starts, NumericVector spans, List priority_locs, String within_priority, bool na_propagate);
+RcppExport SEXP _phinterval_intvl_unoverlap_cpp(SEXP startsSEXP, SEXP spansSEXP, SEXP priority_locsSEXP, SEXP within_prioritySEXP, SEXP na_propagateSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< DatetimeVector >::type starts(startsSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type spans(spansSEXP);
+    Rcpp::traits::input_parameter< List >::type priority_locs(priority_locsSEXP);
+    Rcpp::traits::input_parameter< String >::type within_priority(within_prioritySEXP);
+    Rcpp::traits::input_parameter< bool >::type na_propagate(na_propagateSEXP);
+    rcpp_result_gen = Rcpp::wrap(intvl_unoverlap_cpp(starts, spans, priority_locs, within_priority, na_propagate));
+    return rcpp_result_gen;
+END_RCPP
+}
+// phint_unoverlap_within_cpp
+List phint_unoverlap_within_cpp(IntegerVector size, List starts, List ends, bool na_propagate);
+RcppExport SEXP _phinterval_phint_unoverlap_within_cpp(SEXP sizeSEXP, SEXP startsSEXP, SEXP endsSEXP, SEXP na_propagateSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerVector >::type size(sizeSEXP);
+    Rcpp::traits::input_parameter< List >::type starts(startsSEXP);
+    Rcpp::traits::input_parameter< List >::type ends(endsSEXP);
+    Rcpp::traits::input_parameter< bool >::type na_propagate(na_propagateSEXP);
+    rcpp_result_gen = Rcpp::wrap(phint_unoverlap_within_cpp(size, starts, ends, na_propagate));
+    return rcpp_result_gen;
+END_RCPP
+}
+// intvl_unoverlap_within_cpp
+List intvl_unoverlap_within_cpp(DatetimeVector starts, NumericVector spans, bool na_propagate);
+RcppExport SEXP _phinterval_intvl_unoverlap_within_cpp(SEXP startsSEXP, SEXP spansSEXP, SEXP na_propagateSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< DatetimeVector >::type starts(startsSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type spans(spansSEXP);
+    Rcpp::traits::input_parameter< bool >::type na_propagate(na_propagateSEXP);
+    rcpp_result_gen = Rcpp::wrap(intvl_unoverlap_within_cpp(starts, spans, na_propagate));
+    return rcpp_result_gen;
+END_RCPP
+}
 // phint_discard_instants_cpp
 List phint_discard_instants_cpp(IntegerVector size, List starts, List ends);
 RcppExport SEXP _phinterval_phint_discard_instants_cpp(SEXP sizeSEXP, SEXP startsSEXP, SEXP endsSEXP) {
@@ -889,6 +947,10 @@ static const R_CallMethodDef CallEntries[] = {
     {"_phinterval_phint_flatten_cpp", (DL_FUNC) &_phinterval_phint_flatten_cpp, 4},
     {"_phinterval_intvl_flatten_cpp", (DL_FUNC) &_phinterval_intvl_flatten_cpp, 3},
     {"_phinterval_range_flatten_cpp", (DL_FUNC) &_phinterval_range_flatten_cpp, 3},
+    {"_phinterval_phint_unoverlap_cpp", (DL_FUNC) &_phinterval_phint_unoverlap_cpp, 6},
+    {"_phinterval_intvl_unoverlap_cpp", (DL_FUNC) &_phinterval_intvl_unoverlap_cpp, 5},
+    {"_phinterval_phint_unoverlap_within_cpp", (DL_FUNC) &_phinterval_phint_unoverlap_within_cpp, 4},
+    {"_phinterval_intvl_unoverlap_within_cpp", (DL_FUNC) &_phinterval_intvl_unoverlap_within_cpp, 3},
     {"_phinterval_phint_discard_instants_cpp", (DL_FUNC) &_phinterval_phint_discard_instants_cpp, 3},
     {"_phinterval_intvl_discard_instants_cpp", (DL_FUNC) &_phinterval_intvl_discard_instants_cpp, 2},
     {"_phinterval_phint_complement_cpp", (DL_FUNC) &_phinterval_phint_complement_cpp, 3},

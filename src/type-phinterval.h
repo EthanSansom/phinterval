@@ -2,6 +2,7 @@
 #define PHINTERVAL_TYPE_PHINTERVAL_H
 
 #include "type-helpers.h"
+#include <utility>
 #include <vector>
 #include <Rcpp.h>
 using namespace Rcpp;
@@ -59,6 +60,14 @@ private:
 
 public:
   PhintBuffer(R_xlen_t n, int reserve_size = 8);
+
+  void insert_na_element(R_xlen_t i);
+  void insert_hole_element(R_xlen_t i);
+  void insert_inf_element(R_xlen_t i);
+  void insert_scalar_element(double start, double end, R_xlen_t i);
+  void insert_set_element(const SetView& view, R_xlen_t i);
+  void insert_set_element(const ScalarView& view, R_xlen_t i);
+
   void add_na_element();
   void add_hole_element();
   void add_inf_element();
@@ -118,6 +127,10 @@ public:
   void finish_element() {
     return;
   };
+  void clear() {
+    starts.clear();
+    ends.clear();
+  }
 
   // The pointers returned by view() will be invalidated if the buffer grows,
   // so this should only be called after the buffer has been filled.
@@ -138,5 +151,20 @@ inline PhintView SetBuffer::view() const {
   int size = starts.size();
   return { size, starts.data(), ends.data() };
 }
+
+struct SetSwapBuffer {
+  SetBuffer a;
+  SetBuffer b;
+  SetBuffer* current = &a;
+  SetBuffer* next = &b;
+
+  void swap() {
+    std::swap(current, next);
+    next->clear();
+  }
+
+  SetView view() const { return current->view(); }
+  void clear() { current->clear(); }
+};
 
 #endif
