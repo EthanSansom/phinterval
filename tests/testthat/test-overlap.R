@@ -100,6 +100,40 @@ test_that("phint_unoverlap() works as expected", {
     phint_unoverlap(c(phint_multi, int13)),
     c(phint_multi, int23)
   )
+
+  # Single-element priority groups: each element is its own group
+  expect_equal(
+    phint_unoverlap(c(int12, int13, int14), priority = c(1, 2, 3)),
+    c(int12, int23, int34)
+  )
+  expect_equal(
+    phint_unoverlap(c(int14, int13, int12), priority = c(1, 2, 3)),
+    c(int14, hole, hole)
+  )
+
+  # Single-element groups with NA: treated as hole by default
+  expect_equal(
+    phint_unoverlap(c(int12, na_phint, int34), priority = c(1, 2, 3)),
+    c(int12, hole, int34)
+  )
+
+  # Single-element groups with NA: propagates to lower-priority groups
+  expect_equal(
+    phint_unoverlap(c(int12, na_phint, int34), priority = c(1, 2, 3), na_propagate = TRUE),
+    c(int12, na_phint, na_phint)
+  )
+
+  # Single-element groups: NA in first group propagates to all
+  expect_equal(
+    phint_unoverlap(c(na_phint, int12, int34), priority = c(1, 2, 3), na_propagate = TRUE),
+    c(na_phint, na_phint, na_phint)
+  )
+
+  # Single-element groups: NA in last group does not affect earlier groups
+  expect_equal(
+    phint_unoverlap(c(int12, int34, na_phint), priority = c(1, 2, 3), na_propagate = TRUE),
+    c(int12, int34, na_phint)
+  )
 })
 
 test_that("phint_unoverlap() handles length-1, hole, and NA inputs", {
@@ -299,6 +333,12 @@ test_that("phint_unoverlap() handles multi-span elements correctly", {
     c(phint_12_34, int23)
   )
 
+  # Hole punch
+  expect_equal(
+    phint_unoverlap(c(int23, int14)),
+    c(int23, phint_12_34)
+  )
+
   # Multi-span blocked: each span is trimmed independently
   expect_equal(phint_unoverlap(c(int13, phint_23_45)), c(int13, int45))
   expect_equal(phint_unoverlap(c(int13, int36, phint_23_45)), c(int13, int36, hole))
@@ -320,5 +360,85 @@ test_that("phint_unoverlap() handles multi-span elements correctly", {
       priority = c(2, 1, 2)
     ),
     c(phint_squash(c(int12, int34)), phint_23_45, int56)
+  )
+})
+
+test_that("phint_unoverlap() handles within_priority = 'keep' with na_propagate = TRUE", {
+  t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
+  t2 <- as.POSIXct("2021-01-01 00:10:00", tz = "UTC")
+  t3 <- as.POSIXct("2021-01-01 00:20:00", tz = "UTC")
+  t4 <- as.POSIXct("2021-01-01 00:30:00", tz = "UTC")
+  int12 <- phinterval(t1, t2)
+  int13 <- phinterval(t1, t3)
+  int23 <- phinterval(t2, t3)
+  int34 <- phinterval(t3, t4)
+  hole  <- hole(tzone = "UTC")
+  na_phint <- phinterval(NA_POSIXct_, NA_POSIXct_, tzone = "UTC")
+
+  # NA within a group does NOT propagate to same-priority elements
+  # (within_priority = "keep" means same-priority elements are independent)
+  expect_equal(
+    phint_unoverlap(
+      c(int12, na_phint, int13),
+      priority = c(1, 2, 2),
+      within_priority = "keep",
+      na_propagate = TRUE
+    ),
+    c(int12, na_phint, int23)
+  )
+
+  # NA does propagate to lower-priority groups
+  expect_equal(
+    phint_unoverlap(
+      c(na_phint, int12, int34),
+      priority = c(1, 1, 2),
+      within_priority = "keep",
+      na_propagate = TRUE
+    ),
+    c(na_phint, int12, na_phint)
+  )
+
+  # NA after non-NA in same group: does NOT propagate within group
+  expect_equal(
+    phint_unoverlap(
+      c(int12, na_phint, int34),
+      priority = c(1, 1, 2),
+      within_priority = "keep",
+      na_propagate = TRUE
+    ),
+    c(int12, na_phint, na_phint)
+  )
+
+  # All NA in group: propagates to lower-priority groups
+  expect_equal(
+    phint_unoverlap(
+      c(na_phint, na_phint, int34),
+      priority = c(1, 1, 2),
+      within_priority = "keep",
+      na_propagate = TRUE
+    ),
+    c(na_phint, na_phint, na_phint)
+  )
+
+  # NA in group with keep: same-priority non-NA elements are unaffected
+  expect_equal(
+    phint_unoverlap(
+      c(int12, na_phint, int13, int34),
+      priority = c(1, 1, 1, 2),
+      within_priority = "keep",
+      na_propagate = TRUE
+    ),
+    c(int12, na_phint, int13, na_phint)
+  )
+
+  # Contrast with within_priority = "sequential": NA propagates within group
+  expect_equal(
+    phint_unoverlap(
+      c(int12, na_phint, int13, int34),
+      priority = c(1, 1, 1, 2),
+      within_priority = "sequential",
+      na_propagate = TRUE
+    ),
+    c(int12, na_phint, na_phint, na_phint)
   )
 })
