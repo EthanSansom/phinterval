@@ -5,7 +5,7 @@
 #include <algorithm>
 
 // Operators never receive `NA` elements
-// - apply_to_set() takes a PhintView (possible empty) or a ScalarView type
+// - apply_to_set() takes a PhintView (possibly empty) or a ScalarView type
 // - apply_to_span() takes a single-span PhintView or a ScalarView type
 
 template <bool IsInclusive>
@@ -67,7 +67,7 @@ void Intersect<IsInclusive>::apply_to_span(const XView& x, const YView& y, Buffe
 template <bool IsInclusive>
 template <typename XView, typename YView, typename Buffer>
 void Intersect<IsInclusive>::apply_to_set(const XView& x, const YView& y, Buffer& out) {
-  if (x.is_empty() || y.is_empty()) {
+  if (x.is_hole() || y.is_hole()) {
     out.add_hole_element();
     return;
   }
@@ -120,8 +120,8 @@ void Union::apply_to_span(const XView& x, const YView& y, Buffer& out) {
 
 template <typename XView, typename YView, typename Buffer>
 void Union::apply_to_set(const XView& x, const YView& y, Buffer& out) {
-  const bool x_empty = x.is_empty();
-  const bool y_empty = y.is_empty();
+  const bool x_empty = x.is_hole();
+  const bool y_empty = y.is_hole();
 
   if (x_empty && y_empty) {
     out.add_hole_element();
@@ -222,10 +222,10 @@ void Setdiff::apply_to_span(const XView& x, const YView& y, Buffer& out) {
 
 template <typename XView, typename YView, typename Buffer>
 void Setdiff::apply_to_set(const XView& x, const YView& y, Buffer& out) {
-  if (x.is_empty()) {
+  if (x.is_hole()) {
     out.add_hole_element();
     return;
-  } else if (y.is_empty()) {
+  } else if (y.is_hole()) {
     out.add_set_element(x);
     return;
   }
@@ -291,7 +291,7 @@ void SymmetricSetdiff::apply_to_span(const XView& x, const YView& y, Buffer& out
 
   auto union_view = union_buffer.view();
   auto intersect_view = intersect_buffer.view();
-  if (intersect_view.is_empty()) {
+  if (intersect_view.is_hole()) {
     out.add_set_element(union_view);
   } else {
     Setdiff setdiff_op;
@@ -301,8 +301,8 @@ void SymmetricSetdiff::apply_to_span(const XView& x, const YView& y, Buffer& out
 
 template <typename XView, typename YView, typename Buffer>
 void SymmetricSetdiff::apply_to_set(const XView& x, const YView& y, Buffer& out) {
-  const bool x_empty = x.is_empty();
-  const bool y_empty = y.is_empty();
+  const bool x_empty = x.is_hole();
+  const bool y_empty = y.is_hole();
 
   if (x_empty && y_empty) {
     out.add_hole_element();
@@ -325,7 +325,7 @@ void SymmetricSetdiff::apply_to_set(const XView& x, const YView& y, Buffer& out)
 
   auto union_view = union_buffer.view();
   auto intersect_view = intersect_buffer.view();
-  if (intersect_view.is_empty()) {
+  if (intersect_view.is_hole()) {
     out.add_set_element(union_view);
   } else {
     Setdiff setdiff_op;

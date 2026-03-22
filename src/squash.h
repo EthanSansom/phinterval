@@ -110,7 +110,7 @@ List squash_vec_by_impl(
       }
       group_is_na = false;
 
-      if (view.is_empty()) continue;
+      if (view.is_hole()) continue;
 
       // Requires C++17, skips loop for scalar span types
       if constexpr (is_scalar_view<decltype(view)>) {

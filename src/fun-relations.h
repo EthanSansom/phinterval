@@ -44,7 +44,7 @@ bool Within<IsInclusive>::apply_to_span(const XView& x, const YView& y) {
 template <bool IsInclusive>
 template <typename XView, typename YView>
 bool Within<IsInclusive>::apply_to_set(const XView& x, const YView& y) {
-  if (x.is_empty() || y.is_empty()) {
+  if (x.is_hole() || y.is_hole()) {
     return false;
   }
 
@@ -83,7 +83,7 @@ bool Overlaps<IsInclusive>::apply_to_span(const XView& x, const YView& y) {
 template <bool IsInclusive>
 template <typename XView, typename YView>
 bool Overlaps<IsInclusive>::apply_to_set(const XView& x, const YView& y) {
-  if (x.is_empty() || y.is_empty()) {
+  if (x.is_hole() || y.is_hole()) {
     return false;
   }
 

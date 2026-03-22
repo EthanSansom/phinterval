@@ -52,7 +52,7 @@ DataFrame phint_unnest_impl(const VectorType& vec, String tzone) {
       continue;
     }
 
-    if (view.is_empty()) {
+    if (view.is_hole()) {
       if constexpr (DropHoles) {
         continue;
       } else {
@@ -90,7 +90,7 @@ DataFrame phint_unnest_impl(const VectorType& vec, String tzone) {
       continue;
     }
 
-    if (view.is_empty()) {
+    if (view.is_hole()) {
       if constexpr (DropHoles) {
         continue;
       } else {

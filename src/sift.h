@@ -56,7 +56,7 @@ List sift_impl(
       out.add_na_element();
       continue;
     }
-    if (x_i.is_empty()) {
+    if (x_i.is_hole()) {
       out.add_hole_element();
       continue;
     }

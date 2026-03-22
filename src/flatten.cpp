@@ -41,7 +41,7 @@ List phint_flatten_impl(const VectorX& x, const String& what) {
 
   for (int i = 0; i < n_sets; i++) {
     auto x_i = x.view(i);
-    if (x_i.is_na || x_i.is_empty()) continue;
+    if (x_i.is_na || x_i.is_hole()) continue;
     squash_in_buffer.add_set_element(x_i);
   }
 

@@ -47,7 +47,7 @@ struct ScalarView {
 
   inline double start(int) const { return starts; }
   inline double end(int) const { return ends; }
-  inline bool is_empty() const { return false; }
+  inline bool is_hole() const { return false; }
   inline bool is_scalar() const { return !is_na; }
 
   List get_results() const {
@@ -86,7 +86,7 @@ struct SetView {
 
   inline double start(int i) const { return starts[i]; }
   inline double end(int i) const { return ends[i]; }
-  inline bool is_empty() const { return !size; }
+  inline bool is_hole() const { return !size; }
   inline bool is_scalar() const { return size == 1; }
 
   List get_results() const {

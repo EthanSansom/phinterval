@@ -140,7 +140,7 @@ List unoverlap_between_impl(const VectorX& x, const List& priority_locs) {
       }
 
       // Case where `x[i]` is empty
-      if (x_i.is_empty()) {
+      if (x_i.is_hole()) {
         out.insert_hole_element(i);
         continue;
       }
@@ -161,7 +161,7 @@ List unoverlap_between_impl(const VectorX& x, const List& priority_locs) {
         setdiff_op.apply_to_set(current_element.view(), within_group_cumunion.view(), *current_element.next);
         current_element.swap();
 
-        if (current_element.view().is_empty()) {
+        if (current_element.view().is_hole()) {
           out.insert_hole_element(i);
         } else {
           out.insert_set_element(current_element.view(), i);
@@ -230,12 +230,12 @@ List unoverlap_within_impl(const VectorX& x) {
 
     if constexpr (PropagateNA) {
       if (x_i.is_na) goto fill_with_na;
-      if (x_i.is_empty()) {
+      if (x_i.is_hole()) {
         out.add_hole_element();
         continue;
       }
     } else {
-      if (x_i.is_na || x_i.is_empty()) {
+      if (x_i.is_na || x_i.is_hole()) {
         out.add_hole_element();
         continue;
       }

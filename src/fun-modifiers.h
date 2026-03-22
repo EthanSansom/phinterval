@@ -4,7 +4,7 @@
 #include "type-phinterval.h"
 
 // Modifiers never receive `NA` elements
-// - apply_to_set() takes a PhintView (possible empty) or a ScalarView type
+// - apply_to_set() takes a PhintView (possibly empty) or a ScalarView type
 // - apply_to_span() takes a single-span PhintView or a ScalarView type
 
 struct DiscardInstants {
@@ -47,7 +47,7 @@ void DiscardInstants::apply_to_span(const XView& x, Buffer& out) {
 
 template <typename XView, typename Buffer>
 void DiscardInstants::apply_to_set(const XView& x, Buffer& out) {
-  if (x.is_empty()) {
+  if (x.is_hole()) {
     out.add_hole_element();
     return;
   }
@@ -88,7 +88,7 @@ void Complement::apply_to_span(const XView& x, Buffer& out) {
 
 template <typename XView, typename Buffer>
 void Complement::apply_to_set(const XView& x, Buffer& out) {
-  if (x.is_empty()) {
+  if (x.is_hole()) {
     out.add_inf_element();
     return;
   }
@@ -118,7 +118,7 @@ void Invert<hole_to>::apply_to_span(const XView& x, Buffer& out) {
 template <HoleTo hole_to>
 template <typename XView, typename Buffer>
 void Invert<hole_to>::apply_to_set(const XView& x, Buffer& out) {
-  if (x.is_empty()) {
+  if (x.is_hole()) {
     if constexpr (hole_to == HoleTo::Hole) {
       out.add_hole_element();
     } else if constexpr (hole_to == HoleTo::Inf) {

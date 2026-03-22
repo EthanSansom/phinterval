@@ -84,13 +84,13 @@ List phint_accumulate(const VectorX& x, Op op) {
   if constexpr (PropagateNA) {
     if (view_elm.is_na) {
       goto fill_with_na;
-    } else if (view_elm.is_empty()) {
+    } else if (view_elm.is_hole()) {
       buffer.add_hole_element();
     } else {
       buffer.add_set_element(view_elm);
     }
   } else {
-    if (view_elm.is_na || view_elm.is_empty()) {
+    if (view_elm.is_na || view_elm.is_hole()) {
       if constexpr (is_intersect_op<Op>) {
         goto fill_with_empty;
       } else {
@@ -115,7 +115,7 @@ List phint_accumulate(const VectorX& x, Op op) {
       if constexpr (is_intersect_op<Op>) {
         // In cumulative intersection, as soon as a hole is hit all remaining
         // elements must either be a hole or an NA value which is propagated.
-        if (view_elm.is_empty()) {
+        if (view_elm.is_hole()) {
           buffer.add_hole_element();
           for (i++; i < n; i++) {
             if (x.view(i).is_na) goto fill_with_na;
@@ -125,14 +125,14 @@ List phint_accumulate(const VectorX& x, Op op) {
         }
       } else {
         // Union: if view_elm is empty -> union(view_elm, view_lag) == view_lag
-        if (view_elm.is_empty()) {
+        if (view_elm.is_hole()) {
           buffer.add_set_element(view_lag);
           continue;
         }
       }
     } else {
       // Empty and NA handling, not PropagateNA
-      if (view_elm.is_na || view_elm.is_empty()) {
+      if (view_elm.is_na || view_elm.is_hole()) {
         if constexpr (is_intersect_op<Op>) {
           goto fill_with_empty;
         } else {
