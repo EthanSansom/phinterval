@@ -31,7 +31,6 @@ void squash_scalar(
 
 // squash_vec_impl -------------------------------------------------------------
 
-// TODO: Benchmark and test using std::vectors for the buffers!
 template <typename VectorType>
 List squash_vec_impl(const VectorType& vec, bool na_rm, const String& empty_to) {
   const R_xlen_t n = vec.n_sets();

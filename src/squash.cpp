@@ -111,8 +111,6 @@ List squash_num_impl(const NumericVector& starts, const NumericVector& ends) {
     return p_ends[i] < p_ends[j];
   });
 
-  // TODO: Potentially std::vector<numeric>. Benchmark, we might not need to
-  // reserve the entire size `n`. We can just `Rcpp::wrap()` for the output.
   NumericVector out_starts = no_init(n);
   NumericVector out_ends = no_init(n);
   double* p_out_starts = REAL(out_starts);
