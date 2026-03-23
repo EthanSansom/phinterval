@@ -80,9 +80,8 @@ phint_unoverlap(
 
   Whether `NA` elements propagate to subsequent elements:
 
-  - `FALSE` (default): `NA` elements are treated as
-    [`hole()`](https://ethansansom.github.io/phinterval/reference/hole.md)s
-    and do not affect subsequent results.
+  - `FALSE` (default): `NA` elements are left as-is and do not affect
+    subsequent results.
 
   - `TRUE`: An `NA` element causes all subsequent elements (or
     lower-priority group elements) to become `NA`.
@@ -137,10 +136,10 @@ phint_unoverlap(
 #> <phinterval<UTC>[3]>
 #> [1] {2025-11-12--2025-11-13} {2025-11-10--2025-11-12} <hole>                  
 
-# NA elements are treated as holes by default
+# NA elements are treated as ignored by default
 phint_unoverlap(c(mon_to_wed, NA, wednesday))
 #> <phinterval<UTC>[3]>
-#> [1] {2025-11-10--2025-11-13} <hole>                   <hole>                  
+#> [1] {2025-11-10--2025-11-13} <NA>                     <hole>                  
 
 # NA elements propagate forward with na_propagate = TRUE
 phint_unoverlap(c(mon_to_wed, NA, wednesday), na_propagate = TRUE)

@@ -2,9 +2,12 @@
 
 `phint_has_overlaps()` returns a logical vector indicating which
 elements of `phint` would be modified by
-[`phint_unoverlap()`](https://ethansansom.github.io/phinterval/reference/phint_unoverlap.md)
-or are blockers of a subsequent element. `phint_any_overlaps()` is a
-fast scalar equivalent to `any(phint_has_overlaps(...), na.rm = TRUE)`.
+[`phint_unoverlap()`](https://ethansansom.github.io/phinterval/reference/phint_unoverlap.md),
+i.e. elements which overlap with at least one preceding element (or
+lower-priority group element). Blockers, i.e. preceding elements which
+overlap with a following element, are not marked as overlapping.
+`phint_any_overlaps()` is a fast scalar equivalent to
+`any(phint_has_overlaps(...), na.rm = TRUE)`.
 
 Both functions accept the same arguments as
 [`phint_unoverlap()`](https://ethansansom.github.io/phinterval/reference/phint_unoverlap.md)
@@ -14,11 +17,11 @@ The following invariants hold:
 
     # phint_unoverlap() ensures that phint_has_overlaps() is FALSE
     phint <- phint_unoverlap(phint, ...)
-    !any(phint_has_overlaps(phint, ...), na.rm = TRUE)
+    !phint_any_overlaps(phint, ...)
 
     # phint_unoverlap() does not alter non-overlapping elements
     overlapping <- phint_has_overlaps(phint, ...)
-    all(phint[!overlapping] == phint_unoverlap(phint, ...)[!overlapping])
+    all(phint[!overlapping] == phint_unoverlap(phint, ...)[!overlapping], na.rm = TRUE)
 
     # phint_any_overlaps() is equivalent to any(phint_has_overlaps(...))
     phint_any_overlaps(phint, ...) == any(phint_has_overlaps(phint, ...), na.rm = TRUE)
@@ -97,9 +100,8 @@ phint_any_overlaps(
 
   Whether `NA` elements propagate to subsequent elements:
 
-  - `FALSE` (default): `NA` elements are treated as
-    [`hole()`](https://ethansansom.github.io/phinterval/reference/hole.md)s
-    and do not affect subsequent results.
+  - `FALSE` (default): `NA` elements are left as-is and do not affect
+    subsequent results.
 
   - `TRUE`: An `NA` element causes all subsequent elements (or
     lower-priority group elements) to become `NA`.
@@ -109,15 +111,17 @@ phint_any_overlaps(
 `phint_has_overlaps()` returns a logical vector the same length as
 `phint`:
 
-- `TRUE`: the element would be modified by
-  [`phint_unoverlap()`](https://ethansansom.github.io/phinterval/reference/phint_unoverlap.md)
-  or blocks a subsequent element.
-
-- `FALSE`: the element would not be affected by
+- `TRUE`: the element overlaps with at least one preceding element and
+  would be modified by
   [`phint_unoverlap()`](https://ethansansom.github.io/phinterval/reference/phint_unoverlap.md).
 
-- `NA`: the element is `NA`, or would become `NA` due to propagation
-  when `na_propagate = TRUE`.
+- `FALSE`: the element does not overlap with any preceding element and
+  would not be affected by
+  [`phint_unoverlap()`](https://ethansansom.github.io/phinterval/reference/phint_unoverlap.md).
+  This includes `NA` elements when `na_propagate = FALSE`.
+
+- `NA`: the element is itself `NA` or would become `NA` due to
+  propagation. This is only applicable when `na_propagate = TRUE`.
 
 `phint_any_overlaps()` returns a single `TRUE` or `FALSE`.
 
@@ -137,34 +141,34 @@ mon_to_tue <- interval(as.Date("2025-11-10"), as.Date("2025-11-12"))
 
 # No overlaps: all FALSE
 phint_has_overlaps(c(monday, tuesday, wednesday))
-#> Error in format(x@start, tz = x@tzone, usetz = TRUE): no slot of name "start" for this object of class "Interval"
+#> [1] FALSE FALSE FALSE
 phint_any_overlaps(c(monday, tuesday, wednesday))
-#> [1] TRUE
+#> [1] FALSE
 
-# Overlapping: blocker and blocked are both TRUE
+# Only the blocked element is TRUE, not the blocker
 phint_has_overlaps(c(mon_to_wed, mon_to_tue))
-#> Error in format(x@start, tz = x@tzone, usetz = TRUE): no slot of name "start" for this object of class "Interval"
+#> [1] FALSE  TRUE
 phint_any_overlaps(c(mon_to_wed, mon_to_tue))
 #> [1] TRUE
 
 # Non-overlapping elements are FALSE even when others overlap
 phint_has_overlaps(c(mon_to_wed, mon_to_tue, wednesday))
-#> Error in format(x@start, tz = x@tzone, usetz = TRUE): no slot of name "start" for this object of class "Interval"
+#> [1] FALSE  TRUE  TRUE
 
 # Priority-based: same rules as phint_unoverlap()
 phint_has_overlaps(
   c(mon_to_wed, mon_to_tue, wednesday),
   priority = c(1, 2, 1)
 )
-#> Error in format(x@start, tz = x@tzone, usetz = TRUE): no slot of name "start" for this object of class "Interval"
+#> [1] FALSE  TRUE  TRUE
 
 # NA elements return NA
 phint_has_overlaps(c(mon_to_wed, NA, wednesday))
-#> Error in format(x@start, tz = x@tzone, usetz = TRUE): no slot of name "start" for this object of class "Interval"
+#> [1] FALSE FALSE  TRUE
 
 # na_propagate = TRUE: NA propagates forward
 phint_has_overlaps(c(monday, NA, wednesday), na_propagate = TRUE)
-#> Error in format(x@start, tz = x@tzone, usetz = TRUE): no slot of name "start" for this object of class "Interval"
+#> [1] FALSE    NA    NA
 phint_any_overlaps(c(monday, NA, wednesday), na_propagate = TRUE)
-#> [1] TRUE
+#> [1] FALSE
 ```
