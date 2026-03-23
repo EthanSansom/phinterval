@@ -48,8 +48,8 @@
 #' @param na_propagate `[FALSE / TRUE]`
 #'
 #' Whether `NA` elements propagate to subsequent elements:
-#' - `FALSE` (default): `NA` elements are treated as [hole()]s and do not
-#'   affect subsequent results.
+#' - `FALSE` (default): `NA` elements are left as-is and do not affect subsequent
+#'   results.
 #' - `TRUE`: An `NA` element causes all subsequent elements (or lower-priority
 #'   group elements) to become `NA`.
 #'
@@ -90,7 +90,7 @@
 #'   priority_order = "desc"
 #' )
 #'
-#' # NA elements are treated as holes by default
+#' # NA elements are treated as ignored by default
 #' phint_unoverlap(c(mon_to_wed, NA, wednesday))
 #'
 #' # NA elements propagate forward with na_propagate = TRUE
@@ -156,9 +156,11 @@ phint_unoverlap <- function(
 #' @description
 #'
 #' `phint_has_overlaps()` returns a logical vector indicating which elements
-#' of `phint` would be modified by [phint_unoverlap()] or are blockers of a
-#' subsequent element. `phint_any_overlaps()` is a fast scalar equivalent to
-#' `any(phint_has_overlaps(...), na.rm = TRUE)`.
+#' of `phint` would be modified by [phint_unoverlap()], i.e. elements which
+#' overlap with at least one preceding element (or lower-priority group
+#' element). Blockers, i.e. preceding elements which overlap with a following
+#' element, are not marked as overlapping. `phint_any_overlaps()` is a fast scalar
+#' equivalent to `any(phint_has_overlaps(...), na.rm = TRUE)`.
 #'
 #' Both functions accept the same arguments as [phint_unoverlap()] and use the
 #' same priority and within-priority resolution rules.
@@ -168,11 +170,11 @@ phint_unoverlap <- function(
 #' ```r
 #' # phint_unoverlap() ensures that phint_has_overlaps() is FALSE
 #' phint <- phint_unoverlap(phint, ...)
-#' !any(phint_has_overlaps(phint, ...), na.rm = TRUE)
+#' !phint_any_overlaps(phint, ...)
 #'
 #' # phint_unoverlap() does not alter non-overlapping elements
 #' overlapping <- phint_has_overlaps(phint, ...)
-#' all(phint[!overlapping] == phint_unoverlap(phint, ...)[!overlapping])
+#' all(phint[!overlapping] == phint_unoverlap(phint, ...)[!overlapping], na.rm = TRUE)
 #'
 #' # phint_any_overlaps() is equivalent to any(phint_has_overlaps(...))
 #' phint_any_overlaps(phint, ...) == any(phint_has_overlaps(phint, ...), na.rm = TRUE)
@@ -183,11 +185,13 @@ phint_unoverlap <- function(
 #' @return
 #'
 #' `phint_has_overlaps()` returns a logical vector the same length as `phint`:
-#' - `TRUE`: the element would be modified by [phint_unoverlap()] or blocks a
-#'   subsequent element.
-#' - `FALSE`: the element would not be affected by [phint_unoverlap()].
-#' - `NA`: the element is `NA`, or would become `NA` due to propagation when
-#'   `na_propagate = TRUE`.
+#' - `TRUE`: the element overlaps with at least one preceding element and would
+#'   be modified by [phint_unoverlap()].
+#' - `FALSE`: the element does not overlap with any preceding element and would
+#'   not be affected by [phint_unoverlap()]. This includes `NA` elements when
+#'   `na_propagate = FALSE`.
+#' - `NA`: the element is itself `NA` or would become `NA` due to propagation.
+#'    This is only applicable when `na_propagate = TRUE`.
 #'
 #' `phint_any_overlaps()` returns a single `TRUE` or `FALSE`.
 #'
@@ -205,7 +209,7 @@ phint_unoverlap <- function(
 #' phint_has_overlaps(c(monday, tuesday, wednesday))
 #' phint_any_overlaps(c(monday, tuesday, wednesday))
 #'
-#' # Overlapping: blocker and blocked are both TRUE
+#' # Only the blocked element is TRUE, not the blocker
 #' phint_has_overlaps(c(mon_to_wed, mon_to_tue))
 #' phint_any_overlaps(c(mon_to_wed, mon_to_tue))
 #'
@@ -237,21 +241,103 @@ phint_has_overlaps <- function(
   within_priority = c("sequential", "keep"),
   na_propagate = FALSE
 ) {
-  # TODO: Placeholder
-  check_phintish(phint)
-  return(rep_along(TRUE, phint))
+  phint_type <- validate_type_phintish(phint)
+  priority <- priority %||% 1L
+  check_vector(priority)
+  check_recycleable_to(priority, phint)
+
+  priority_order <- arg_match0(priority_order, c("asc", "desc", "appearance"))
+  within_priority <- arg_match0(within_priority, c("sequential", "keep"))
+  check_bool(na_propagate)
+
+  # If `priority` is scalar, consider all elements to be within the same group
+  if (is_scalar(priority)) {
+    if (within_priority == "keep") {
+      return(rep_along(FALSE, phint))
+    }
+    out <- phint_unary_dispatch(
+      x = phint,
+      x_type = phint_type,
+      funs_cpp = list(
+        phint = phint_has_overlaps_within_cpp,
+        intvl = intvl_has_overlaps_within_cpp
+      ),
+      na_propagate = na_propagate
+    )
+    return(out)
+  }
+
+  priority_groups <- switch(
+    priority_order,
+    asc = vec_locate_sorted_groups(priority, direction = "asc"),
+    desc = vec_locate_sorted_groups(priority, direction = "desc"),
+    appearance = vec_group_loc(priority)
+  )
+
+  phint_unary_dispatch(
+    x = phint,
+    x_type = phint_type,
+    funs_cpp = list(
+      phint = phint_has_overlaps_cpp,
+      intvl = intvl_has_overlaps_cpp
+    ),
+    priority_locs = .subset2(priority_groups, "loc"),
+    within_priority = within_priority,
+    na_propagate = na_propagate
+  )
 }
 
 #' @rdname phinterval-overlap-predicates
 #' @export
 phint_any_overlaps <- function(
-  phint,
-  priority = NULL,
-  priority_order = c("asc", "desc", "appearance"),
-  within_priority = c("sequential", "keep"),
-  na_propagate = FALSE
+    phint,
+    priority = NULL,
+    priority_order = c("asc", "desc", "appearance"),
+    within_priority = c("sequential", "keep"),
+    na_propagate = FALSE
 ) {
-  # TODO: Placeholder
-  check_phintish(phint)
-  return(TRUE)
+  phint_type <- validate_type_phintish(phint)
+  priority <- priority %||% 1L
+  check_vector(priority)
+  check_recycleable_to(priority, phint)
+
+  priority_order <- arg_match0(priority_order, c("asc", "desc", "appearance"))
+  within_priority <- arg_match0(within_priority, c("sequential", "keep"))
+  check_bool(na_propagate)
+
+  # If `priority` is scalar, consider all elements to be within the same group
+  if (is_scalar(priority)) {
+    if (within_priority == "keep") {
+      return(FALSE)
+    }
+    out <- phint_unary_dispatch(
+      x = phint,
+      x_type = phint_type,
+      funs_cpp = list(
+        phint = phint_any_overlaps_within_cpp,
+        intvl = intvl_any_overlaps_within_cpp
+      ),
+      na_propagate = na_propagate
+    )
+    return(out)
+  }
+
+  priority_groups <- switch(
+    priority_order,
+    asc = vec_locate_sorted_groups(priority, direction = "asc"),
+    desc = vec_locate_sorted_groups(priority, direction = "desc"),
+    appearance = vec_group_loc(priority)
+  )
+
+  phint_unary_dispatch(
+    x = phint,
+    x_type = phint_type,
+    funs_cpp = list(
+      phint = phint_any_overlaps_cpp,
+      intvl = intvl_any_overlaps_cpp
+    ),
+    priority_locs = .subset2(priority_groups, "loc"),
+    within_priority = within_priority,
+    na_propagate = na_propagate
+  )
 }

@@ -60,8 +60,8 @@ higher-priority groups are removed.
 
 Whether \code{NA} elements propagate to subsequent elements:
 \itemize{
-\item \code{FALSE} (default): \code{NA} elements are treated as \code{\link[=hole]{hole()}}s and do not
-affect subsequent results.
+\item \code{FALSE} (default): \code{NA} elements are left as-is and do not affect subsequent
+results.
 \item \code{TRUE}: An \code{NA} element causes all subsequent elements (or lower-priority
 group elements) to become \code{NA}.
 }}
@@ -69,20 +69,24 @@ group elements) to become \code{NA}.
 \value{
 \code{phint_has_overlaps()} returns a logical vector the same length as \code{phint}:
 \itemize{
-\item \code{TRUE}: the element would be modified by \code{\link[=phint_unoverlap]{phint_unoverlap()}} or blocks a
-subsequent element.
-\item \code{FALSE}: the element would not be affected by \code{\link[=phint_unoverlap]{phint_unoverlap()}}.
-\item \code{NA}: the element is \code{NA}, or would become \code{NA} due to propagation when
-\code{na_propagate = TRUE}.
+\item \code{TRUE}: the element overlaps with at least one preceding element and would
+be modified by \code{\link[=phint_unoverlap]{phint_unoverlap()}}.
+\item \code{FALSE}: the element does not overlap with any preceding element and would
+not be affected by \code{\link[=phint_unoverlap]{phint_unoverlap()}}. This includes \code{NA} elements when
+\code{na_propagate = FALSE}.
+\item \code{NA}: the element is itself \code{NA} or would become \code{NA} due to propagation.
+This is only applicable when \code{na_propagate = TRUE}.
 }
 
 \code{phint_any_overlaps()} returns a single \code{TRUE} or \code{FALSE}.
 }
 \description{
 \code{phint_has_overlaps()} returns a logical vector indicating which elements
-of \code{phint} would be modified by \code{\link[=phint_unoverlap]{phint_unoverlap()}} or are blockers of a
-subsequent element. \code{phint_any_overlaps()} is a fast scalar equivalent to
-\code{any(phint_has_overlaps(...), na.rm = TRUE)}.
+of \code{phint} would be modified by \code{\link[=phint_unoverlap]{phint_unoverlap()}}, i.e. elements which
+overlap with at least one preceding element (or lower-priority group
+element). Blockers, i.e. preceding elements which overlap with a following
+element, are not marked as overlapping. \code{phint_any_overlaps()} is a fast scalar
+equivalent to \code{any(phint_has_overlaps(...), na.rm = TRUE)}.
 
 Both functions accept the same arguments as \code{\link[=phint_unoverlap]{phint_unoverlap()}} and use the
 same priority and within-priority resolution rules.
@@ -91,11 +95,11 @@ The following invariants hold:
 
 \if{html}{\out{<div class="sourceCode r">}}\preformatted{# phint_unoverlap() ensures that phint_has_overlaps() is FALSE
 phint <- phint_unoverlap(phint, ...)
-!any(phint_has_overlaps(phint, ...), na.rm = TRUE)
+!phint_any_overlaps(phint, ...)
 
 # phint_unoverlap() does not alter non-overlapping elements
 overlapping <- phint_has_overlaps(phint, ...)
-all(phint[!overlapping] == phint_unoverlap(phint, ...)[!overlapping])
+all(phint[!overlapping] == phint_unoverlap(phint, ...)[!overlapping], na.rm = TRUE)
 
 # phint_any_overlaps() is equivalent to any(phint_has_overlaps(...))
 phint_any_overlaps(phint, ...) == any(phint_has_overlaps(phint, ...), na.rm = TRUE)
@@ -112,7 +116,7 @@ mon_to_tue <- interval(as.Date("2025-11-10"), as.Date("2025-11-12"))
 phint_has_overlaps(c(monday, tuesday, wednesday))
 phint_any_overlaps(c(monday, tuesday, wednesday))
 
-# Overlapping: blocker and blocked are both TRUE
+# Only the blocked element is TRUE, not the blocker
 phint_has_overlaps(c(mon_to_wed, mon_to_tue))
 phint_any_overlaps(c(mon_to_wed, mon_to_tue))
 

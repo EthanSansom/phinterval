@@ -50,8 +50,8 @@ higher-priority groups are removed.
 
 Whether \code{NA} elements propagate to subsequent elements:
 \itemize{
-\item \code{FALSE} (default): \code{NA} elements are treated as \code{\link[=hole]{hole()}}s and do not
-affect subsequent results.
+\item \code{FALSE} (default): \code{NA} elements are left as-is and do not affect subsequent
+results.
 \item \code{TRUE}: An \code{NA} element causes all subsequent elements (or lower-priority
 group elements) to become \code{NA}.
 }}
@@ -106,7 +106,7 @@ phint_unoverlap(
   priority_order = "desc"
 )
 
-# NA elements are treated as holes by default
+# NA elements are treated as ignored by default
 phint_unoverlap(c(mon_to_wed, NA, wednesday))
 
 # NA elements propagate forward with na_propagate = TRUE

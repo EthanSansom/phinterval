@@ -1,3 +1,5 @@
+# phint_unoverlap --------------------------------------------------------------
+
 test_that("phint_unoverlap() works as expected", {
   t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
   t2 <- as.POSIXct("2021-01-01 00:10:00", tz = "UTC")
@@ -85,7 +87,7 @@ test_that("phint_unoverlap() works as expected", {
   # NA elements treated as holes by default
   expect_equal(
     phint_unoverlap(c(int13, na_phint, int36)),
-    c(int13, hole, int36)
+    c(int13, na_phint, int36)
   )
 
   # na_propagate = TRUE: NA propagates forward
@@ -114,7 +116,7 @@ test_that("phint_unoverlap() works as expected", {
   # Single-element groups with NA: treated as hole by default
   expect_equal(
     phint_unoverlap(c(int12, na_phint, int34), priority = c(1, 2, 3)),
-    c(int12, hole, int34)
+    c(int12, na_phint, int34)
   )
 
   # Single-element groups with NA: propagates to lower-priority groups
@@ -149,16 +151,16 @@ test_that("phint_unoverlap() handles length-1, hole, and NA inputs", {
   # Length-1 input is unchanged
   expect_equal(phint_unoverlap(int12), int12)
   expect_equal(phint_unoverlap(hole), hole)
-  expect_equal(phint_unoverlap(na_phint), hole)
+  expect_equal(phint_unoverlap(na_phint), na_phint)
   expect_equal(phint_unoverlap(na_phint, na_propagate = TRUE), na_phint)
 
   # All holes: unchanged
   expect_equal(phint_unoverlap(c(hole, hole, hole)), c(hole, hole, hole))
 
-  # All NA: treated as holes by default
+  # All NA: left as-is by default
   expect_equal(
     phint_unoverlap(c(na_phint, na_phint, na_phint)),
-    c(hole, hole, hole)
+    c(na_phint, na_phint, na_phint)
   )
 
   # All NA with na_propagate = TRUE
@@ -177,14 +179,14 @@ test_that("phint_unoverlap() handles length-1, hole, and NA inputs", {
     c(int12, hole, int23)
   )
 
-  # NA mixed with real intervals: NA treated as hole by default
+  # NA mixed with real intervals: NA ignored by default
   expect_equal(
     phint_unoverlap(c(na_phint, int12, int13)),
-    c(hole, int12, int23)
+    c(na_phint, int12, int23)
   )
   expect_equal(
     phint_unoverlap(c(int12, na_phint, int13)),
-    c(int12, hole, int23)
+    c(int12, na_phint, int23)
   )
 })
 
@@ -441,4 +443,255 @@ test_that("phint_unoverlap() handles within_priority = 'keep' with na_propagate 
     ),
     c(int12, na_phint, na_phint, na_phint)
   )
+})
+
+# phint_has_overlaps -----------------------------------------------------------
+
+test_that("phint_has_overlaps() works as expected", {
+  t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
+  t2 <- as.POSIXct("2021-01-01 00:10:00", tz = "UTC")
+  t3 <- as.POSIXct("2021-01-01 00:20:00", tz = "UTC")
+  t4 <- as.POSIXct("2021-01-01 00:30:00", tz = "UTC")
+  t5 <- as.POSIXct("2021-01-01 00:40:00", tz = "UTC")
+  t6 <- as.POSIXct("2021-01-01 00:50:00", tz = "UTC")
+  int12 <- phinterval(t1, t2)
+  int23 <- phinterval(t2, t3)
+  int34 <- phinterval(t3, t4)
+  int45 <- phinterval(t4, t5)
+  int56 <- phinterval(t5, t6)
+  int13 <- phinterval(t1, t3)
+  int14 <- phinterval(t1, t4)
+  int36 <- phinterval(t3, t6)
+  hole  <- hole(tzone = "UTC")
+  na_phint <- phinterval(NA_POSIXct_, NA_POSIXct_, tzone = "UTC")
+
+  # No overlaps: all FALSE
+  expect_equal(phint_has_overlaps(int12), FALSE)
+  expect_equal(phint_has_overlaps(c(int12, int34, int56)), c(FALSE, FALSE, FALSE))
+  expect_equal(phint_has_overlaps(c(int12, int23, int34)), c(FALSE, FALSE, FALSE))
+
+  # Only the blocked element is TRUE, not the blocker
+  expect_equal(phint_has_overlaps(c(int13, int12)), c(FALSE, TRUE))
+  expect_equal(phint_has_overlaps(c(int12, int13, int14)), c(FALSE, TRUE, TRUE))
+  expect_equal(phint_has_overlaps(c(int14, int13, int36)), c(FALSE, TRUE, TRUE))
+
+  # Identical elements: first is not flagged, rest are
+  expect_equal(phint_has_overlaps(c(int12, int12, int12)), c(FALSE, TRUE, TRUE))
+
+  # Non-overlapping elements are FALSE even when others overlap
+  expect_equal(phint_has_overlaps(c(int13, int12, int56)), c(FALSE, TRUE, FALSE))
+
+  # Holes are never blockers and never blocked
+  expect_equal(phint_has_overlaps(c(hole, int12, int13)), c(FALSE, FALSE, TRUE))
+  expect_equal(phint_has_overlaps(c(int12, hole, int13)), c(FALSE, FALSE, TRUE))
+  expect_equal(phint_has_overlaps(c(int13, int12, hole)), c(FALSE, TRUE, FALSE))
+
+  # na_propagate = FALSE: NA elements return FALSE
+  expect_equal(phint_has_overlaps(c(int12, na_phint, int34)), c(FALSE, FALSE, FALSE))
+  expect_equal(phint_has_overlaps(c(int13, na_phint, int12)), c(FALSE, FALSE, TRUE))
+  expect_equal(phint_has_overlaps(c(na_phint, int12, int13)), c(FALSE, FALSE, TRUE))
+
+  # na_propagate = TRUE: NA propagates forward
+  expect_equal(
+    phint_has_overlaps(c(int12, na_phint, int34), na_propagate = TRUE),
+    c(FALSE, NA, NA)
+  )
+  expect_equal(
+    phint_has_overlaps(c(na_phint, int12, int13), na_propagate = TRUE),
+    c(NA, NA, NA)
+  )
+  expect_equal(
+    phint_has_overlaps(c(int12, int34, na_phint), na_propagate = TRUE),
+    c(FALSE, FALSE, NA)
+  )
+
+  # priority: only blocked elements (higher priority) are TRUE
+  expect_equal(
+    phint_has_overlaps(c(int13, int12, int36), priority = c(1, 2, 1)),
+    c(FALSE, TRUE, FALSE)
+  )
+  expect_equal(
+    phint_has_overlaps(c(int12, int13, int36), priority = c(2, 1, 2)),
+    c(TRUE, FALSE, FALSE)
+  )
+
+  # priority_order = "desc": higher values processed first
+  expect_equal(
+    phint_has_overlaps(c(int13, int12, int36), priority = c(1, 2, 1), priority_order = "desc"),
+    c(TRUE, FALSE, FALSE)
+  )
+
+  # within_priority = "keep": within-group overlaps not flagged
+  expect_equal(
+    phint_has_overlaps(c(int13, int12, int36), priority = c(1, 1, 2), within_priority = "keep"),
+    c(FALSE, FALSE, FALSE)
+  )
+  expect_equal(
+    phint_has_overlaps(c(int13, int12, int36), priority = c(1, 1, 1), within_priority = "keep"),
+    c(FALSE, FALSE, FALSE)
+  )
+
+  # within_priority = "sequential": within-group overlaps are flagged
+  expect_equal(
+    phint_has_overlaps(c(int13, int12, int36), priority = c(1, 1, 2), within_priority = "sequential"),
+    c(FALSE, TRUE, FALSE)
+  )
+
+  # Invariant: phint_unoverlap() ensures phint_has_overlaps() is FALSE
+  phint <- c(int12, int13, int14)
+  expect_false(any(phint_has_overlaps(phint_unoverlap(phint)), na.rm = TRUE))
+
+  # Invariant: non-overlapping elements are unchanged by phint_unoverlap()
+  phint <- c(int13, int12, int56)
+  overlapping <- phint_has_overlaps(phint)
+  expect_equal(phint[!overlapping], phint_unoverlap(phint)[!overlapping])
+})
+
+test_that("phint_has_overlaps() invariants hold", {
+  t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
+  t2 <- as.POSIXct("2021-01-01 00:10:00", tz = "UTC")
+  t3 <- as.POSIXct("2021-01-01 00:20:00", tz = "UTC")
+  t4 <- as.POSIXct("2021-01-01 00:30:00", tz = "UTC")
+  t5 <- as.POSIXct("2021-01-01 00:40:00", tz = "UTC")
+  t6 <- as.POSIXct("2021-01-01 00:50:00", tz = "UTC")
+  int12 <- phinterval(t1, t2)
+  int13 <- phinterval(t1, t3)
+  int14 <- phinterval(t1, t4)
+  int34 <- phinterval(t3, t4)
+  int36 <- phinterval(t3, t6)
+  int56 <- phinterval(t5, t6)
+  na_phint <- phinterval(NA_POSIXct_, NA_POSIXct_, tzone = "UTC")
+  phint_12_34 <- phint_squash(c(int12, int34))
+  phint_23_45 <- phint_squash(c(phinterval(t2, t3), phinterval(t4, t5)))
+
+  check_invariants <- function(phint, ...) {
+    overlapping  <- phint_has_overlaps(phint, ...)
+    unoverlapped <- phint_unoverlap(phint, ...)
+    not_overlapping <- !overlapping & !is.na(overlapping)
+    # Non-overlapping elements are unchanged by phint_unoverlap()
+    expect_equal(phint[not_overlapping], unoverlapped[not_overlapping])
+    # After phint_unoverlap(), phint_has_overlaps() is FALSE for all elements
+    expect_false(any(phint_has_overlaps(unoverlapped, ...), na.rm = TRUE))
+  }
+
+  # No priority
+  check_invariants(c(int12, int13, int14))
+  check_invariants(c(int13, int12, int56))
+  check_invariants(c(int12, int12, int12))
+
+  # With priority
+  check_invariants(c(int13, int12, int36), priority = c(1, 2, 1))
+  check_invariants(c(int12, int13, int36), priority = c(2, 1, 2))
+  check_invariants(c(int13, int12, int36), priority = c(1, 2, 1), priority_order = "desc")
+  check_invariants(c(int13, int12, int14), priority = c(2, 1, 2), priority_order = "appearance")
+
+  # within_priority = "keep"
+  check_invariants(c(int13, int12, int36), priority = c(1, 1, 2), within_priority = "keep")
+  check_invariants(c(int13, int12, int36), priority = c(1, 1, 1), within_priority = "keep")
+
+  # NA elements
+  check_invariants(c(int12, na_phint, int34))
+  check_invariants(c(int12, na_phint, int34), na_propagate = TRUE)
+  check_invariants(c(int13, int12, int36), priority = c(1, 1, 2), na_propagate = TRUE)
+
+  # Multi-span elements
+  check_invariants(c(phint_12_34, int13))
+  check_invariants(c(phint_12_34, phint_23_45))
+})
+
+# phint_any_overlaps -----------------------------------------------------------
+
+test_that("phint_any_overlaps() works as expected", {
+  t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
+  t2 <- as.POSIXct("2021-01-01 00:10:00", tz = "UTC")
+  t3 <- as.POSIXct("2021-01-01 00:20:00", tz = "UTC")
+  t4 <- as.POSIXct("2021-01-01 00:30:00", tz = "UTC")
+  t5 <- as.POSIXct("2021-01-01 00:40:00", tz = "UTC")
+  int12 <- phinterval(t1, t2)
+  int13 <- phinterval(t1, t3)
+  int34 <- phinterval(t3, t4)
+  int56 <- phinterval(t4, t5)
+  hole  <- hole(tzone = "UTC")
+  na_phint <- phinterval(NA_POSIXct_, NA_POSIXct_, tzone = "UTC")
+
+  # No overlaps: FALSE
+  expect_false(phint_any_overlaps(int12))
+  expect_false(phint_any_overlaps(c(int12, int34, int56)))
+
+  # Overlapping: TRUE
+  expect_true(phint_any_overlaps(c(int13, int12)))
+  expect_true(phint_any_overlaps(c(int12, int13, int34)))
+
+  # NA elements are ignored (na.rm = TRUE behaviour)
+  expect_false(phint_any_overlaps(c(int12, na_phint, int34)))
+  expect_true(phint_any_overlaps(c(int13, na_phint, int12)))
+
+  # na_propagate = TRUE: propagated NAs are ignored
+  expect_false(phint_any_overlaps(c(na_phint, int12, int34), na_propagate = TRUE))
+  expect_false(phint_any_overlaps(c(int12, na_phint, int34), na_propagate = TRUE))
+
+  # Invariant: equivalent to any(phint_has_overlaps(...), na.rm = TRUE)
+  phint <- c(int13, int12, int56)
+  expect_equal(
+    phint_any_overlaps(phint),
+    any(phint_has_overlaps(phint), na.rm = TRUE)
+  )
+  phint_p <- c(int13, int12, int34)
+  priority <- c(1, 2, 1)
+  expect_equal(
+    phint_any_overlaps(phint_p, priority = priority),
+    any(phint_has_overlaps(phint_p, priority = priority), na.rm = TRUE)
+  )
+})
+
+test_that("phint_any_overlaps() invariants hold", {
+  t1 <- as.POSIXct("2021-01-01 00:00:00", tz = "UTC")
+  t2 <- as.POSIXct("2021-01-01 00:10:00", tz = "UTC")
+  t3 <- as.POSIXct("2021-01-01 00:20:00", tz = "UTC")
+  t4 <- as.POSIXct("2021-01-01 00:30:00", tz = "UTC")
+  t5 <- as.POSIXct("2021-01-01 00:40:00", tz = "UTC")
+  t6 <- as.POSIXct("2021-01-01 00:50:00", tz = "UTC")
+  int12 <- phinterval(t1, t2)
+  int13 <- phinterval(t1, t3)
+  int14 <- phinterval(t1, t4)
+  int34 <- phinterval(t3, t4)
+  int36 <- phinterval(t3, t6)
+  int56 <- phinterval(t5, t6)
+  na_phint <- phinterval(NA_POSIXct_, NA_POSIXct_, tzone = "UTC")
+  phint_12_34 <- phint_squash(c(int12, int34))
+  phint_23_45 <- phint_squash(c(phinterval(t2, t3), phinterval(t4, t5)))
+
+  check_invariant <- function(phint, ...) {
+    # phint_any_overlaps() == any(phint_has_overlaps(...), na.rm = TRUE)
+    expect_equal(
+      phint_any_overlaps(phint, ...),
+      any(phint_has_overlaps(phint, ...), na.rm = TRUE)
+    )
+    # After phint_unoverlap(), phint_any_overlaps() is FALSE
+    expect_false(phint_any_overlaps(phint_unoverlap(phint, ...), ...))
+  }
+
+  # No priority
+  check_invariant(c(int12, int13, int14))
+  check_invariant(c(int13, int12, int56))
+  check_invariant(c(int12, int34, int56))
+
+  # With priority
+  check_invariant(c(int13, int12, int36), priority = c(1, 2, 1))
+  check_invariant(c(int12, int13, int36), priority = c(2, 1, 2))
+  check_invariant(c(int13, int12, int36), priority = c(1, 2, 1), priority_order = "desc")
+  check_invariant(c(int13, int12, int14), priority = c(2, 1, 2), priority_order = "appearance")
+
+  # within_priority = "keep"
+  check_invariant(c(int13, int12, int36), priority = c(1, 1, 2), within_priority = "keep")
+  check_invariant(c(int13, int12, int36), priority = c(1, 1, 1), within_priority = "keep")
+
+  # NA elements
+  check_invariant(c(int12, na_phint, int34))
+  check_invariant(c(int12, na_phint, int34), na_propagate = TRUE)
+  check_invariant(c(int13, int12, int36), priority = c(1, 1, 2), na_propagate = TRUE)
+
+  # Multi-span elements
+  check_invariant(c(phint_12_34, int13))
+  check_invariant(c(phint_12_34, phint_23_45))
 })

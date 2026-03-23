@@ -2,6 +2,7 @@
 #include "type-interval.h"
 #include "type-phinterval.h"
 #include "fun-operators.h"
+#include "fun-relations.h"
 #include <utility>
 #include <vector>
 #include <Rcpp.h>
@@ -14,6 +15,18 @@ List unoverlap_between_impl(const VectorX& x, const List& priority_locs);
 
 template <bool PropagateNA, typename VectorX>
 List unoverlap_within_impl(const VectorX& x);
+
+template <bool KeepWithin, bool PropagateNA, typename VectorX>
+LogicalVector has_overlaps_between_impl(const VectorX& x, const List& priority_locs);
+
+template <bool PropagateNA, typename VectorX>
+LogicalVector has_overlaps_within_impl(const VectorX& x);
+
+template <bool KeepWithin, bool PropagateNA, typename VectorX>
+bool any_overlaps_between_impl(const VectorX& x, const List& priority_locs);
+
+template <bool PropagateNA, typename VectorX>
+bool any_overlaps_within_impl(const VectorX& x);
 
 // [[Rcpp::export]]
 List phint_unoverlap_cpp(
@@ -34,6 +47,50 @@ List phint_unoverlap_cpp(
     return unoverlap_between_impl<false, true>(x, priority_locs);
   } else {
     return unoverlap_between_impl<false, false>(x, priority_locs);
+  }
+}
+
+// [[Rcpp::export]]
+LogicalVector phint_has_overlaps_cpp(
+    IntegerVector size,
+    List starts,
+    List ends,
+    List priority_locs,
+    String within_priority,
+    bool na_propagate
+) {
+  PhintVectorView x {size, starts, ends};
+  bool keep_within = (within_priority == "keep");
+  if (keep_within && na_propagate) {
+    return has_overlaps_between_impl<true, true>(x, priority_locs);
+  } else if (keep_within) {
+    return has_overlaps_between_impl<true, false>(x, priority_locs);
+  } else if (na_propagate) {
+    return has_overlaps_between_impl<false, true>(x, priority_locs);
+  } else {
+    return has_overlaps_between_impl<false, false>(x, priority_locs);
+  }
+}
+
+// [[Rcpp::export]]
+LogicalVector phint_any_overlaps_cpp(
+    IntegerVector size,
+    List starts,
+    List ends,
+    List priority_locs,
+    String within_priority,
+    bool na_propagate
+) {
+  PhintVectorView x {size, starts, ends};
+  bool keep_within = (within_priority == "keep");
+  if (keep_within && na_propagate) {
+    return any_overlaps_between_impl<true, true>(x, priority_locs);
+  } else if (keep_within) {
+    return any_overlaps_between_impl<true, false>(x, priority_locs);
+  } else if (na_propagate) {
+    return any_overlaps_between_impl<false, true>(x, priority_locs);
+  } else {
+    return any_overlaps_between_impl<false, false>(x, priority_locs);
   }
 }
 
@@ -59,6 +116,48 @@ List intvl_unoverlap_cpp(
 }
 
 // [[Rcpp::export]]
+LogicalVector intvl_has_overlaps_cpp(
+    DatetimeVector starts,
+    NumericVector spans,
+    List priority_locs,
+    String within_priority,
+    bool na_propagate
+) {
+  IntvlVectorView x {starts, spans};
+  bool keep_within = (within_priority == "keep");
+  if (keep_within && na_propagate) {
+    return has_overlaps_between_impl<true, true>(x, priority_locs);
+  } else if (keep_within) {
+    return has_overlaps_between_impl<true, false>(x, priority_locs);
+  } else if (na_propagate) {
+    return has_overlaps_between_impl<false, true>(x, priority_locs);
+  } else {
+    return has_overlaps_between_impl<false, false>(x, priority_locs);
+  }
+}
+
+// [[Rcpp::export]]
+LogicalVector intvl_any_overlaps_cpp(
+    DatetimeVector starts,
+    NumericVector spans,
+    List priority_locs,
+    String within_priority,
+    bool na_propagate
+) {
+  IntvlVectorView x {starts, spans};
+  bool keep_within = (within_priority == "keep");
+  if (keep_within && na_propagate) {
+    return any_overlaps_between_impl<true, true>(x, priority_locs);
+  } else if (keep_within) {
+    return any_overlaps_between_impl<true, false>(x, priority_locs);
+  } else if (na_propagate) {
+    return any_overlaps_between_impl<false, true>(x, priority_locs);
+  } else {
+    return any_overlaps_between_impl<false, false>(x, priority_locs);
+  }
+}
+
+// [[Rcpp::export]]
 List phint_unoverlap_within_cpp(
     IntegerVector size,
     List starts,
@@ -70,6 +169,36 @@ List phint_unoverlap_within_cpp(
     return unoverlap_within_impl<true>(x);
   } else {
     return unoverlap_within_impl<false>(x);
+  }
+}
+
+// [[Rcpp::export]]
+LogicalVector phint_has_overlaps_within_cpp(
+    IntegerVector size,
+    List starts,
+    List ends,
+    bool na_propagate
+) {
+  PhintVectorView x {size, starts, ends};
+  if (na_propagate) {
+    return has_overlaps_within_impl<true>(x);
+  } else {
+    return has_overlaps_within_impl<false>(x);
+  }
+}
+
+// [[Rcpp::export]]
+LogicalVector phint_any_overlaps_within_cpp(
+    IntegerVector size,
+    List starts,
+    List ends,
+    bool na_propagate
+) {
+  PhintVectorView x {size, starts, ends};
+  if (na_propagate) {
+    return any_overlaps_within_impl<true>(x);
+  } else {
+    return any_overlaps_within_impl<false>(x);
   }
 }
 
@@ -87,7 +216,35 @@ List intvl_unoverlap_within_cpp(
   }
 }
 
-// implementation --------------------------------------------------------------
+// [[Rcpp::export]]
+LogicalVector intvl_has_overlaps_within_cpp(
+    DatetimeVector starts,
+    NumericVector spans,
+    bool na_propagate
+) {
+  IntvlVectorView x {starts, spans};
+  if (na_propagate) {
+    return has_overlaps_within_impl<true>(x);
+  } else {
+    return has_overlaps_within_impl<false>(x);
+  }
+}
+
+// [[Rcpp::export]]
+LogicalVector intvl_any_overlaps_within_cpp(
+    DatetimeVector starts,
+    NumericVector spans,
+    bool na_propagate
+) {
+  IntvlVectorView x {starts, spans};
+  if (na_propagate) {
+    return any_overlaps_within_impl<true>(x);
+  } else {
+    return any_overlaps_within_impl<false>(x);
+  }
+}
+
+// unoverlap -------------------------------------------------------------------
 
 template <bool KeepWithin, bool PropagateNA, typename VectorX>
 List unoverlap_between_impl(const VectorX& x, const List& priority_locs) {
@@ -125,16 +282,16 @@ List unoverlap_between_impl(const VectorX& x, const List& priority_locs) {
             continue;
           }
         }
-        // Always set `out[i] <- NA` if `PropagateNA`
+        // `out[i] <- NA`
         if (x_i.is_na) {
           propagated_na_in_group = true;
           out.insert_na_element(i);
           continue;
         }
       } else {
-        // `na_propagate = FALSE`, treat NA values as holes
+        // `out[i] <- NA`
         if (x_i.is_na) {
-          out.insert_hole_element(i);
+          out.insert_na_element(i);
           continue;
         }
       }
@@ -189,7 +346,7 @@ List unoverlap_between_impl(const VectorX& x, const List& priority_locs) {
     // Fill all future groups with NA elements
     if (PropagateNA) {
       if (propagated_na_in_group) {
-        group++; // Increment to the next group
+        group++;
         goto fill_with_na;
       }
     }
@@ -230,15 +387,15 @@ List unoverlap_within_impl(const VectorX& x) {
 
     if constexpr (PropagateNA) {
       if (x_i.is_na) goto fill_with_na;
-      if (x_i.is_hole()) {
-        out.add_hole_element();
-        continue;
-      }
     } else {
-      if (x_i.is_na || x_i.is_hole()) {
-        out.add_hole_element();
+      if (x_i.is_na) {
+        out.add_na_element();
         continue;
       }
+    }
+    if (x_i.is_hole()) {
+      out.add_hole_element();
+      continue;
     }
 
     // out[i] <- setdiff(x[i], cumunion)
@@ -258,3 +415,243 @@ List unoverlap_within_impl(const VectorX& x) {
     }
 }
 
+// has overlaps ----------------------------------------------------------------
+
+template <bool KeepWithin, bool PropagateNA, typename VectorX>
+LogicalVector has_overlaps_between_impl(const VectorX& x, const List& priority_locs) {
+  R_xlen_t n_sets = x.n_sets();
+  if (n_sets == 0) return LogicalVector(0);
+  R_xlen_t n_groups = priority_locs.length();
+
+  LogicalVector out(n_sets);
+  int* p_out = LOGICAL(out);
+
+  SetSwapBuffer within_group_cumunion;
+  SetSwapBuffer between_group_cumunion;
+
+  Overlaps<false> overlaps_op{}; // Exclusive (), adjacent spans are not "un-overlapped"
+  Union union_op{};
+
+  R_xlen_t group = 0;
+  for (; group < n_groups; group++) {
+    SEXP locs = VECTOR_ELT(priority_locs, group);
+    const int* p_locs = INTEGER(locs);
+    R_xlen_t group_size = Rf_xlength(locs);
+
+    bool propagated_na_in_group = false;
+    for (R_xlen_t j = 0; j < group_size; j++) {
+      int i = p_locs[j] - 1;
+      auto x_i = x.view(i);
+
+      // Case where `x[i]` is NA
+      if constexpr (PropagateNA) {
+        if constexpr (!KeepWithin) {
+          if (propagated_na_in_group) {
+            p_out[i] = NA_LOGICAL;
+            continue;
+          }
+        }
+        if (x_i.is_na) {
+          propagated_na_in_group = true;
+          p_out[i] = NA_LOGICAL;
+          continue;
+        }
+      } else {
+        // `na_propagate = FALSE`, treat NA values as holes (i.e. non-overlapping)
+        if (x_i.is_na) {
+          continue; // p_out[i] = false; implicitly, since `out` is initialized to `FALSE`
+        }
+      }
+
+      // Case where `x[i]` is empty
+      if (x_i.is_hole()) {
+        continue; // p_out[i] = false; implicitly
+      }
+
+      // overlaps(x_i, between_cumunion)
+      bool overlapping_i = overlaps_op.apply_to_set(x_i, between_group_cumunion.view());
+
+      // Check for within-group overlaps
+      if constexpr (KeepWithin) {
+        p_out[i] = overlapping_i;
+      } else {
+        // overlaps(x_i, within_cumunion)
+        p_out[i] = overlapping_i || overlaps_op.apply_to_set(x_i, within_group_cumunion.view());
+      }
+
+      // Update within-group mask: within_cumunion <- union(x_i, within_cumunion)
+      union_op.apply_to_set(x_i, within_group_cumunion.view(), *within_group_cumunion.next);
+      within_group_cumunion.swap();
+    } // Finished within-group overlap checking
+
+    // Update between-group mask: between_cumunion <- union(within_cumunion, between_cumunion)
+    if (group < n_groups - 1) {
+      union_op.apply_to_set(
+        within_group_cumunion.view(),
+        between_group_cumunion.view(),
+        *between_group_cumunion.next
+      );
+      between_group_cumunion.swap();
+      within_group_cumunion.clear();
+    }
+
+    // Fill all future groups with NA elements
+    if (PropagateNA) {
+      if (propagated_na_in_group) {
+        group++;
+        goto fill_with_na;
+      }
+    }
+  } // Finished between-group overlap resolution
+
+  return out;
+
+  fill_with_na:
+    {
+      // The remaining elements to propagate NA values to are spread across `x`,
+      // so you can't fill via `for (; i < n_sets; i++) out.add_na_element();`.
+      for (; group < n_groups; group++) {
+        SEXP locs = VECTOR_ELT(priority_locs, group);
+        const int* p_locs = INTEGER(locs);
+        for (R_xlen_t j = 0; j < Rf_xlength(locs); j++) {
+          int i = p_locs[j] - 1;
+          p_out[i] = NA_LOGICAL;
+        }
+      }
+      return out;
+    }
+}
+
+template <bool PropagateNA, typename VectorX>
+LogicalVector has_overlaps_within_impl(const VectorX& x) {
+  R_xlen_t n_sets = x.n_sets();
+  if (n_sets == 0) return LogicalVector(0);
+
+  LogicalVector out(n_sets);
+  int* p_out = LOGICAL(out);
+
+  SetSwapBuffer cumunion;
+
+  Overlaps<false> overlaps_op{}; // Exclusive (), adjacent spans are not "un-overlapped"
+  Union union_op{};
+
+  R_xlen_t i = 0;
+  for (; i < n_sets; i++) {
+    auto x_i = x.view(i);
+
+    if constexpr (PropagateNA) {
+      if (x_i.is_na) goto fill_with_na;
+      if (x_i.is_hole()) {
+        continue; // p_out[i] = false; implicitly, since `out` is initialized to `FALSE`
+      }
+    } else {
+      if (x_i.is_na || x_i.is_hole()) {
+        continue; // p_out[i] = false; implicitly
+      }
+    }
+
+    // overlaps(x[i], cumunion)
+    p_out[i] = overlaps_op.apply_to_set(x_i, cumunion.view());
+
+    // cumunion <- union(x[i], cumunion)
+    union_op.apply_to_set(x_i, cumunion.view(), *cumunion.next);
+    cumunion.swap();
+  }
+
+  return out;
+
+  fill_with_na:
+  {
+    for (; i < n_sets; i++) p_out[i] = NA_LOGICAL;
+    return out;
+  }
+}
+
+// any overlaps ----------------------------------------------------------------
+
+template <bool KeepWithin, bool PropagateNA, typename VectorX>
+bool any_overlaps_between_impl(const VectorX& x, const List& priority_locs) {
+  R_xlen_t n_sets = x.n_sets();
+  if (n_sets == 0) return false;
+  R_xlen_t n_groups = priority_locs.length();
+
+  SetSwapBuffer within_group_cumunion;
+  SetSwapBuffer between_group_cumunion;
+
+  Overlaps<false> overlaps_op{}; // Exclusive (), adjacent spans are not "un-overlapped"
+  Union union_op{};
+
+  R_xlen_t group = 0;
+  for (; group < n_groups; group++) {
+    SEXP locs = VECTOR_ELT(priority_locs, group);
+    const int* p_locs = INTEGER(locs);
+    R_xlen_t group_size = Rf_xlength(locs);
+
+    for (R_xlen_t j = 0; j < group_size; j++) {
+      int i = p_locs[j] - 1;
+      auto x_i = x.view(i);
+
+      if constexpr (PropagateNA) {
+        if (x_i.is_na) return false;
+      } else {
+        if (x_i.is_na) continue;
+      }
+      if (x_i.is_hole()) continue;
+
+      // Check for between-group overlaps
+      if (overlaps_op.apply_to_set(x_i, between_group_cumunion.view())) return true;
+
+      // Check for within-group overlaps
+      if constexpr (!KeepWithin) {
+        if (overlaps_op.apply_to_set(x_i, within_group_cumunion.view())) return true;
+      }
+
+      // Update within-group mask: within_cumunion <- union(x_i, within_cumunion)
+      union_op.apply_to_set(x_i, within_group_cumunion.view(), *within_group_cumunion.next);
+      within_group_cumunion.swap();
+    } // Finished within-group overlap checking
+
+    // Update between-group mask: between_cumunion <- union(within_cumunion, between_cumunion)
+    if (group < n_groups - 1) {
+      union_op.apply_to_set(
+        within_group_cumunion.view(),
+        between_group_cumunion.view(),
+        *between_group_cumunion.next
+      );
+      between_group_cumunion.swap();
+      within_group_cumunion.clear();
+    }
+  } // Finished between-group overlap resolution
+
+  return false;
+}
+
+template <bool PropagateNA, typename VectorX>
+bool any_overlaps_within_impl(const VectorX& x) {
+  R_xlen_t n_sets = x.n_sets();
+  if (n_sets == 0) return false;
+
+  SetSwapBuffer cumunion;
+
+  Overlaps<false> overlaps_op{}; // Exclusive (), adjacent spans are not "un-overlapped"
+  Union union_op{};
+
+  R_xlen_t i = 0;
+  for (; i < n_sets; i++) {
+    auto x_i = x.view(i);
+
+    if constexpr (PropagateNA) {
+      if (x_i.is_na) return false;
+    } else {
+      if (x_i.is_na) continue;
+    }
+    if (x_i.is_hole()) continue;
+
+    if (overlaps_op.apply_to_set(x_i, cumunion.view())) return true;
+
+    union_op.apply_to_set(x_i, cumunion.view(), *cumunion.next);
+    cumunion.swap();
+  }
+
+  return false;
+}
