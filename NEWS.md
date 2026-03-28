@@ -2,6 +2,20 @@
 
 ## Features
 
+* New `phint_unoverlap()` resolves overlaps across elements of a `<phinterval>` vector by trimming each element against all preceding elements.
+  
+  * An optional `priority` argument groups elements by priority, so that lower-priority elements are trimmed against higher-priority elements instead of by row-order.
+  
+  * `priority_order` controls whether lower (`"asc"`) or higher (`"desc"`) priority values are processed first, or whether groups are processed in order of first appearance (`"appearance"`).
+  
+  * `within_priority` controls whether overlaps within the same priority group are resolved sequentially (`"sequential"`) or left as-is (`"keep"`).
+  
+  * `na_propagate` controls whether `NA` elements propagate to subsequent elements or lower-priority groups.
+
+* New `phint_has_overlaps()` returns a logical vector indicating which elements of a `<phinterval>` vector overlap with a preceding element. Accepts the same arguments as `phint_unoverlap()`.
+  
+  * New `phint_any_overlaps()` is a fast scalar equivalent to `any(phint_has_overlaps(...), na.rm = TRUE)`.
+
 * New `phint_cumunion()`, `phint_cumintersect()`, `phint_symmetric_setdiff()` to complete the family of set-operations.
 
   *  `phint_cumunion()` and `phint_cumintersect()` take the cumulative union and intersection of a phinterval respectively.
