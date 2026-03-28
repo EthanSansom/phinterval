@@ -37,6 +37,17 @@
 <div class="section level3">
 <h3 id="features-development-version">Features<a class="anchor" aria-label="anchor" href="#features-development-version"></a></h3>
 <ul><li>
+<p>New <code><a href="../reference/phint_unoverlap.html">phint_unoverlap()</a></code> resolves overlaps across elements of a <code>&lt;phinterval&gt;</code> vector by trimming each element against all preceding elements.</p>
+<ul><li><p>An optional <code>priority</code> argument groups elements by priority, so that lower-priority elements are trimmed against higher-priority elements instead of by row-order.</p></li>
+<li><p><code>priority_order</code> controls whether lower (<code>"asc"</code>) or higher (<code>"desc"</code>) priority values are processed first, or whether groups are processed in order of first appearance (<code>"appearance"</code>).</p></li>
+<li><p><code>within_priority</code> controls whether overlaps within the same priority group are resolved sequentially (<code>"sequential"</code>) or left as-is (<code>"keep"</code>).</p></li>
+<li><p><code>na_propagate</code> controls whether <code>NA</code> elements propagate to subsequent elements or lower-priority groups.</p></li>
+</ul></li>
+<li>
+<p>New <code><a href="../reference/phinterval-overlap-predicates.html">phint_has_overlaps()</a></code> returns a logical vector indicating which elements of a <code>&lt;phinterval&gt;</code> vector overlap with a preceding element. Accepts the same arguments as <code><a href="../reference/phint_unoverlap.html">phint_unoverlap()</a></code>.</p>
+<ul><li>New <code><a href="../reference/phinterval-overlap-predicates.html">phint_any_overlaps()</a></code> is a fast scalar equivalent to <code>any(phint_has_overlaps(...), na.rm = TRUE)</code>.</li>
+</ul></li>
+<li>
 <p>New <code><a href="../reference/phinterval-cumset-operations.html">phint_cumunion()</a></code>, <code><a href="../reference/phinterval-cumset-operations.html">phint_cumintersect()</a></code>, <code><a href="../reference/phinterval-set-operations.html">phint_symmetric_setdiff()</a></code> to complete the family of set-operations.</p>
 <ul><li><p><code><a href="../reference/phinterval-cumset-operations.html">phint_cumunion()</a></code> and <code><a href="../reference/phinterval-cumset-operations.html">phint_cumintersect()</a></code> take the cumulative union and intersection of a phinterval respectively.</p></li>
 <li><p><code><a href="../reference/phinterval-set-operations.html">phint_symmetric_setdiff()</a></code> takes the symmetric set-difference of two phintervals.</p></li>
